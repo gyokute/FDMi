@@ -10,6 +10,6 @@ namespace tech.gyoku.FDMi.v2.aerodynamics
 
     public class VorticityField : FDMiDynamicsBehaviour
     {
-        float[] Gamma = { 0f };
+        public float[] Gamma = { 0f };
     }
 }

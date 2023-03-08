@@ -16,7 +16,7 @@ MonoBehaviour:
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 258aa01ce9945c045a562b663d1458b9, type: 3}
-  scriptVersion: 0
+  scriptVersion: 2
   compiledVersion: 0
   behaviourSyncMode: 0
   hasInteractEvent: 0
