@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: WindProbe
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: dd06357edcd12b44c859800be5fb14bc,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 068470bdf5267274ea3d10232f090c12,
     type: 2}
   udonAssembly: 
   assemblyError: 

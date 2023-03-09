@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: AvionicsTerminal
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 3c92d2e916fc56f4faf322d3d6425915,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 66d43a984e819554ab4f33414415a4cc,
     type: 2}
   udonAssembly: 
   assemblyError: 

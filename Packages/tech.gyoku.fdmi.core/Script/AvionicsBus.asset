@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: AvionicsBus
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: ec8ce6dea5bb0114e87a42c7bc088df6,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: c0b0e5f26da60ba48b589c75fb02f241,
     type: 2}
   udonAssembly: 
   assemblyError: 
