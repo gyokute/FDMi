@@ -37,7 +37,6 @@ namespace tech.gyoku.FDMi.sync
                 onlyIsRoot.transform.position = Vector3.zero;
                 onlyIsRoot.transform.rotation = Quaternion.identity;
             }
-            isWorldAbsolute = true;
         }
 
         void FixedUpdate()

@@ -51,7 +51,6 @@ namespace tech.gyoku.FDMi.sync
                 else onlyIsRoot.SetActive(false);
             }
         }
-        public bool isWorldAbsolute = false;
         public int index;
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
         public GameObject onlyIsRoot;
@@ -63,7 +62,7 @@ namespace tech.gyoku.FDMi.sync
         public bool stopUpdate = true;
         public virtual void initReferencePoint()
         {
-            if (isWorldAbsolute || !parentRefPoint) parentRefPoint = syncManager;
+            if (!parentRefPoint) parentRefPoint = syncManager;
             rootRefPoint = syncManager;
             if (parentRefPoint) ParentIndex = parentRefPoint.index;
 
@@ -122,18 +121,6 @@ namespace tech.gyoku.FDMi.sync
         public Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
-            if (isWorldAbsolute) return getAbsolutePosition();
-            return _position + 1000f * kmPosition;
-        }
-        public Vector3 getViewPositionInterpolated()
-        {
-            Vector3 diff = getViewPosition();
-            if (Networking.IsOwner(gameObject)) oldPos = diff;
-            else oldPos = Vector3.Lerp(oldPos, diff, Time.deltaTime * 10f);
-            return diff;
-        }
-        private Vector3 getAbsolutePosition()
-        {
             Vector3 kmDiff = kmPosition;
             Vector3 diff = _position;
             Quaternion dir = Quaternion.identity;
@@ -147,11 +134,18 @@ namespace tech.gyoku.FDMi.sync
             return dir * diff;
         }
 
+        public Vector3 getViewPositionInterpolated()
+        {
+            Vector3 diff = getViewPosition();
+            if (!Networking.IsOwner(gameObject)) return diff;
+            else oldPos = Vector3.Lerp(oldPos, diff, Time.deltaTime * 10f);
+            return diff;
+        }
         public Quaternion getViewRotation()
         {
             if (isRoot) return Quaternion.identity;
-            if (isWorldAbsolute) return getAbsoluteRotation();
-            return direction;
+            if (!rootRefPoint) return direction;
+            return (direction * Quaternion.Inverse(rootRefPoint.direction)).normalized;
         }
         public Quaternion getViewRotationInterpolated()
         {
@@ -160,26 +154,14 @@ namespace tech.gyoku.FDMi.sync
             else oldRot = Quaternion.Slerp(oldRot, rot, Time.deltaTime * 10f);
             return oldRot;
         }
-
-        public Quaternion getAbsoluteRotation()
-        {
-            if (!rootRefPoint) return direction;
-            return (direction * Quaternion.Inverse(rootRefPoint.direction)).normalized;
-        }
         public void windupPositionAndRotation()
         {
             oldPos = getViewPosition();
             oldRot = getViewRotation();
-            if (isWorldAbsolute)
-            {
-                transform.position = oldPos;
-                transform.rotation = oldRot;
-            }
-            else
-            {
-                transform.localPosition = oldPos;
-                transform.localRotation = oldRot;
-            }
+
+            transform.position = oldPos;
+            transform.rotation = oldRot;
+
             if (body)
             {
                 body.position = transform.position;
@@ -216,16 +198,8 @@ namespace tech.gyoku.FDMi.sync
         #endregion
         public virtual void Update()
         {
-            if (isRoot)
-            {
-                transform.position = Vector3.zero;
-                transform.rotation = Quaternion.identity;
-            }
-            else
-            {
-                transform.localRotation = getViewRotationInterpolated();
-                transform.localPosition = getViewPositionInterpolated();
-            }
+            transform.rotation = getViewRotationInterpolated();
+            transform.position = getViewPositionInterpolated();
         }
     }
 }

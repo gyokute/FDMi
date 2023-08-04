@@ -16,7 +16,6 @@ namespace tech.gyoku.FDMi.sync
         {
             transform.position = Vector3.zero;
             transform.rotation = Quaternion.identity;
-            isWorldAbsolute = true;
             localRootRefPoint = this;
             ParentIndex = -1;
             for (int i = 0; i < refPoints.Length; i++)

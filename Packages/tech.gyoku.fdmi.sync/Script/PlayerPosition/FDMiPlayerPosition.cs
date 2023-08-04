@@ -125,8 +125,8 @@ namespace tech.gyoku.FDMi.sync
 
             if (!isMine)
             {
-                transform.localPosition = getViewPositionInterpolated();
-                transform.localRotation = getViewRotationInterpolated();
+                transform.position = getViewPositionInterpolated();
+                transform.rotation = getViewRotationInterpolated();
             }
         }
         #endregion

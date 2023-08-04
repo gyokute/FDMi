@@ -11,7 +11,6 @@ namespace tech.gyoku.FDMi.sync
     {
         public override void initReferencePoint()
         {
-            isWorldAbsolute = false;
             base.initReferencePoint();
         }
     }
