@@ -45,7 +45,7 @@ namespace tech.gyoku.FDMi.sync
             }
         }
 
-        public override void Update()
+        public void Update()
         {
             if (stopUpdate) return;
             if (Networking.IsOwner(gameObject))

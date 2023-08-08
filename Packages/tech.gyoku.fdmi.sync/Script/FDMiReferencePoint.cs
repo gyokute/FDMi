@@ -9,29 +9,31 @@ namespace tech.gyoku.FDMi.sync
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiReferencePoint : UdonSharpBehaviour
     {
+
+        [HideInInspector] public int index; // use in FDMiRelativeObjectSyncManager.Identify FDMiReferencePoint.
         public FDMiRelativeObjectSyncManager syncManager;
         public Rigidbody body;
-        [UdonSynced, FieldChangeCallback(nameof(Position))] public Vector3 _position;
+        private Vector3 _position;
         public Vector3 Position
         {
             get => _position;
             set { _position = value; }
         }
-        [UdonSynced, FieldChangeCallback(nameof(direction))] public Quaternion _direction;
+        public Quaternion _direction;
         public Quaternion direction
         {
             get => _direction;
             set { _direction = value; }
         }
 
-        [UdonSynced, FieldChangeCallback(nameof(kmPosition))] public Vector3 _kmPosition;
+        [UdonSynced, FieldChangeCallback(nameof(kmPosition))] private Vector3 _kmPosition;
         public Vector3 kmPosition
         {
             get => _kmPosition;
             set { _kmPosition = value; handleChangeKmPosition(); }
         }
 
-        [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] public int _parentIndex;
+        [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] private int _parentIndex;
         public int ParentIndex
         {
             get => _parentIndex;
@@ -51,14 +53,11 @@ namespace tech.gyoku.FDMi.sync
                 else onlyIsRoot.SetActive(false);
             }
         }
-        public int index;
+
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
         public GameObject onlyIsRoot;
 
         #region RelativePosition
-        public Vector3 oldPos = Vector3.zero;
-        public Quaternion oldRot;
-        public Vector3 prevRelativePos;
         public bool stopUpdate = true;
         public virtual void initReferencePoint()
         {
@@ -138,7 +137,6 @@ namespace tech.gyoku.FDMi.sync
         {
             Vector3 diff = getViewPosition();
             if (!Networking.IsOwner(gameObject)) return diff;
-            else oldPos = Vector3.Lerp(oldPos, diff, Time.deltaTime * 10f);
             return diff;
         }
         public Quaternion getViewRotation()
@@ -150,23 +148,12 @@ namespace tech.gyoku.FDMi.sync
         public Quaternion getViewRotationInterpolated()
         {
             Quaternion rot = getViewRotation();
-            if (Networking.IsOwner(gameObject)) oldRot = rot;
-            else oldRot = Quaternion.Slerp(oldRot, rot, Time.deltaTime * 10f);
-            return oldRot;
+            return rot;
         }
         public void windupPositionAndRotation()
         {
-            oldPos = getViewPosition();
-            oldRot = getViewRotation();
-
-            transform.position = oldPos;
-            transform.rotation = oldRot;
-
-            if (body)
-            {
-                body.position = transform.position;
-                body.rotation = transform.rotation;
-            }
+            transform.position = getViewPosition();
+            transform.rotation = getViewRotation();
         }
 
         public virtual bool setPosition(Vector3 pos)
@@ -196,10 +183,5 @@ namespace tech.gyoku.FDMi.sync
 
         public virtual void handleChangeKmPosition() { }
         #endregion
-        public virtual void Update()
-        {
-            transform.rotation = getViewRotation();
-            transform.position = getViewPosition();
-        }
     }
 }

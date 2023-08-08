@@ -77,7 +77,9 @@ namespace tech.gyoku.FDMi.sync
             if (!gameObject.activeSelf || !isMine) return;
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
-            Vector3 teleportPos = Position - syncManager.localRootRefPoint.transform.position;
+            if (value < 0) return;
+            parentRefPoint = syncManager.refPoints[value];
+            Vector3 teleportPos = direction * Quaternion.Inverse(parentRefPoint.direction) * Position - parentRefPoint.transform.position;
             localPlayer.TeleportTo(teleportPos, getViewRotation(), VRC_SceneDescriptor.SpawnOrientation.Default, false);
         }
 
@@ -112,7 +114,7 @@ namespace tech.gyoku.FDMi.sync
         }
 
         Vector3 moveVec = Vector3.zero;
-        public override void Update()
+        public void Update()
         {
             if (isMine)
             {

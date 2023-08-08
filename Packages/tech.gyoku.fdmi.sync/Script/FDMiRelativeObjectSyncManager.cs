@@ -6,7 +6,7 @@ using VRC.Udon;
 
 namespace tech.gyoku.FDMi.sync
 {
-    public class FDMiRelativeObjectSyncManager : FDMiReferencePoint
+    public class FDMiRelativeObjectSyncManager : FDMiRelativeGroundSync
     {
         public Vector3 respawnPoint = Vector3.zero;
         public FDMiReferencePoint[] refPoints;
