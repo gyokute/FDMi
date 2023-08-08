@@ -145,7 +145,7 @@ namespace tech.gyoku.FDMi.sync
         {
             if (isRoot) return Quaternion.identity;
             if (!rootRefPoint) return direction;
-            return (direction * Quaternion.Inverse(rootRefPoint.direction)).normalized;
+            return (Quaternion.Inverse(rootRefPoint.direction) * direction).normalized;
         }
         public Quaternion getViewRotationInterpolated()
         {
@@ -198,8 +198,8 @@ namespace tech.gyoku.FDMi.sync
         #endregion
         public virtual void Update()
         {
-            transform.rotation = getViewRotationInterpolated();
-            transform.position = getViewPositionInterpolated();
+            transform.rotation = getViewRotation();
+            transform.position = getViewPosition();
         }
     }
 }

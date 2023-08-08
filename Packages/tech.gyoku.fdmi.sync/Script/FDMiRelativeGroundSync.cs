@@ -13,5 +13,12 @@ namespace tech.gyoku.FDMi.sync
         {
             base.initReferencePoint();
         }
+
+        public override void Update() { }
+        public void LateUpdate()
+        {
+            transform.rotation = getViewRotation();
+            transform.position = getViewPosition();
+        }
     }
 }

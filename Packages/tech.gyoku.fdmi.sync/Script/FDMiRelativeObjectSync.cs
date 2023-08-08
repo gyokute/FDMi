@@ -7,14 +7,14 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeObjectSync : FDMiReferencePoint
     {
-        Vector3 tpos = Vector3.zero;
-        Quaternion trot = Quaternion.identity, prevBodyRot;
-        Vector3 prevBodyPos;
+        Quaternion prevRootRot = Quaternion.identity;
+        Vector3 prevRootPos = Vector3.zero;
+        public Vector3 gravity = new Vector3(0, -9.8f, 0);
         Rigidbody rootBody;
+
         public override void waitUpdate()
         {
             base.waitUpdate();
-            tpos = Vector3.zero;
             rootBody = syncManager.localRootRefPoint.body;
         }
 
@@ -29,9 +29,6 @@ namespace tech.gyoku.FDMi.sync
             Position = transform.position;
             direction = transform.rotation;
 
-            prevBodyPos = transform.position;
-            prevBodyRot = transform.rotation;
-
             if (onlyIsRoot)
             {
                 onlyIsRoot.transform.position = Vector3.zero;
@@ -41,25 +38,10 @@ namespace tech.gyoku.FDMi.sync
 
         void FixedUpdate()
         {
-            if (!Networking.IsOwner(gameObject)) return;
-            if (isRoot)
+            if (Networking.IsOwner(gameObject) && isRoot)
             {
-                tpos += body.position;
-                body.position = Vector3.zero;
-                trot *= body.rotation;
-                body.rotation = Quaternion.identity;
-            }
-            else
-            {
-                Vector3 diff = body.position - prevBodyPos;
-                tpos += diff;
-                prevBodyPos = tpos + transform.position;
-                body.position = prevBodyPos;
-
-                Quaternion diffrot = body.rotation * Quaternion.Inverse(prevBodyRot);
-                trot *= diffrot;
-                prevBodyRot = (transform.rotation * trot).normalized;
-                body.rotation = prevBodyRot;
+                Vector3 g = Quaternion.Inverse(direction) * body.rotation * gravity;
+                body.AddForce(g, ForceMode.Acceleration);
             }
         }
 
@@ -68,39 +50,37 @@ namespace tech.gyoku.FDMi.sync
             if (stopUpdate) return;
             if (Networking.IsOwner(gameObject))
             {
-                Quaternion dir = (direction * trot).normalized;
+                Quaternion btr = body.transform.rotation;
+                Vector3 btp = body.transform.position;
+                Quaternion dir;
                 if (isRoot)
                 {
-                    setPosition(dir * tpos + Position);
-                    setRotation(dir);
-                }
-                else
-                {
-                    dir *= Quaternion.Inverse(rootRefPoint.direction);
-                    Vector3 tmp = dir * tpos + Position;
-                    setPosition(tmp);
-                    prevBodyPos = getViewPosition();
-                    body.position = prevBodyPos;
-                    transform.position = prevBodyPos;
-                    setRotation((direction * trot).normalized);
-                    prevBodyRot = getViewRotation();
-                    body.rotation = prevBodyRot;
-                    transform.rotation = prevBodyRot;
-                }
-                RequestSerialization();
-            }
-            else
-            {
-                tpos = getViewPositionInterpolated();
-                trot = getViewRotationInterpolated();
-                transform.rotation = trot;
-                transform.position = tpos;
-                body.rotation = trot;
-                body.position = tpos;
-            }
+                    setRotation((btr * direction).normalized);
+                    setPosition(direction * btp + Position);
+                    Vector3 tvel = Quaternion.Inverse(btr) * body.velocity;
+                    Vector3 angVel = Quaternion.Inverse(btr) * body.angularVelocity;
 
-            tpos = Vector3.zero;
-            trot = Quaternion.identity;
+                    body.transform.position = Vector3.zero;
+                    body.transform.rotation = Quaternion.identity;
+                    body.velocity = tvel;
+                    body.angularVelocity = angVel;
+                    RequestSerialization();
+                }
+            }
+        }
+        public void LateUpdate()
+        {
+            if (!Networking.IsOwner(gameObject))
+            {
+                body.transform.rotation = getViewRotationInterpolated();
+                body.transform.position = getViewPositionInterpolated();
+                return;
+            }
+            if (!isRoot)
+            {
+                body.transform.position = getViewPosition();
+                body.transform.rotation = getViewRotation();
+            }
         }
     }
 }
