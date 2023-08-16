@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 
 
-namespace tech.gyoku.FDMi.v2.core.editor
+namespace tech.gyoku.FDMi.core.editor
 {
     public static class FDMiEditorUI
     {
