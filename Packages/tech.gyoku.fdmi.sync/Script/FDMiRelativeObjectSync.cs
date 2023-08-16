@@ -62,7 +62,6 @@ namespace tech.gyoku.FDMi.sync
             {
                 Quaternion btr = body.transform.rotation;
                 Vector3 btp = body.transform.position;
-                Quaternion dir;
                 if (isRoot)
                 {
                     setRotation((btr * direction).normalized);
