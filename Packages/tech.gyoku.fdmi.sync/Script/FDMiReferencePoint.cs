@@ -48,14 +48,13 @@ namespace tech.gyoku.FDMi.sync
             set
             {
                 _isRoot = value;
-                if (!onlyIsRoot) return;
-                if (value) onlyIsRoot.SetActive(true);
-                else onlyIsRoot.SetActive(false);
+                if (onlyIsRoot) onlyIsRoot.SetActive(value);
+                if (onlyNotRoot) onlyNotRoot.SetActive(!value);
             }
         }
 
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
-        public GameObject onlyIsRoot;
+        public GameObject onlyIsRoot, onlyNotRoot;
 
         #region RelativePosition
         public bool stopUpdate = true;
@@ -71,6 +70,7 @@ namespace tech.gyoku.FDMi.sync
                 onlyIsRoot.transform.position = Vector3.zero;
                 onlyIsRoot.transform.rotation = Quaternion.identity;
             }
+            if (onlyNotRoot) onlyIsRoot.SetActive(true);
             waitUpdate();
         }
 
