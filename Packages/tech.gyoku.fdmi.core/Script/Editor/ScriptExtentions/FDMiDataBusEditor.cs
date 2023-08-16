@@ -28,6 +28,7 @@ namespace tech.gyoku.FDMi.core.editor
             debugFoldOut = EditorGUILayout.Foldout(debugFoldOut, "入力後データ");
             if (debugFoldOut) base.OnInspectorGUI();
 
+            FDMiEditorUI.PropertyField(serializedObject, nameof(tgt.busName));
             using (new EditorGUILayout.HorizontalScope())
             {
                 foldOut = EditorGUILayout.Foldout(foldOut, "Paramators");
