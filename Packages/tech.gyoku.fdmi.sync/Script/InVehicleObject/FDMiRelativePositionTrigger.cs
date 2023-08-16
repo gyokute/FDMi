@@ -9,6 +9,7 @@ namespace tech.gyoku.FDMi.sync
     {
         FDMiRelativeObjectSyncManager syncManager;
         public FDMiReferencePoint refPoint;
+        [SerializeField] bool detectEnter = true, detectExit = true;
         bool enableOnExit = true;
 
         void Start()
@@ -17,7 +18,8 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnPlayerTriggerEnter(VRCPlayerApi player)
         {
-            if (player.isLocal && enableOnExit && !refPoint.isRoot)
+            if(!detectEnter)return;
+            if (player.isLocal && enableOnExit && syncManager.isRoot)
             {
                 syncManager.changeRootRefPoint(refPoint);
                 enableOnExit = false;
@@ -31,6 +33,7 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnPlayerTriggerExit(VRCPlayerApi player)
         {
+            if(!detectExit)return;
             if (player.isLocal && refPoint.isRoot && enableOnExit)
             {
                 syncManager.changeRootRefPoint(syncManager);
