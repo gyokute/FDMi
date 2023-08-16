@@ -18,8 +18,8 @@ namespace tech.gyoku.FDMi.sync
                 return;
             }
 
-            Position = transform.position;
-            direction = transform.rotation;
+            setPosition(body.position);
+            direction = body.rotation;
 
             if (onlyIsRoot)
             {
@@ -41,9 +41,15 @@ namespace tech.gyoku.FDMi.sync
 
         void FixedUpdate()
         {
-            if (Networking.IsOwner(gameObject) && isRoot)
+            if (!Networking.IsOwner(gameObject)) return;
+            if (isRoot)
             {
                 Vector3 g = Quaternion.Inverse(direction) * body.rotation * gravity;
+                body.AddForce(g, ForceMode.Acceleration);
+            }
+            if (parentRefPoint.index == rootRefPoint.index)
+            {
+                Vector3 g = Quaternion.Inverse(parentRefPoint.direction) * body.rotation * gravity;
                 body.AddForce(g, ForceMode.Acceleration);
             }
         }
@@ -73,14 +79,14 @@ namespace tech.gyoku.FDMi.sync
         }
         public void LateUpdate()
         {
-            if (stopUpdate) return;
+            if (stopUpdate || isRoot) return;
             if (!Networking.IsOwner(gameObject))
             {
                 body.transform.rotation = getViewRotationInterpolated();
                 body.transform.position = getViewPositionInterpolated();
                 return;
             }
-            if (!isRoot)
+            if (parentRefPoint.index != rootRefPoint.index)
             {
                 body.transform.position = getViewPosition();
                 body.transform.rotation = getViewRotation();

@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.sync
     public class FDMiRelativePositionTrigger : UdonSharpBehaviour
     {
         FDMiRelativeObjectSyncManager syncManager;
-        public FDMiReferencePoint refPoint, groundRefPoint;
+        public FDMiReferencePoint refPoint;
         bool enableOnExit = true;
 
         void Start()

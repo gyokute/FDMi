@@ -11,6 +11,7 @@ namespace tech.gyoku.FDMi.sync
     {
 
         [HideInInspector] public int index; // use in FDMiRelativeObjectSyncManager.Identify FDMiReferencePoint.
+        public bool parentIsRoot;// use in FDMiRelativeObjectSyncManager.
         public FDMiRelativeObjectSyncManager syncManager;
         public Rigidbody body;
         [UdonSynced, FieldChangeCallback(nameof(Position))] public Vector3 _position;
@@ -74,12 +75,12 @@ namespace tech.gyoku.FDMi.sync
             waitUpdate();
         }
 
-        [SerializeField] bool careIsKinematic;
+        [SerializeField] bool careIsKinematic = true;
+        bool kinematicFlag = false;
         public virtual void waitUpdate()
         {
             if (!body) return;
-            careIsKinematic = (careIsKinematic || !body.isKinematic);
-            body.isKinematic = true;
+            setKinematic();
             turnOnStopUpdate();
             SendCustomEventDelayedFrames(nameof(turnOffStopUpdate), 5);
         }
@@ -91,10 +92,30 @@ namespace tech.gyoku.FDMi.sync
         public void turnOffStopUpdate()
         {
             stopUpdate = false;
-            if (careIsKinematic && Networking.IsOwner(gameObject)) body.isKinematic = false;
-            careIsKinematic = false;
+            unsetKinematic();
+        }
+        public void setKinematic()
+        {
+            kinematicFlag = kinematicFlag || (careIsKinematic && !body.isKinematic);
+            body.isKinematic = true;
+        }
+        public void unsetKinematic()
+        {
+            if (kinematicFlag)
+            {
+                body.isKinematic = false;
+                kinematicFlag = false;
+            }
         }
 
+        public void onChangeRootRefPoint(FDMiReferencePoint refPoint)
+        {
+            rootRefPoint = refPoint;
+            parentIsRoot = (parentRefPoint.index == refPoint.index);
+            windupPositionAndRotation();
+            if (body && (!isRoot && !parentIsRoot))
+                body.isKinematic = true;
+        }
         public void changeParentRefPoint(FDMiReferencePoint refPoint)
         {
             if (!isRoot)
@@ -130,7 +151,7 @@ namespace tech.gyoku.FDMi.sync
                 diff -= rootRefPoint.Position;
                 dir = Quaternion.Inverse(rootRefPoint.direction);
             }
-            diff += 1000f * kmDiff;
+            diff += 1000f * (kmDiff - syncManager.localPlayerPosition.kmPosition);
             return dir * diff;
         }
 
@@ -168,7 +189,7 @@ namespace tech.gyoku.FDMi.sync
                 {
                     updateKmPos = true;
                     float s = Mathf.Sign(v[i]);
-                    a = s * Mathf.Round(a * 0.001f + 0.5f);
+                    a = s * Mathf.Round(a * 0.001f + 0.25000001f);
                     k[i] += a;
                     v[i] -= a * 1000f;
                 }

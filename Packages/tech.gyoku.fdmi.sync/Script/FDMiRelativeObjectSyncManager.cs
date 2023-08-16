@@ -6,7 +6,7 @@ using VRC.Udon;
 
 namespace tech.gyoku.FDMi.sync
 {
-    public class FDMiRelativeObjectSyncManager : FDMiRelativeGroundSync
+    public class FDMiRelativeObjectSyncManager : FDMiReferencePoint
     {
         public Vector3 respawnPoint = Vector3.zero;
         public FDMiReferencePoint[] refPoints;
@@ -23,6 +23,22 @@ namespace tech.gyoku.FDMi.sync
             for (int i = 0; i < refPoints.Length; i++)
                 refPoints[i].initReferencePoint();
         }
+
+        public void LateUpdate()
+        {
+            transform.rotation = getViewRotation();
+            transform.position = getViewPosition();
+        }
+
+        public void onChangeLocalPlayerKMPosition()
+        {
+            for (int i = 0; i < refPoints.Length; i++)
+            {
+                refPoints[i].waitUpdate();
+                refPoints[i].windupPositionAndRotation();
+            }
+        }
+
         public void changeRootRefPoint(FDMiReferencePoint target)
         {
             if (localRootRefPoint.index != index && target.index != index)
@@ -48,8 +64,9 @@ namespace tech.gyoku.FDMi.sync
             localPlayerPosition.transform.SetParent(target.transform);
 
             for (int i = 0; i < refPoints.Length; i++)
-                refPoints[i].rootRefPoint = target;
-
+            {
+                refPoints[i].onChangeRootRefPoint(target);
+            }
             target.windupPositionAndRotation();
             prevRoot.windupPositionAndRotation();
         }

@@ -9,6 +9,11 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeGroundSync : FDMiReferencePoint
     {
+        void Start()
+        {
+            setPosition(transform.position);
+            direction = transform.rotation;
+        }
         public void LateUpdate()
         {
             transform.rotation = getViewRotation();

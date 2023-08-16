@@ -26,6 +26,7 @@ namespace tech.gyoku.FDMi.sync
             {
                 FDMiPlayerPosition lpp = syncManager.localPlayerPosition;
                 lpp.inVehicle = false;
+                if (!refPoint.isRoot) syncManager.changeRootRefPoint(refPoint);
             }
         }
 
