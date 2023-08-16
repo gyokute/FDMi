@@ -17,6 +17,7 @@ namespace tech.gyoku.FDMi.sync
                 gameObject.SetActive(false);
                 return;
             }
+            body.useGravity = false;
 
             setPosition(body.position);
             direction = body.rotation;
@@ -49,7 +50,7 @@ namespace tech.gyoku.FDMi.sync
             }
             if (parentRefPoint.index == rootRefPoint.index)
             {
-                Vector3 g = Quaternion.Inverse(parentRefPoint.direction) * body.rotation * gravity;
+                Vector3 g = Quaternion.Inverse(parentRefPoint.direction) * gravity;
                 body.AddForce(g, ForceMode.Acceleration);
             }
         }
