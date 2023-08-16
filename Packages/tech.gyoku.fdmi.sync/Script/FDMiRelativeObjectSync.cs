@@ -7,16 +7,8 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeObjectSync : FDMiReferencePoint
     {
-        Quaternion prevRootRot = Quaternion.identity;
-        Vector3 prevRootPos = Vector3.zero;
         public Vector3 gravity = new Vector3(0, -9.8f, 0);
-        Rigidbody rootBody;
 
-        public override void waitUpdate()
-        {
-            base.waitUpdate();
-            rootBody = syncManager.localRootRefPoint.body;
-        }
 
         void Start()
         {
