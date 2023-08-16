@@ -36,6 +36,17 @@ namespace tech.gyoku.FDMi.sync
             }
         }
 
+        public override void windupPositionAndRotation()
+        {
+            if (body)
+            {
+                body.position = getViewPosition();
+                body.rotation = getViewRotation();
+            }
+            body.transform.position = getViewPosition();
+            body.transform.rotation = getViewRotation();
+        }
+
         void FixedUpdate()
         {
             if (Networking.IsOwner(gameObject) && isRoot)
@@ -70,6 +81,7 @@ namespace tech.gyoku.FDMi.sync
         }
         public void LateUpdate()
         {
+            if (stopUpdate) return;
             if (!Networking.IsOwner(gameObject))
             {
                 body.transform.rotation = getViewRotationInterpolated();

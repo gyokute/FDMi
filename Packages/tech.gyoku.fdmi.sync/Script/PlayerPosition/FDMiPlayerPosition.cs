@@ -45,7 +45,6 @@ namespace tech.gyoku.FDMi.sync
         public void attachPlayer(VRCPlayerApi tgtPlayer)
         {
             Player = tgtPlayer;
-            gameObject.SetActive(true);
             localPlayer = Networking.LocalPlayer;
             isUserInVR = localPlayer.IsUserInVR();
             if (tgtPlayer.isLocal)
@@ -64,6 +63,7 @@ namespace tech.gyoku.FDMi.sync
                 isMine = false;
                 station.PlayerMobility = VRCStation.Mobility.ImmobilizeForVehicle;
             }
+            gameObject.SetActive(true);
         }
 
         public void useSeat()
@@ -73,14 +73,17 @@ namespace tech.gyoku.FDMi.sync
 
         public override void handleParentIndex(int value)
         {
+            FDMiReferencePoint prevPRP = parentRefPoint;
             base.handleParentIndex(value);
             if (!gameObject.activeSelf || !isMine) return;
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
             if (value < 0) return;
-            parentRefPoint = syncManager.refPoints[value];
-            Vector3 teleportPos = direction * Quaternion.Inverse(parentRefPoint.direction) * Position - parentRefPoint.transform.position;
-            localPlayer.TeleportTo(teleportPos, getViewRotation(), VRC_SceneDescriptor.SpawnOrientation.Default, false);
+            Vector3 teleportPos = prevPRP.direction * (Position + 1000f * kmPosition);
+            teleportPos += prevPRP.Position - parentRefPoint.Position;
+            teleportPos = Quaternion.Inverse(parentRefPoint.direction) * teleportPos;
+            Quaternion teleportRot = Quaternion.Inverse(parentRefPoint.direction) * prevPRP.direction * direction;
+            localPlayer.TeleportTo(teleportPos, teleportRot, VRC_SceneDescriptor.SpawnOrientation.Default, false);
         }
 
         #region station events
@@ -112,8 +115,24 @@ namespace tech.gyoku.FDMi.sync
             }
             if (Player.playerId == player.playerId) gameObject.SetActive(false);
         }
+        #endregion
 
-        Vector3 moveVec = Vector3.zero;
+        public override Vector3 getViewPosition()
+        {
+            if (isRoot) return Vector3.zero;
+            Vector3 kmDiff = kmPosition;
+            Vector3 diff = Position;
+            Quaternion dir = Quaternion.identity;
+            diff += 1000f * kmDiff;
+            return dir * diff;
+        }
+
+        public override Quaternion getViewRotation()
+        {
+            if (isRoot) return Quaternion.identity;
+            return direction;
+        }
+
         public void Update()
         {
             if (isMine)
@@ -121,16 +140,11 @@ namespace tech.gyoku.FDMi.sync
                 setPosition(localPlayer.GetPosition());
                 direction = localPlayer.GetRotation();
                 RequestSerialization();
+                return;
             }
 
-            if (Player == null) { Player = Networking.GetOwner(gameObject); }
-
-            if (!isMine)
-            {
-                transform.position = getViewPositionInterpolated();
-                transform.rotation = getViewRotationInterpolated();
-            }
+            transform.localPosition = getViewPosition();
+            transform.localRotation = getViewRotation();
         }
-        #endregion
     }
 }

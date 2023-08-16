@@ -13,31 +13,31 @@ namespace tech.gyoku.FDMi.sync
         [HideInInspector] public int index; // use in FDMiRelativeObjectSyncManager.Identify FDMiReferencePoint.
         public FDMiRelativeObjectSyncManager syncManager;
         public Rigidbody body;
-        private Vector3 _position;
+        [UdonSynced, FieldChangeCallback(nameof(Position))] public Vector3 _position;
         public Vector3 Position
         {
             get => _position;
             set { _position = value; }
         }
-        public Quaternion _direction;
+        [UdonSynced, FieldChangeCallback(nameof(direction))] public Quaternion _direction;
         public Quaternion direction
         {
             get => _direction;
             set { _direction = value; }
         }
 
-        [UdonSynced, FieldChangeCallback(nameof(kmPosition))] private Vector3 _kmPosition;
+        [UdonSynced, FieldChangeCallback(nameof(kmPosition))] public Vector3 _kmPosition;
         public Vector3 kmPosition
         {
             get => _kmPosition;
-            set { _kmPosition = value; handleChangeKmPosition(); }
+            set { handleChangeKmPosition(value); }
         }
 
         [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] private int _parentIndex;
         public int ParentIndex
         {
             get => _parentIndex;
-            set { _parentIndex = value; handleParentIndex(value); }
+            set { handleParentIndex(value); }
         }
         public Vector3 velocity;
 
@@ -105,6 +105,7 @@ namespace tech.gyoku.FDMi.sync
         public virtual void handleParentIndex(int value)
         {
             turnOnStopUpdate();
+            _parentIndex = value;
             SendCustomEventDelayedFrames(nameof(turnOffStopUpdate), 2);
             if (value >= 0)
             {
@@ -117,7 +118,7 @@ namespace tech.gyoku.FDMi.sync
             }
         }
 
-        public Vector3 getViewPosition()
+        public virtual Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
             Vector3 kmDiff = kmPosition;
@@ -139,7 +140,7 @@ namespace tech.gyoku.FDMi.sync
             if (!Networking.IsOwner(gameObject)) return diff;
             return diff;
         }
-        public Quaternion getViewRotation()
+        public virtual Quaternion getViewRotation()
         {
             if (isRoot) return Quaternion.identity;
             if (!rootRefPoint) return direction;
@@ -150,7 +151,7 @@ namespace tech.gyoku.FDMi.sync
             Quaternion rot = getViewRotation();
             return rot;
         }
-        public void windupPositionAndRotation()
+        public virtual void windupPositionAndRotation()
         {
             transform.position = getViewPosition();
             transform.rotation = getViewRotation();
@@ -181,7 +182,7 @@ namespace tech.gyoku.FDMi.sync
             direction = rot;
         }
 
-        public virtual void handleChangeKmPosition() { }
+        public virtual void handleChangeKmPosition(Vector3 value) { _kmPosition = value; }
         #endregion
     }
 }
