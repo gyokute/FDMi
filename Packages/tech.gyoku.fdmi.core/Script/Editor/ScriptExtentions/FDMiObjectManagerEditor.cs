@@ -31,9 +31,6 @@ namespace tech.gyoku.FDMi.core.editor
                     if (property.name == nameof(tgt.attributes))
                         if (FDMiEditorUI.Button("Find"))
                             FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
-                    if (property.name == nameof(tgt.data))
-                        if (FDMiEditorUI.Button("Find"))
-                            FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiDataBus>(tgt));
                 }
             }
 

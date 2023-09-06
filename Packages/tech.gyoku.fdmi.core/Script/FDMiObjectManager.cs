@@ -10,65 +10,56 @@ namespace tech.gyoku.FDMi.core
     {
         public Rigidbody body;
         public FDMiAttribute[] attributes;
-        public FDMiDataBus[] data;
-        public VRCStation[] stations;
+        public bool isOwner;
 
         void Start()
         {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].init();
+            SendEventToAttribute("init");
         }
 
-        public void EVT_O_Enter()
+        [RecursiveMethod]
+        public void SendEventToAttribute(string eventName)
         {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_O_Enter();
+            foreach (FDMiAttribute att in attributes)
+                if (att) att.SendCustomEvent(eventName);
         }
-        public void EVT_O_Exit()
+        #region ownership management
+        private void takeOwnerOfAttribute()
         {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_O_Exit();
+            foreach (FDMiAttribute att in attributes)
+                if (att) Networking.SetOwner(Networking.LocalPlayer, att.gameObject);
         }
-        public void EVT_G_PilotChanged()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_G_PilotChanged();
-        }
-        public void EVT_G_PassengerEnter()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_G_PassengerEnter();
-        }
-        public void EVT_G_PassengerExit()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_G_PassengerExit();
-        }
-        public void EVT_O_TakeOwnership()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_O_TakeOwnership();
-        }
-        public void EVT_O_LoseOwnership()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_O_LoseOwnership();
-        }
-        public void EVT_G_Explode()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_G_Explode();
-        }
-        public void ResetStatus()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].ResetStatus();
-        }
-        public void EVT_O_OnPlayerJoined()
-        {
-            for (int i = 0; i < attributes.Length; i++)
-                attributes[i].EVT_O_OnPlayerJoined();
-        }
+        #endregion
 
+        #region global events
+        private void OnEnable()
+        {
+            SendEventToAttribute("FDMi_L_OnEnable");
+        }
+        private void OnDisable()
+        {
+            SendEventToAttribute("FDMi_L_OnDisable");
+        }
+        public override void OnOwnershipTransferred(VRCPlayerApi player)
+        {
+            if (player.isLocal)
+            {
+                isOwner = true;
+                takeOwnerOfAttribute();
+                SendEventToAttribute("FDMi_O_TakeOwnership");
+            }
+            if (!player.isLocal && isOwner)
+            {
+                isOwner = false;
+                SendEventToAttribute("FDMi_O_LoseOwnership");
+            }
+            SendEventToAttribute("FDMi_L_OwnershipTransfer");
+        }
+        public override void OnPlayerJoined(VRCPlayerApi player)
+        {
+            if (isOwner)
+            { SendEventToAttribute("FDMi_O_OnPlayerJoined"); }
+        }
+        #endregion
     }
 }
