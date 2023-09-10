@@ -33,6 +33,12 @@ namespace tech.gyoku.FDMi.sync
             get => _kmPosition;
             set { handleChangeKmPosition(value); }
         }
+        [UdonSynced, FieldChangeCallback(nameof(kmPosition))] public Vector3 velocity;
+        public Vector3 Velocity
+        {
+            get => velocity;
+            set { velocity = value; }
+        }
 
         [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] private int _parentIndex;
         public int ParentIndex
@@ -40,7 +46,6 @@ namespace tech.gyoku.FDMi.sync
             get => _parentIndex;
             set { handleParentIndex(value); }
         }
-        public Vector3 velocity;
 
         public bool _isRoot = false;
         public bool isRoot

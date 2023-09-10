@@ -66,6 +66,7 @@ namespace tech.gyoku.FDMi.sync
                 {
                     setRotation((btr * direction).normalized);
                     setPosition(direction * btp + Position);
+                    velocity = direction * body.velocity;
                     Vector3 tvel = Quaternion.Inverse(btr) * body.velocity;
                     Vector3 angVel = Quaternion.Inverse(btr) * body.angularVelocity;
 
@@ -73,6 +74,13 @@ namespace tech.gyoku.FDMi.sync
                     body.transform.rotation = Quaternion.identity;
                     body.velocity = tvel;
                     body.angularVelocity = angVel;
+                    RequestSerialization();
+                }
+                if (parentRefPoint.index == rootRefPoint.index)
+                {
+                    setRotation((btr * parentRefPoint.direction).normalized);
+                    setPosition(parentRefPoint.direction * btp + parentRefPoint.Position);
+                    velocity = parentRefPoint.direction * body.velocity;
                     RequestSerialization();
                 }
             }
