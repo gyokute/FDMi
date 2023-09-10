@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
     public class FDMiAttribute : UdonSharpBehaviour
     {
         #region paramators
-        [SerializeField] private FDMiObjectManager objectManager;
+        public FDMiObjectManager objectManager;
         [System.NonSerializedAttribute] public Rigidbody body;
         [System.NonSerializedAttribute] public VRCPlayerApi localplayer;
         public bool pilotEnable, passengerEnable;

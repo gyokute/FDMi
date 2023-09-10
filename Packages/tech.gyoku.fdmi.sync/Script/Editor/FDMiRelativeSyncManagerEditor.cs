@@ -6,8 +6,9 @@ using UnityEditor;
 using UdonSharpEditor;
 using UnityEngine.SceneManagement;
 using VRC.SDKBase.Editor.BuildPipeline;
+using tech.gyoku.FDMi.sync;
 
-namespace tech.gyoku.FDMi.sync
+namespace tech.gyoku.FDMi.sync.editor
 {
     public class FDMiRelativeSyncManagerEditor : MonoBehaviour
     {
