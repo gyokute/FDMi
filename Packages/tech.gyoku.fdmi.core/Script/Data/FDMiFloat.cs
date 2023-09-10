@@ -8,8 +8,8 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiFloat : FDMiData
     {
-        [FieldChangeCallback(nameof(data))] public float[] _data = new float[1];
-        public float[] data
+        [FieldChangeCallback(nameof(Data))] public float[] data = new float[1];
+        public float[] Data
         {
             get => data;
             set
