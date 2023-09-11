@@ -120,15 +120,7 @@ namespace tech.gyoku.FDMi.sync
         #endregion
         public override bool setPosition(Vector3 pos)
         {
-            Vector3 dKmp = kmPosition;
-            if (base.setPosition(pos))
-            {
-                dKmp -= kmPosition;
-                Vector3 newPos = pos + dKmp * 1000f;
-                localPlayer.TeleportTo(newPos, localPlayer.GetRotation());
-                syncManager.onChangeLocalPlayerKMPosition();
-                return true;
-            }
+            Position=pos;
             return false;
         }
         public override Vector3 getViewPosition()
