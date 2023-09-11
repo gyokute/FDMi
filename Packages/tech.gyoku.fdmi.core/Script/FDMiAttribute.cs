@@ -11,7 +11,6 @@ namespace tech.gyoku.FDMi.core
         public FDMiObjectManager objectManager;
         [System.NonSerializedAttribute] public Rigidbody body;
         [System.NonSerializedAttribute] public VRCPlayerApi localplayer;
-        public bool pilotEnable, passengerEnable;
         #endregion
 
         #region FDMi Event Method
