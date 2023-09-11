@@ -13,42 +13,33 @@ namespace tech.gyoku.FDMi.core.editor
     [CustomEditor(typeof(FDMiObjectManager), true)]
     public class FDMiObjectManagerEditor : FDMiEditorExt
     {
-        public override void OnInspectorGUI()
+        public override void ShowPropertyOption(Component tgt, SerializedProperty property)
         {
-            base.OnInspectorGUI();
-            if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+            base.ShowPropertyOption(tgt, property);
+            if (property.name == nameof(FDMiObjectManager.body))
+                if (FDMiEditorUI.Button("Find"))
+                    property.objectReferenceValue = tgt.GetComponentInChildren<Rigidbody>();
 
-            var tgt = target as FDMiObjectManager;
-            serializedObject.Update();
-
-            var property = serializedObject.GetIterator();
-            property.NextVisible(true);
-
-            while (property.NextVisible(false))
-            {
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    EditorGUILayout.PropertyField(property, true);
-                    if (property.name == nameof(tgt.body))
-                        if (FDMiEditorUI.Button("Find"))
-                            FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
-
-                    if (property.name == nameof(tgt.attributes))
-                        if (FDMiEditorUI.Button("Find"))
-                            FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
-                }
-            }
-
-            serializedObject.ApplyModifiedProperties();
+            if (property.name == nameof(FDMiObjectManager.attributes))
+                if (FDMiEditorUI.Button("Find"))
+                    FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
         }
 
         public override void SetupAll()
         {
-            SerializedProperty property;
+            base.SetupAll();
+            serializedObject.Update();
             var tgt = target as FDMiObjectManager;
-
-            property = FDMiEditorUI.GetProperty<FDMiAttribute>(serializedObject, nameof(tgt.attributes));
-            FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
+            var property = serializedObject.GetIterator();
+            property.NextVisible(true);
+            while (property.NextVisible(false))
+            {
+                if (property.name == nameof(tgt.body))
+                    property.objectReferenceValue = tgt.GetComponentInChildren<Rigidbody>();
+                if (property.name == nameof(tgt.attributes))
+                    FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
+            }
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
