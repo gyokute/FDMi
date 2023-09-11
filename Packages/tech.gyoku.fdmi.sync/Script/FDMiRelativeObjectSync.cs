@@ -79,7 +79,7 @@ namespace tech.gyoku.FDMi.sync
                 if (parentRefPoint.index == rootRefPoint.index)
                 {
                     setRotation((btr * parentRefPoint.direction).normalized);
-                    setPosition(parentRefPoint.direction * btp + parentRefPoint.Position);
+                    setPosition(parentRefPoint.direction * btp + parentRefPoint.Position + 1000f * (parentRefPoint._kmPosition - _kmPosition));
                     velocity = parentRefPoint.direction * body.velocity;
                     RequestSerialization();
                 }
