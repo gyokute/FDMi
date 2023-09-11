@@ -11,10 +11,11 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.core.editor
 {
     [CustomEditor(typeof(FDMiObjectManager), true)]
-    public class FDMiObjectManagerEditor : UnityEditor.Editor
+    public class FDMiObjectManagerEditor : FDMiEditorExt
     {
         public override void OnInspectorGUI()
         {
+            base.OnInspectorGUI();
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
 
             var tgt = target as FDMiObjectManager;
@@ -28,6 +29,10 @@ namespace tech.gyoku.FDMi.core.editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.PropertyField(property, true);
+                    if (property.name == nameof(tgt.body))
+                        if (FDMiEditorUI.Button("Find"))
+                            FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
+
                     if (property.name == nameof(tgt.attributes))
                         if (FDMiEditorUI.Button("Find"))
                             FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
@@ -35,6 +40,15 @@ namespace tech.gyoku.FDMi.core.editor
             }
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        public override void SetupAll()
+        {
+            SerializedProperty property;
+            var tgt = target as FDMiObjectManager;
+
+            property = FDMiEditorUI.GetProperty<FDMiAttribute>(serializedObject, nameof(tgt.attributes));
+            FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
         }
     }
 }
