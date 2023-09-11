@@ -31,6 +31,8 @@ namespace tech.gyoku.FDMi.core.editor
 
         public virtual void ShowPropertyOption(Component tgt, SerializedProperty property)
         {
+            if (property.type == "PPtr<$FDMiEvent>" && FDMiEditorUI.Button("Find"))
+                property.objectReferenceValue = FindDataByName<FDMiEvent>(tgt, property.name);
             if (property.type == "PPtr<$FDMiFloat>" && FDMiEditorUI.Button("Find"))
                 property.objectReferenceValue = FindDataByName<FDMiFloat>(tgt, property.name);
             if (property.type == "PPtr<$FDMiVector3>" && FDMiEditorUI.Button("Find"))
@@ -53,6 +55,8 @@ namespace tech.gyoku.FDMi.core.editor
             property.NextVisible(true);
             while (property.NextVisible(false))
             {
+                if (property.type == "PPtr<$FDMiEvent>")
+                    property.objectReferenceValue = FindDataByName<FDMiEvent>(tgt, property.name);
                 if (property.type == "PPtr<$FDMiFloat>")
                     property.objectReferenceValue = FindDataByName<FDMiFloat>(tgt, property.name);
                 if (property.type == "PPtr<$FDMiVector3>")
@@ -71,8 +75,28 @@ namespace tech.gyoku.FDMi.core.editor
 
         public T FindDataByName<T>(Component tgt, string name) where T : FDMiEvent
         {
+            // Find FDMiEvent in same gameObject.
             var objs = tgt.GetComponents<T>();
-            return objs.First(o => o.name == name);
+            var ret = objs.FirstOrDefault(o => o.name == name);
+            if (ret) return ret;
+            // If not, find FDMiEvent in children.
+            objs = tgt.GetComponentsInChildren<T>();
+            ret = objs.FirstOrDefault(o => o.name == name);
+            if (ret) return ret;
+            // If not, find through each vehicle
+            var objMan = tgt.GetComponentInParent<FDMiObjectManager>();
+            if (objMan)
+            {
+                objs = objMan.GetComponentsInChildren<T>();
+                ret = objs.FirstOrDefault(o => o.name == name);
+                if (ret) return ret;
+            }
+            // If not, find through scene... and it's maybe heavy!
+            objs = FindObjectsOfType<T>();
+            ret = objs.FirstOrDefault(o => o.name == name);
+            if (ret) return ret;
+
+            return null;
         }
     }
 }
