@@ -24,10 +24,10 @@ namespace tech.gyoku.FDMi.core
                 if (att) att.SendCustomEvent(eventName);
         }
         #region ownership management
-        private void takeOwnerOfAttribute()
+        private void takeOwnerOfAllAttributes()
         {
             foreach (FDMiAttribute att in attributes)
-                if (att) Networking.SetOwner(Networking.LocalPlayer, att.gameObject);
+                if (att) att.takeOwner();
         }
         #endregion
 
@@ -45,7 +45,7 @@ namespace tech.gyoku.FDMi.core
             if (player.isLocal)
             {
                 isOwner = true;
-                takeOwnerOfAttribute();
+                takeOwnerOfAllAttributes();
                 SendEventToAttribute("FDMi_O_TakeOwnership");
             }
             if (!player.isLocal && isOwner)
