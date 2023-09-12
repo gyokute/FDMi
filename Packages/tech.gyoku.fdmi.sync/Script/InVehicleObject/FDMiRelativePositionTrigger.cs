@@ -3,12 +3,15 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using tech.gyoku.FDMi.core;
+
 namespace tech.gyoku.FDMi.sync
 {
-    public class FDMiRelativePositionTrigger : UdonSharpBehaviour
+    public class FDMiRelativePositionTrigger : FDMiAttribute
     {
         FDMiRelativeObjectSyncManager syncManager;
         public FDMiReferencePoint refPoint;
+        public FDMiBool InZone;
         [SerializeField] bool detectEnter = true, detectExit = true;
         bool enableOnExit = true;
 
@@ -18,12 +21,13 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnPlayerTriggerEnter(VRCPlayerApi player)
         {
-            if(!detectEnter)return;
+            if (!detectEnter) return;
             if (player.isLocal && enableOnExit && syncManager.isRoot)
             {
                 syncManager.changeRootRefPoint(refPoint);
                 enableOnExit = false;
                 SendCustomEventDelayedSeconds(nameof(turnOnExit), 0.5f);
+                InZone.Data = true;
             }
         }
 
@@ -33,14 +37,14 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnPlayerTriggerExit(VRCPlayerApi player)
         {
-            if(!detectExit)return;
+            if (!detectExit) return;
             if (player.isLocal && refPoint.isRoot && enableOnExit)
             {
                 syncManager.changeRootRefPoint(syncManager);
                 enableOnExit = false;
                 SendCustomEventDelayedSeconds(nameof(turnOnExit), 0.5f);
+                InZone.Data = false;
             }
-
         }
 
     }
