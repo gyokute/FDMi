@@ -29,7 +29,7 @@ namespace tech.gyoku.FDMi.core
         public void trigger()
         {
             for (int i = 0; i < callbackBehaviour.Length; i++)
-                if (callbackBehaviour[i]) SendCustomEvent(callbackFunctionName[i]);
+                if (callbackBehaviour[i]) callbackBehaviour[i].SendCustomEvent(callbackFunctionName[i]);
         }
     }
 }
