@@ -9,7 +9,6 @@ namespace tech.gyoku.FDMi.dynamics
 {
     public class FDMiFuselage : FDMiAttribute
     {
-        float tim = 0f;
         public FDMiFloat OEW, Fuel, Payload;
         public FDMiVector3 CoG, InertiaTensor;
         public FDMiSyncedBool Kinematic;
