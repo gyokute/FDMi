@@ -11,7 +11,7 @@ namespace tech.gyoku.FDMi.core
         public FDMiObjectManager objectManager;
         [System.NonSerializedAttribute] public Rigidbody body;
         [System.NonSerializedAttribute] public VRCPlayerApi localplayer;
-        private bool isOwner;
+        public bool isOwner;
         #endregion
 
         #region Ownership
@@ -30,7 +30,7 @@ namespace tech.gyoku.FDMi.core
         }
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
-            if (player != localplayer) return;
+            if (!player.isLocal) return;
             isOwner = Networking.IsOwner(gameObject);
         }
         public override void OnOwnershipTransferred(VRCPlayerApi player)

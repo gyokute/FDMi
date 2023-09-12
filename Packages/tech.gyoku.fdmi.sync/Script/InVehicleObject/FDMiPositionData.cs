@@ -23,12 +23,12 @@ namespace tech.gyoku.FDMi.sync
             rot = Rotation.data;
         }
 
-        void FixedUpdate()
+        void Update()
         {
             pos[0] = refPoint._position;
             kmPos[0] = refPoint._kmPosition;
             vel[0] = refPoint.velocity;
-            rot[0] = refPoint._direction * body.rotation;
+            rot[0] = refPoint._direction;
             attitude[0] = rot[0].eulerAngles;
 
         }
