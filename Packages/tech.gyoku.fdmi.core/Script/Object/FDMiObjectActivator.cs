@@ -12,12 +12,16 @@ namespace tech.gyoku.FDMi.core
         void Start()
         {
             InZone.subscribe(this, "OnChangeInZone");
+            IsPilot.subscribe(this, "OnChangeIsPilot");
             gameObject.SetActive(false);
         }
         public void OnChangeInZone()
         {
             if (enableInZone) gameObject.SetActive(InZone.data[0]);
         }
-        public void OnChangeIsPilot() { }
+        public void OnChangeIsPilot()
+        {
+            if (enableIsPilot) gameObject.SetActive(InZone.data[0]);
+        }
     }
 }
