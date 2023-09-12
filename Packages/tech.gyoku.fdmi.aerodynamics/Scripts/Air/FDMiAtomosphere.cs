@@ -35,7 +35,7 @@ namespace tech.gyoku.FDMi.aerodynamics
             float pressureScale = Mathf.Exp(-alt[0] / scaleHeight);
             p[0] = gndPress[0] * pressureScale;
             rho[0] = 1.2f * pressureScale;
-            sonic[0] = 331.5f + 0.61f * sat[0];
+            sonic[0] = 164.8785f + 0.61f * sat[0];
         }
     }
 }
