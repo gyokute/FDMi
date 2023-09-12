@@ -7,13 +7,13 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiVector3 : FDMiData
     {
-        [FieldChangeCallback(nameof(Data))] public Vector3[] data = new Vector3[1];
-        public Vector3[] Data
+        public Vector3[] data = new Vector3[1];
+        public Vector3 Data
         {
-            get => data;
+            get => data[0];
             set
             {
-                data = value;
+                data[0] = value;
                 trigger();
             }
         }

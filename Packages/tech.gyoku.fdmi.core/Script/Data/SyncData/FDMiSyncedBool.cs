@@ -9,13 +9,15 @@ namespace tech.gyoku.FDMi.core
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiSyncedBool : FDMiData
     {
-        [UdonSynced, FieldChangeCallback(nameof(Data))] public bool[] data = new bool[1];
-        public bool[] Data
+        public bool[] data = new bool[1];
+        [UdonSynced, FieldChangeCallback(nameof(Data))] public bool syncedData;
+        public bool Data
         {
-            get => data;
+            get => data[0];
             set
             {
-                data = value;
+                syncedData = value;
+                data[0] = value;
                 trigger();
             }
         }
@@ -23,7 +25,7 @@ namespace tech.gyoku.FDMi.core
         public void set(bool src)
         {
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
-            Data[0] = src;
+            syncedData = src;
             RequestSerialization();
         }
     }

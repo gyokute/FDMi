@@ -8,13 +8,13 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiQuaternion : FDMiData
     {
-        [FieldChangeCallback(nameof(Data))] public Quaternion[] data = new Quaternion[1];
-        public Quaternion[] Data
+        public Quaternion[] data = new Quaternion[1];
+        public Quaternion Data
         {
-            get => data;
+            get => data[0];
             set
             {
-                data = value;
+                data[0] = value;
                 trigger();
             }
         }

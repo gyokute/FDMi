@@ -8,13 +8,13 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiFloat : FDMiData
     {
-        [FieldChangeCallback(nameof(Data))] public float[] data = new float[1];
-        public float[] Data
+        public float[] data = new float[1];
+        public float Data
         {
-            get => data;
+            get => data[0];
             set
             {
-                data = value;
+                data[0] = value;
                 trigger();
             }
         }

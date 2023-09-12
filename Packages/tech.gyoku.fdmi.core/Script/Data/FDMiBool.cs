@@ -8,13 +8,13 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiBool : FDMiData
     {
-        [FieldChangeCallback(nameof(Data))] public bool[] data = new bool[1];
-        public bool[] Data
+        public bool[] data = new bool[1];
+        public bool Data
         {
-            get => data;
+            get => data[0];
             set
             {
-                data = value;
+                data[0] = value;
                 trigger();
             }
         }
