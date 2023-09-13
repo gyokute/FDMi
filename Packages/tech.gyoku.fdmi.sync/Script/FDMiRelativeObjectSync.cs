@@ -2,13 +2,14 @@
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeObjectSync : FDMiReferencePoint
     {
         public Vector3 gravity = new Vector3(0, -9.8f, 0);
-
+        public FDMiObjectManager obejctManaer;
 
         void Start()
         {
@@ -17,6 +18,7 @@ namespace tech.gyoku.FDMi.sync
                 gameObject.SetActive(false);
                 return;
             }
+            if (obejctManaer) obejctManaer.SubscribeOwnerManagement(this);
             body.useGravity = false;
 
             setPosition(body.position);
@@ -40,6 +42,10 @@ namespace tech.gyoku.FDMi.sync
             body.transform.rotation = getViewRotation();
         }
 
+        public void SetLocalPlayerAsOwner()
+        {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
+        }
         void FixedUpdate()
         {
             if (!Networking.IsOwner(gameObject)) return;

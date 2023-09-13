@@ -11,6 +11,7 @@ namespace tech.gyoku.FDMi.core
     {
         public Rigidbody body;
         public FDMiAttribute[] attributes;
+        private UdonSharpBehaviour[] ownerManagingObject = new UdonSharpBehaviour[32];
         public bool isOwner;
 
         void Start()
@@ -25,10 +26,27 @@ namespace tech.gyoku.FDMi.core
                 if (att) att.SendCustomEvent(eventName);
         }
         #region ownership management
-        private void takeOwnerOfAllAttributes()
+        public void takeOwnerOfAllAttributes()
         {
+            Networking.SetOwner(Networking.LocalPlayer, gameObject);
             foreach (FDMiAttribute att in attributes)
                 if (att) att.takeOwner();
+            foreach (UdonSharpBehaviour behaviour in ownerManagingObject)
+            {
+                if (!behaviour) break;
+                behaviour.SendCustomEvent("SetLocalPlayerAsOwner");
+            }
+        }
+        public void SubscribeOwnerManagement(UdonSharpBehaviour tgt)
+        {
+            for(int i=0;i<ownerManagingObject.Length; i++)
+            {
+                if (!ownerManagingObject[i])
+                {
+                    ownerManagingObject[i] = tgt;
+                    break;
+                }
+            }
         }
         #endregion
 

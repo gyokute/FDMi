@@ -3,15 +3,17 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using tech.gyoku.FDMi.core;
+
 namespace tech.gyoku.FDMi.sync
 {
-    public class FDMiRelativeSyncStation : UdonSharpBehaviour
+    public class FDMiRelativeSyncStation : FDMiStation
     {
-        public VRCStation station;
         public FDMiRelativeObjectSyncManager syncManager;
         public FDMiReferencePoint refPoint;
         public override void OnStationEntered(VRCPlayerApi player)
         {
+            base.OnStationEntered(player);
             if (player.isLocal)
             {
                 FDMiPlayerPosition lpp = syncManager.localPlayerPosition;
@@ -22,6 +24,7 @@ namespace tech.gyoku.FDMi.sync
 
         public override void OnStationExited(VRCPlayerApi player)
         {
+            base.OnStationExited(player);
             if (player.isLocal)
             {
                 FDMiPlayerPosition lpp = syncManager.localPlayerPosition;
