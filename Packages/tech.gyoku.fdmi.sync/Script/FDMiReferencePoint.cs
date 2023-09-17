@@ -61,6 +61,7 @@ namespace tech.gyoku.FDMi.sync
 
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
         public GameObject onlyIsRoot, onlyNotRoot;
+        protected bool isInit = false;
 
         #region RelativePosition
         public bool stopUpdate = true;
@@ -78,6 +79,7 @@ namespace tech.gyoku.FDMi.sync
             }
             if (onlyNotRoot) onlyIsRoot.SetActive(true);
             waitUpdate();
+            isInit = true;
         }
 
         [SerializeField] bool careIsKinematic = true;
@@ -156,7 +158,8 @@ namespace tech.gyoku.FDMi.sync
                 diff -= rootRefPoint.Position;
                 dir = Quaternion.Inverse(rootRefPoint.direction);
             }
-            diff += 1000f * (kmDiff - syncManager.localPlayerPosition.kmPosition);
+            // diff += 1000f * (kmDiff - syncManager.localPlayerPosition.kmPosition);
+            diff += 1000f * kmDiff;
             return dir * diff;
         }
 

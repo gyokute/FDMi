@@ -6,6 +6,7 @@ using VRC.Udon;
 
 namespace tech.gyoku.FDMi.sync
 {
+    [DefaultExecutionOrder(-100)]
     public class FDMiRelativeObjectSyncManager : FDMiReferencePoint
     {
         public Vector3 respawnPoint = Vector3.zero;
@@ -26,6 +27,7 @@ namespace tech.gyoku.FDMi.sync
 
         public void LateUpdate()
         {
+            if (!isInit) return;
             transform.rotation = getViewRotation();
             transform.position = getViewPosition();
         }

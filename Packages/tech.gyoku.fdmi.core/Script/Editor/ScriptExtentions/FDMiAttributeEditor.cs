@@ -34,6 +34,11 @@ namespace tech.gyoku.FDMi.core.editor
             {
                 if (property.name == nameof(tgt.objectManager))
                     property.objectReferenceValue = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
+                if (property.name == nameof(tgt.body))
+                {
+                    FDMiObjectManager man = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
+                    property.objectReferenceValue = FDMiEditorUI.FindParentComponent<Rigidbody>(man);
+                }
             }
             serializedObject.ApplyModifiedProperties();
         }

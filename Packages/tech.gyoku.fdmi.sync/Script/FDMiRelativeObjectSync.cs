@@ -48,6 +48,7 @@ namespace tech.gyoku.FDMi.sync
         }
         void FixedUpdate()
         {
+            if(!isInit) return;
             if (!Networking.IsOwner(gameObject)) return;
             if (isRoot)
             {
@@ -63,7 +64,7 @@ namespace tech.gyoku.FDMi.sync
 
         public void Update()
         {
-            if (stopUpdate) return;
+            if (!isInit || stopUpdate) return;
             if (Networking.IsOwner(gameObject))
             {
                 Quaternion btr = body.transform.rotation;

@@ -33,11 +33,10 @@ namespace tech.gyoku.FDMi.aerodynamics
             airspeed = AirSpeed.data;
             rho = Rho.data;
             mach = Mach.data;
-
-            Transform bt = body.transform;
         }
         void FixedUpdate()
         {
+            if(!isInit) return;
             Vni = Vector3.zero;
             invRot = Quaternion.Inverse(body.rotation);
             Quaternion rot = body.rotation * transform.rotation;

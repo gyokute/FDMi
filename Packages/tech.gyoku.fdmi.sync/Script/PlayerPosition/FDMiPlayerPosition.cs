@@ -35,6 +35,7 @@ namespace tech.gyoku.FDMi.sync
         public VRCPlayerApi localPlayer;
         public VRCPlayerApi Player;
         [SerializeField] private bool isMine;
+        private bool isPlayerJoined = false;
         private bool isUserInVR;
         void Start()
         {
@@ -93,6 +94,7 @@ namespace tech.gyoku.FDMi.sync
         {
             transform.localPosition = getViewPosition();
             transform.localRotation = getViewRotation();
+            isPlayerJoined = true;
         }
         public override void OnPlayerRespawn(VRCPlayerApi player)
         {
@@ -120,7 +122,7 @@ namespace tech.gyoku.FDMi.sync
         #endregion
         public override bool setPosition(Vector3 pos)
         {
-            Position=pos;
+            Position = pos;
             return false;
         }
         public override Vector3 getViewPosition()
@@ -145,6 +147,7 @@ namespace tech.gyoku.FDMi.sync
         }
         public void Update()
         {
+            if (!isInit || !isPlayerJoined) return;
             if (isMine)
             {
                 setPosition(localPlayer.GetPosition());

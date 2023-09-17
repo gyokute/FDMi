@@ -11,7 +11,7 @@ namespace tech.gyoku.FDMi.core
         public FDMiObjectManager objectManager;
         [System.NonSerializedAttribute] public Rigidbody body;
         [System.NonSerializedAttribute] public VRCPlayerApi localPlayer;
-        public bool isOwner;
+        public bool isOwner, isInit = false;
         #endregion
 
         #region Ownership
@@ -25,8 +25,9 @@ namespace tech.gyoku.FDMi.core
         #region FDMi Event Method
         public virtual void init()
         {
-            if(!objectManager) return;
+            if (!objectManager) return;
             body = objectManager.body;
+            isInit = true;
         }
         public override void OnPlayerJoined(VRCPlayerApi player)
         {

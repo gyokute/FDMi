@@ -16,9 +16,9 @@ namespace tech.gyoku.FDMi.dynamics
         // weight and COG settings
         private float[] oew, fuel, payload;
         private Vector3[] cog, inertia;
-
-        void Start()
+        public override void init()
         {
+            base.init();
             Kinematic.subscribe(this, "OnChangeKinematic");
             oew = OEW.data;
             fuel = Fuel.data;
@@ -29,12 +29,14 @@ namespace tech.gyoku.FDMi.dynamics
 
         void Update()
         {
+            if (!isInit) return;
             if (overrideMass) body.mass = oew[0] + fuel[0] + payload[0];
             if (overrideInertia) body.inertiaTensor = inertia[0];
             if (overrideCog) body.centerOfMass = cog[0];
         }
 
-        public void OnChangeKinematic(){
+        public void OnChangeKinematic()
+        {
             body.isKinematic = Kinematic.data[0];
         }
     }
