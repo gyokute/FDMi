@@ -25,6 +25,9 @@ namespace tech.gyoku.FDMi.dynamics
             payload = Payload.data;
             cog = CoG.data;
             inertia = InertiaTensor.data;
+            if (overrideMass) body.mass = oew[0] + fuel[0] + payload[0];
+            if (overrideInertia) body.inertiaTensor = inertia[0];
+            if (overrideCog) body.centerOfMass = cog[0];
         }
 
         void Update()
