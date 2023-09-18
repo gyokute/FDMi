@@ -7,19 +7,46 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
+    public enum YokeControlType { pull, rotate, twist }
+    public enum LeverAxis { x, y, z }
     public class FDMiFlightControlInput : FDMiInput
     {
-        public FDMiSyncedFloat Pitch, Roll, Yaw, Trim;
-        private float[] pitch, roll, yaw, trim;
+        public YokeControlType pitchType, rollType, yawType;
+        public LeverAxis pitchAxis, rollAxis, yawAxis;
 
-        void Start()
+        public FDMiSyncedFloat Pitch, Roll, Yaw, Trim, Brake;
+        [SerializeField] private float pitchMul, rollMul, yawMul;
+
+
+        void LateUpdate()
         {
-            pitch = Pitch.data;
-            roll = Roll.data;
-            yaw = Yaw.data;
-            trim = Trim.data;
+            Pitch.set(yokeMove(pitchType, pitchMul, (int)pitchAxis));
+            Roll.set(yokeMove(rollType, rollMul, (int)rollAxis));
+            Yaw.set(yokeMove(yawType, yawMul, (int)yawAxis));
+            Brake.set(Trigger);
+            Trim.set(stickY);
         }
 
+        private float yokeMove(YokeControlType control, float inputMul, int axis)
+        {
+            float rawInput = 0f;
+            if (control == YokeControlType.pull)
+            {
+                rawInput = handPos[axis] - handStartPos[axis];
+            }
+            if (control == YokeControlType.rotate)
+            {
+                Quaternion q = Quaternion.FromToRotation(handStartPos, handPos);
+                rawInput = q.eulerAngles[axis];
+                rawInput = rawInput - Mathf.Floor(rawInput / 180.1f) * 360;
+            }
+            if (control == YokeControlType.twist)
+            {
+                Vector3 eular = (Quaternion.Inverse(handStartAxis) * handAxis).eulerAngles;
+                rawInput = eular[axis] - Mathf.Floor(eular[axis] / 180.1f) * 360;
+            }
+            return Mathf.Clamp(rawInput * inputMul, -1, 1);
+        }
 
     }
 }

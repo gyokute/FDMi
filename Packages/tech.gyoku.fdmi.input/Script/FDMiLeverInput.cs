@@ -17,25 +17,34 @@ namespace tech.gyoku.FDMi.input
         private Vector3 initDir;
         public override void OnStartGrab()
         {
-            initDir = pickup.transform.position - transform.position;
+            base.OnStartGrab();
+            initDir = transform.InverseTransformPoint(pickup.transform.position);
             initialValue = LeverOutput.data[0];
         }
         public override void OnDropGrab()
         {
+            base.OnDropGrab();
             int detentIndex = -1;
-            float maxDetentsDiff = 1000f;
+            float minDetDiff = max;
             for (int i = 0; i < detents.Length; i++)
             {
-                float detentDiff = Mathf.Abs(detents[i] - LeverOutput.data[0]);
-                if (detentDiff < maxDetentsDiff) detentIndex = i;
-                maxDetentsDiff = detentDiff;
+                float detDiff = Mathf.Abs(detents[i] - LeverOutput.data[0]);
+                if (detDiff < minDetDiff)
+                {
+                    detentIndex = i;
+                    minDetDiff = detDiff;
+                }
             }
-            if (detentIndex >= 0) LeverOutput.Data = detents[detentIndex];
+            if (detentIndex >= 0) LeverOutput.set(detents[detentIndex]);
+            Debug.Log(detentIndex);
+            Debug.Log(LeverOutput.data[0]);
+
         }
         void LateUpdate()
         {
-            Vector3 currentDir = pickup.transform.position - transform.position;
-            LeverOutput.Data = Mathf.Lerp(initialValue + multiply * Vector3.SignedAngle(initDir, currentDir, rotationAxis), min, max);
+            if(!isGrab) return;
+            Vector3 currentDir = transform.InverseTransformPoint(pickup.transform.position);
+            LeverOutput.set(Mathf.Clamp(initialValue + multiply * Vector3.SignedAngle(initDir, currentDir, rotationAxis), min, max));
         }
 
     }

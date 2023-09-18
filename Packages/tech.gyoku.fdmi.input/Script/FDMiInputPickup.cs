@@ -13,28 +13,28 @@ namespace tech.gyoku.FDMi.input
         public VRC.SDK3.Components.VRCPickup pickup;
         public FDMiInput input;
         public Vector3 initPos;
-        bool isGrab = false;
-        public Transform NeutralPosition;
+        public Quaternion initRot;
         void Start()
         {
             input.gameObject.SetActive(false);
             initPos = transform.localPosition;
+            initRot = transform.localRotation;
         }
         public override void OnDrop()
         {
-            input.OnDropGrab();
             input.gameObject.SetActive(false);
-            input.currentHand = VRC_Pickup.PickupHand.None;
-            transform.position = NeutralPosition.position;
-            transform.rotation = NeutralPosition.rotation;
-            isGrab = false;
+            input.OnDropGrab();
+            input.handType = (int)VRC_Pickup.PickupHand.None;
+            transform.localPosition = initPos;
+            transform.localRotation = initRot;
+            input.isGrab = false;
         }
         public override void OnPickup()
         {
-            input.currentHand = pickup.currentHand;
+            input.handType = (int)pickup.currentHand;
             input.OnStartGrab();
             input.gameObject.SetActive(true);
-            isGrab = true;
+            input.isGrab = true;
         }
 
     }

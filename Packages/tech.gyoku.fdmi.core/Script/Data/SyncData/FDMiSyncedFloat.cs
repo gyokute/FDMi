@@ -25,6 +25,7 @@ namespace tech.gyoku.FDMi.core
         public void set(float src)
         {
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            data[0] = src;
             syncedData = src;
             RequestSerialization();
         }
