@@ -8,7 +8,6 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.input
 {
     public enum YokeControlType { pull, rotate, twist }
-    public enum LeverAxis { x, y, z }
     public class FDMiFlightControlInput : FDMiInput
     {
         public YokeControlType pitchType, rollType, yawType;
@@ -20,6 +19,7 @@ namespace tech.gyoku.FDMi.input
 
         void LateUpdate()
         {
+            if (!isGrab) return;
             Pitch.set(yokeMove(pitchType, pitchMul, (int)pitchAxis));
             Roll.set(yokeMove(rollType, rollMul, (int)rollAxis));
             Yaw.set(yokeMove(yawType, yawMul, (int)yawAxis));

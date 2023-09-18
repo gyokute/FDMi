@@ -7,6 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
+    public enum LeverAxis { x, y, z }
     public class FDMiInput : UdonSharpBehaviour
     {
         public FDMiInputManager inputManager;
@@ -24,8 +25,8 @@ namespace tech.gyoku.FDMi.input
                 track = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.LeftHand);
             if (handType == (int)VRC_Pickup.PickupHand.Right)
                 track = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.RightHand);
-            handStartPos = track.position;
-            handStartAxis = track.rotation;
+            handStartPos = track.position - transform.position;
+            handStartAxis = Quaternion.Inverse(transform.rotation) * track.rotation;
         }
         public virtual void OnDropGrab()
         {
@@ -47,8 +48,8 @@ namespace tech.gyoku.FDMi.input
                 stickY = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickVertical");
                 track = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.RightHand);
             }
-            handPos = track.position;
-            handAxis = track.rotation;
+            handPos = track.position - transform.position;
+            handAxis = Quaternion.Inverse(transform.rotation) * track.rotation;
 
         }
 

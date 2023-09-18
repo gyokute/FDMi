@@ -10,7 +10,7 @@ namespace tech.gyoku.FDMi.input
     public class FDMiLeverInput : FDMiInput
     {
         public FDMiSyncedFloat LeverOutput;
-        public Vector3 rotationAxis;
+        public LeverAxis rotationAxis;
         public float initialValue;
         public float multiply, min, max;
         public float[] detents;
@@ -42,9 +42,11 @@ namespace tech.gyoku.FDMi.input
         }
         void LateUpdate()
         {
-            if(!isGrab) return;
-            Vector3 currentDir = transform.InverseTransformPoint(pickup.transform.position);
-            LeverOutput.set(Mathf.Clamp(initialValue + multiply * Vector3.SignedAngle(initDir, currentDir, rotationAxis), min, max));
+            if (!isGrab) return;
+            Quaternion q = Quaternion.FromToRotation(handStartPos, handPos);
+            float rawInput = q.eulerAngles[(int)rotationAxis];
+            rawInput = rawInput - Mathf.Floor(rawInput / 180.1f) * 360;
+            LeverOutput.set(Mathf.Clamp(initialValue + multiply * rawInput, min, max));
         }
 
     }

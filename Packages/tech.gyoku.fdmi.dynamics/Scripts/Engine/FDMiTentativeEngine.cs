@@ -18,6 +18,7 @@ namespace tech.gyoku.FDMi.dynamics
         }
         void FixedUpdate()
         {
+            if (!isInit) return;
             body.AddRelativeForce(maxThrust * input[0] * Vector3.forward);
         }
     }
