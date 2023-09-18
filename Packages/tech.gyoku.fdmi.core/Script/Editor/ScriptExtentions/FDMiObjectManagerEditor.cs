@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.core.editor
             base.ShowPropertyOption(tgt, property);
             if (property.name == nameof(FDMiObjectManager.body))
                 if (FDMiEditorUI.Button("Find"))
-                    property.objectReferenceValue = tgt.GetComponentInChildren<Rigidbody>();
+                    property.objectReferenceValue = tgt.GetComponentsInChildren<Rigidbody>().OrderByDescending(s => s.mass).FirstOrDefault();
 
             if (property.name == nameof(FDMiObjectManager.attributes))
                 if (FDMiEditorUI.Button("Find"))
@@ -35,7 +35,7 @@ namespace tech.gyoku.FDMi.core.editor
             while (property.NextVisible(false))
             {
                 if (property.name == nameof(tgt.body))
-                    property.objectReferenceValue = tgt.GetComponentInChildren<Rigidbody>();
+                    property.objectReferenceValue = tgt.GetComponentsInChildren<Rigidbody>().OrderByDescending(s => s.mass).FirstOrDefault();
                 if (property.name == nameof(tgt.attributes))
                     FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
             }
