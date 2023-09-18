@@ -10,7 +10,6 @@ namespace tech.gyoku.FDMi.core
     {
         public FDMiStation[] stations;
         public FDMiBool IsPilot, InZone;
-        private bool havePilot = false;
         void Start()
         {
             InZone.subscribe(this, "OnChangeInZone");
@@ -21,25 +20,29 @@ namespace tech.gyoku.FDMi.core
             if (InZone.data[0] == false)
                 TryDelegatePilot();
         }
-        public void TryTakePilot()
+        public void TryTakePilot(int pilotPriority)
         {
-            if (havePilot) return;
+            for (int i = 0; i < stations.Length; i++)
+            {
+                if (stations[i].seatedPlayer != null) return;
+                if (stations[i].pilotPriority > pilotPriority) break;
+            }
             IsPilot.Data = true;
             objectManager.takeOwnerOfAllAttributes();
         }
         public void TryDelegatePilot()
         {
+            if (!Networking.IsOwner(objectManager.gameObject)) return;
             for (int i = 0; i < stations.Length; i++)
             {
                 VRCPlayerApi sp = stations[i].seatedPlayer;
                 if (sp != null)
                 {
-                    if(sp.isLocal) objectManager.takeOwnerOfAllAttributes();
+                    if (sp.isLocal) objectManager.takeOwnerOfAllAttributes();
                     return;
                 }
             }
             // If pilot is not found.
-            havePilot = false;
         }
         #endregion
     }

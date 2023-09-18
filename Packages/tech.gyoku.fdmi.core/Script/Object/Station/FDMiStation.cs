@@ -10,16 +10,17 @@ namespace tech.gyoku.FDMi.core
     {
         public VRCStation station;
         public FDMiStationManager stationManager;
-        public int ownerPriority;
+        public int pilotPriority;
         public VRCPlayerApi seatedPlayer;
         public override void Interact()
         {
             localPlayer.UseAttachedStation();
         }
+
         public override void OnStationEntered(VRCPlayerApi player)
         {
             seatedPlayer = player;
-            if(player.isLocal) stationManager.TryTakePilot();
+            if (player.isLocal) stationManager.TryTakePilot(pilotPriority);
         }
 
         public override void OnStationExited(VRCPlayerApi player)
