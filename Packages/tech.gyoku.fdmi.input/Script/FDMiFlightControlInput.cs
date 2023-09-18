@@ -26,6 +26,15 @@ namespace tech.gyoku.FDMi.input
             Brake.set(Trigger);
             Trim.set(stickY);
         }
+        public override void OnDropGrab()
+        {
+            base.OnDropGrab();
+            Pitch.set(0f);
+            Roll.set(0f);
+            Yaw.set(0f);
+            Brake.set(0f);
+            Trim.set(0f);
+        }
 
         private float yokeMove(YokeControlType control, float inputMul, int axis)
         {
