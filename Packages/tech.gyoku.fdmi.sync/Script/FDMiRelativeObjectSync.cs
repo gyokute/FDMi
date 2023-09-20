@@ -46,17 +46,29 @@ namespace tech.gyoku.FDMi.sync
         {
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
         }
+        Vector3 tPos = Vector3.zero, tVel = Vector3.zero, tAngVel = Vector3.zero;
+        Quaternion tRot = Quaternion.identity;
         void FixedUpdate()
         {
-            if(!isInit) return;
-            if (!Networking.IsOwner(gameObject)) return;
+            if (!isInit) return;
+            if (!Networking.IsOwner(gameObject) || body.isKinematic) return;
             if (isRoot)
             {
-                Vector3 g = Quaternion.Inverse(direction) * body.rotation * gravity;
+                Quaternion br = body.rotation;
+                Vector3 bp = body.position;
+                setRotation((br * direction).normalized);
+                setPosition(direction * bp + Position);
+                body.position = Vector3.zero;
+                body.rotation = Quaternion.identity;
+                body.velocity = Quaternion.Inverse(br) * body.velocity;
+                // gravity
+                Vector3 g = Quaternion.Inverse(direction) * gravity;
                 body.AddForce(g, ForceMode.Acceleration);
+
             }
             if (parentRefPoint.index == rootRefPoint.index)
             {
+                // gravity
                 Vector3 g = Quaternion.Inverse(parentRefPoint.direction) * gravity;
                 body.AddForce(g, ForceMode.Acceleration);
             }
@@ -71,16 +83,9 @@ namespace tech.gyoku.FDMi.sync
                 Vector3 btp = body.transform.position;
                 if (isRoot)
                 {
-                    setRotation((btr * direction).normalized);
-                    setPosition(direction * btp + Position);
+                    // setRotation((btr * direction).normalized);
+                    // setPosition(direction * btp + Position);
                     velocity = direction * body.velocity;
-                    Vector3 tvel = Quaternion.Inverse(btr) * body.velocity;
-                    Vector3 angVel = Quaternion.Inverse(btr) * body.angularVelocity;
-
-                    body.transform.position = Vector3.zero;
-                    body.transform.rotation = Quaternion.identity;
-                    body.velocity = tvel;
-                    body.angularVelocity = angVel;
                     RequestSerialization();
                 }
                 if (parentRefPoint.index == rootRefPoint.index)
