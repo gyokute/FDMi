@@ -36,7 +36,7 @@ namespace tech.gyoku.FDMi.aerodynamics
         }
         void FixedUpdate()
         {
-            if(!isInit) return;
+            if (!isInit) return;
             Vni = Vector3.zero;
             invRot = Quaternion.Inverse(body.rotation);
             Quaternion rot = body.rotation * transform.rotation;
@@ -70,7 +70,9 @@ namespace tech.gyoku.FDMi.aerodynamics
             Gamma = Mathf.Lerp(Gamma, nGamma, Time.fixedDeltaTime * 10f);
             body.AddRelativeForce(Force);
             body.AddRelativeTorque(Moment);
+#if UNITY_EDITOR
             DebugForce();
+#endif
         }
 
         void DebugForce()
