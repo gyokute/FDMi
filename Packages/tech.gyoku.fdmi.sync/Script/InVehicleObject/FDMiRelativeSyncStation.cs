@@ -18,6 +18,8 @@ namespace tech.gyoku.FDMi.sync
             {
                 FDMiPlayerPosition lpp = syncManager.localPlayerPosition;
                 lpp.inVehicle = true;
+                lpp.transform.localPosition = transform.localPosition;
+                lpp.transform.localRotation = transform.localRotation;
                 if (!refPoint.isRoot) syncManager.changeRootRefPoint(refPoint);
             }
         }

@@ -8,17 +8,31 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiStationManager : FDMiAttribute
     {
+        public Transform onlyIsRoot;
         public FDMiStation[] stations;
         public FDMiBool IsPilot, InZone;
         void Start()
         {
+            transform.localPosition = Vector3.zero;
+            transform.localRotation = Quaternion.identity;
             InZone.subscribe(this, "OnChangeInZone");
         }
         #region Owner Transfer
         public void OnChangeInZone()
         {
-            if (InZone.data[0] == false)
+            if (InZone.data[0] == true)
+            {
+                if (onlyIsRoot) transform.parent = onlyIsRoot;
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
+            }
+            else
+            {
+                transform.parent = body.transform;
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
                 TryDelegatePilot();
+            }
         }
         public void TryTakePilot(int pilotPriority)
         {

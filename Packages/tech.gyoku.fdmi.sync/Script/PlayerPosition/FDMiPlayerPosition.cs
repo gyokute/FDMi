@@ -128,36 +128,35 @@ namespace tech.gyoku.FDMi.sync
         public override Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
-            Vector3 kmDiff = kmPosition;
-            Vector3 diff = Position;
-            Quaternion dir = Quaternion.identity;
-            diff += 1000f * kmDiff;
-            return dir * diff;
+            return 1000f * kmPosition + Position;
         }
 
         public override Quaternion getViewRotation()
         {
-            if (isRoot) return Quaternion.identity;
-            return direction;
+            return Quaternion.identity;
+            // if (isRoot) return Quaternion.identity;
+            // return Quaternion.Inverse(rootRefPoint.direction) * direction;
         }
         public override void windupPositionAndRotation()
         {
             transform.localPosition = getViewPosition();
-            transform.localRotation = getViewRotation();
+            transform.localRotation = Quaternion.identity;
         }
         public void Update()
         {
             if (!isInit || !isPlayerJoined) return;
-            if (isMine)
+            if (isMine && localPlayer != null)
             {
                 setPosition(localPlayer.GetPosition());
                 direction = localPlayer.GetRotation();
                 RequestSerialization();
                 return;
             }
-
-            transform.localPosition = getViewPosition();
-            transform.localRotation = getViewRotation();
+            if (!inVehicle)
+            {
+                transform.localPosition = getViewPosition();
+                transform.localRotation = Quaternion.identity;
+            }
         }
     }
 }

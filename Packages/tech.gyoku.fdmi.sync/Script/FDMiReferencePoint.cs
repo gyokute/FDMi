@@ -74,8 +74,6 @@ namespace tech.gyoku.FDMi.sync
             if (onlyIsRoot)
             {
                 onlyIsRoot.SetActive(false);
-                onlyIsRoot.transform.position = Vector3.zero;
-                onlyIsRoot.transform.rotation = Quaternion.identity;
             }
             if (onlyNotRoot) onlyNotRoot.SetActive(true);
             waitUpdate();
@@ -163,10 +161,16 @@ namespace tech.gyoku.FDMi.sync
             return dir * diff;
         }
 
+        Vector3 posdt=Vector3.zero;
+        float posG = 0.2f, posH = 0.2f;
         public Vector3 getViewPositionInterpolated()
         {
+            // Vector3 posPredicted = transform.position + posdt * Time.deltaTime;
+            // Vector3 residual = getViewPosition() - posPredicted;
+            // posdt = posdt + posH * residual / Time.deltaTime;
+            // return posPredicted + posG * residual;
             Vector3 diff = getViewPosition();
-            if (!Networking.IsOwner(gameObject)) return diff;
+            // if (!Networking.IsOwner(gameObject)) return diff;
             return diff;
         }
         public virtual Quaternion getViewRotation()
@@ -177,8 +181,7 @@ namespace tech.gyoku.FDMi.sync
         }
         public Quaternion getViewRotationInterpolated()
         {
-            Quaternion rot = getViewRotation();
-            return rot;
+            return Quaternion.Slerp(transform.rotation, getViewRotation(), 0.25f);
         }
         public virtual void windupPositionAndRotation()
         {

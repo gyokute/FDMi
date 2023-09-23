@@ -23,23 +23,32 @@ namespace tech.gyoku.FDMi.sync
 
             setPosition(body.position);
             direction = body.rotation;
-
-            if (onlyIsRoot)
-            {
-                onlyIsRoot.transform.position = Vector3.zero;
-                onlyIsRoot.transform.rotation = Quaternion.identity;
-            }
         }
 
         public override void windupPositionAndRotation()
         {
+            transform.position = getViewPosition();
+            transform.rotation = getViewRotation();
             if (body)
             {
-                body.position = getViewPosition();
-                body.rotation = getViewRotation();
+                body.position = transform.position;
+                body.rotation = transform.rotation;
+                body.transform.position = transform.position;
+                body.transform.rotation = transform.rotation;
+                if (isRoot && onlyIsRoot)
+                {
+                    onlyIsRoot.transform.parent = body.transform.parent;
+                    onlyIsRoot.transform.position = Vector3.zero;
+                    onlyIsRoot.transform.rotation = Quaternion.identity;
+                }
+                if (!isRoot && onlyIsRoot)
+                {
+                    onlyIsRoot.transform.parent = body.transform;
+                    onlyIsRoot.transform.localPosition = Vector3.zero;
+                    onlyIsRoot.transform.localRotation = Quaternion.identity;
+                }
             }
-            body.transform.position = getViewPosition();
-            body.transform.rotation = getViewRotation();
+
         }
 
         public void SetLocalPlayerAsOwner()
@@ -64,7 +73,6 @@ namespace tech.gyoku.FDMi.sync
                 // gravity
                 Vector3 g = Quaternion.Inverse(direction) * gravity;
                 body.AddForce(g, ForceMode.Acceleration);
-
             }
             if (parentRefPoint.index == rootRefPoint.index)
             {
@@ -102,15 +110,17 @@ namespace tech.gyoku.FDMi.sync
             if (stopUpdate || isRoot) return;
             if (!Networking.IsOwner(gameObject))
             {
-                body.transform.rotation = getViewRotationInterpolated();
-                body.transform.position = getViewPositionInterpolated();
+                transform.rotation = getViewRotationInterpolated();
+                transform.position = getViewPositionInterpolated();
+                body.transform.rotation = transform.rotation;
+                body.transform.position = transform.position;
                 return;
             }
-            if (parentRefPoint.index != rootRefPoint.index)
-            {
-                body.transform.position = getViewPosition();
-                body.transform.rotation = getViewRotation();
-            }
+            transform.rotation = getViewRotation();
+            transform.position = getViewPosition();
+            body.transform.position = transform.position;
+            body.transform.rotation = transform.rotation;
+
         }
     }
 }

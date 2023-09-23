@@ -16,8 +16,7 @@ namespace tech.gyoku.FDMi.sync
         }
         public void LateUpdate()
         {
-            transform.rotation = getViewRotation();
-            transform.position = getViewPosition();
+            transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
     }
 }
