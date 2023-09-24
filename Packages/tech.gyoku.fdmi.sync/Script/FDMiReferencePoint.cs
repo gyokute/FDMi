@@ -31,9 +31,13 @@ namespace tech.gyoku.FDMi.sync
         public Vector3 kmPosition
         {
             get => _kmPosition;
-            set { handleChangeKmPosition(value); }
+            set
+            {
+                _kmPosition = value;
+                handleChangeKmPosition(value);
+            }
         }
-        [UdonSynced, FieldChangeCallback(nameof(kmPosition))] public Vector3 velocity;
+        [UdonSynced, FieldChangeCallback(nameof(Velocity))] public Vector3 velocity;
         public Vector3 Velocity
         {
             get => velocity;
@@ -62,6 +66,7 @@ namespace tech.gyoku.FDMi.sync
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
         public GameObject onlyIsRoot, onlyNotRoot;
         protected bool isInit = false;
+        public Vector3 respawnPoint;
 
         #region RelativePosition
         public bool stopUpdate = true;
@@ -147,13 +152,13 @@ namespace tech.gyoku.FDMi.sync
         public virtual Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
-            Vector3 kmDiff = kmPosition;
+            Vector3 kmDiff = _kmPosition;
             Vector3 diff = _position;
             Quaternion dir = Quaternion.identity;
             if (rootRefPoint)
             {
-                kmDiff -= rootRefPoint.kmPosition;
-                diff -= rootRefPoint.Position;
+                kmDiff -= rootRefPoint._kmPosition;
+                diff -= rootRefPoint._position;
                 dir = Quaternion.Inverse(rootRefPoint.direction);
             }
             // diff += 1000f * (kmDiff - syncManager.localPlayerPosition.kmPosition);
@@ -161,7 +166,7 @@ namespace tech.gyoku.FDMi.sync
             return dir * diff;
         }
 
-        Vector3 posdt=Vector3.zero;
+        Vector3 posdt = Vector3.zero;
         float posG = 0.2f, posH = 0.2f;
         public Vector3 getViewPositionInterpolated()
         {
@@ -200,9 +205,9 @@ namespace tech.gyoku.FDMi.sync
                 {
                     updateKmPos = true;
                     float s = Mathf.Sign(v[i]);
-                    a = s * Mathf.Round(a * 0.001f + 0.25000001f);
-                    k[i] += a;
-                    v[i] -= a * 1000f;
+                    s *= Mathf.Round(a * 0.001f + 0.25000001f);
+                    k[i] += s;
+                    v[i] -= s * 1000f;
                 }
             }
             if (updateKmPos) kmPosition = k;
@@ -214,7 +219,7 @@ namespace tech.gyoku.FDMi.sync
             direction = rot;
         }
 
-        public virtual void handleChangeKmPosition(Vector3 value) { _kmPosition = value; }
+        public virtual void handleChangeKmPosition(Vector3 value) { }
         #endregion
     }
 }

@@ -65,12 +65,12 @@ namespace tech.gyoku.FDMi.sync
             {
                 Quaternion br = body.rotation;
                 Vector3 bp = body.position;
-                setRotation((direction* br).normalized);
+                setRotation((direction * br).normalized);
                 setPosition(direction * bp + Position);
                 body.position = Vector3.zero;
                 body.rotation = Quaternion.identity;
                 body.velocity = Quaternion.Inverse(br) * body.velocity;
-                
+
                 // gravity
                 Vector3 g = Quaternion.Inverse(direction) * gravity;
                 body.AddForce(g, ForceMode.Acceleration);
@@ -121,7 +121,6 @@ namespace tech.gyoku.FDMi.sync
             transform.position = getViewPosition();
             body.transform.position = transform.position;
             body.transform.rotation = transform.rotation;
-
         }
     }
 }
