@@ -60,6 +60,7 @@ namespace tech.gyoku.FDMi.sync
             if (pId == -1)
             {
                 assignedPlayer = null;
+                playerPosition.attachPlayer(null);
                 return;
             }
             assignedPlayer = VRCPlayerApi.GetPlayerById(pId);

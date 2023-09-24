@@ -22,7 +22,7 @@ namespace tech.gyoku.FDMi.sync
                     if (!value)
                     {
                         gameObject.SetActive(true);
-                        station.UseStation(Player);
+                        SendCustomEventDelayedFrames(nameof(useSeat), 1);
                     }
                     else
                     {
@@ -48,6 +48,10 @@ namespace tech.gyoku.FDMi.sync
             Player = tgtPlayer;
             localPlayer = Networking.LocalPlayer;
             isUserInVR = localPlayer.IsUserInVR();
+            if (tgtPlayer == null)
+            {
+                gameObject.SetActive(false);
+            }
             if (tgtPlayer.isLocal)
             {
                 isMine = true;
@@ -66,7 +70,6 @@ namespace tech.gyoku.FDMi.sync
             }
             gameObject.SetActive(true);
         }
-
         public void useSeat()
         {
             if (!inVehicle) station.UseStation(Player);
@@ -98,34 +101,37 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnPlayerRespawn(VRCPlayerApi player)
         {
+
             if (isMine)
             {
+                localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPoint, Quaternion.identity);
+                inVehicle = false;
                 kmPosition = Vector3.zero;
                 Position = syncManager.rootRefPoint.respawnPoint;
-                localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPoint, Quaternion.identity);
-                useSeat();
             }
         }
         public override void OnStationEntered(VRCPlayerApi player)
         {
-            if (Player.playerId == player.playerId) gameObject.SetActive(true);
+            Debug.Log("OnStationEntered");
+            if (Player.isLocal) gameObject.SetActive(true);
         }
 
         public override void OnStationExited(VRCPlayerApi player)
         {
+            if (!Player.isLocal) return;
             if (!inVehicle)
             {
                 SendCustomEventDelayedFrames(nameof(useSeat), 1);
                 return;
             }
-            if (Player.playerId == player.playerId) gameObject.SetActive(false);
+            if (Player.isLocal) gameObject.SetActive(false);
         }
         #endregion
-        public override bool setPosition(Vector3 pos)
-        {
-            Position = pos;
-            return false;
-        }
+        // public override bool setPosition(Vector3 pos)
+        // {
+        //     Position = pos;
+        //     return false;
+        // }
         public override Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
@@ -134,7 +140,7 @@ namespace tech.gyoku.FDMi.sync
 
         public override Quaternion getViewRotation()
         {
-            return Quaternion.identity;
+            return direction;
             // if (isRoot) return Quaternion.identity;
             // return Quaternion.Inverse(rootRefPoint.direction) * direction;
         }
@@ -156,7 +162,7 @@ namespace tech.gyoku.FDMi.sync
             if (!inVehicle)
             {
                 transform.localPosition = getViewPosition();
-                transform.localRotation = Quaternion.identity;
+                transform.localRotation = getViewRotation();
             }
         }
     }
