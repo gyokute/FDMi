@@ -27,8 +27,8 @@ namespace tech.gyoku.FDMi.sync
         public void LateUpdate()
         {
             if (!isInit) return;
-            transform.rotation = getViewRotation();
-            transform.position = getViewPosition();
+            transform.rotation = getViewRotationInterpolated();
+            transform.position = getViewPositionInterpolated();
         }
 
         public void onChangeLocalPlayerKMPosition()

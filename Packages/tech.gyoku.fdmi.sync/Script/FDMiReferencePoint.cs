@@ -165,18 +165,12 @@ namespace tech.gyoku.FDMi.sync
             diff += 1000f * kmDiff;
             return dir * diff;
         }
-
-        Vector3 posdt = Vector3.zero;
-        float posG = 0.2f, posH = 0.2f;
+        Vector3 prevPos;
         public Vector3 getViewPositionInterpolated()
         {
-            // Vector3 posPredicted = transform.position + posdt * Time.deltaTime;
-            // Vector3 residual = getViewPosition() - posPredicted;
-            // posdt = posdt + posH * residual / Time.deltaTime;
-            // return posPredicted + posG * residual;
-            Vector3 diff = getViewPosition();
-            // if (!Networking.IsOwner(gameObject)) return diff;
-            return diff;
+            if (Networking.IsOwner(gameObject)) return getViewPosition();
+            prevPos = Vector3.Lerp(prevPos + velocity * Time.deltaTime, getViewPosition(), 0.25f);
+            return prevPos;
         }
         public virtual Quaternion getViewRotation()
         {
@@ -184,9 +178,12 @@ namespace tech.gyoku.FDMi.sync
             if (!rootRefPoint) return direction;
             return (Quaternion.Inverse(rootRefPoint.direction) * direction).normalized;
         }
+        Quaternion prevRot;
         public Quaternion getViewRotationInterpolated()
         {
-            return Quaternion.Slerp(transform.rotation, getViewRotation(), 0.25f);
+            if (Networking.IsOwner(gameObject)) return getViewRotation();
+            prevRot = Quaternion.Slerp(prevRot, getViewRotation(), 0.25f);
+            return prevRot;
         }
         public virtual void windupPositionAndRotation()
         {
