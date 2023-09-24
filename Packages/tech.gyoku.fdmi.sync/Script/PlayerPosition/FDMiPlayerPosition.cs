@@ -51,6 +51,7 @@ namespace tech.gyoku.FDMi.sync
             if (tgtPlayer == null)
             {
                 gameObject.SetActive(false);
+                return;
             }
             if (tgtPlayer.isLocal)
             {
@@ -99,6 +100,15 @@ namespace tech.gyoku.FDMi.sync
             transform.localRotation = getViewRotation();
             isPlayerJoined = true;
         }
+        public override void OnPlayerLeft(VRCPlayerApi player)
+        {
+            if (!Networking.IsMaster) return;
+            if (Player == null) return;
+            if (Player.playerId == player.playerId)
+            {
+                gameObject.SetActive(false);
+            }
+        }
         public override void OnPlayerRespawn(VRCPlayerApi player)
         {
 
@@ -112,7 +122,6 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnStationEntered(VRCPlayerApi player)
         {
-            Debug.Log("OnStationEntered");
             if (Player.isLocal) gameObject.SetActive(true);
         }
 
@@ -152,18 +161,19 @@ namespace tech.gyoku.FDMi.sync
         public void Update()
         {
             if (!isInit || !isPlayerJoined) return;
-            if (isMine && localPlayer != null)
+            if (!inVehicle)
+            {
+                transform.localPosition = getViewPosition();
+                transform.localRotation = getViewRotation();
+            }
+            if (Networking.IsOwner(gameObject))
             {
                 setPosition(localPlayer.GetPosition());
                 direction = localPlayer.GetRotation();
                 RequestSerialization();
                 return;
             }
-            if (!inVehicle)
-            {
-                transform.localPosition = getViewPosition();
-                transform.localRotation = getViewRotation();
-            }
+
         }
     }
 }
