@@ -101,7 +101,8 @@ namespace tech.gyoku.FDMi.sync
             if (isMine)
             {
                 kmPosition = Vector3.zero;
-                Position = syncManager.respawnPoint;
+                Position = syncManager.rootRefPoint.respawnPoint;
+                localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPoint, Quaternion.identity);
                 useSeat();
             }
         }

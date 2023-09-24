@@ -9,7 +9,6 @@ namespace tech.gyoku.FDMi.sync
     [DefaultExecutionOrder(-100)]
     public class FDMiRelativeObjectSyncManager : FDMiReferencePoint
     {
-        public Vector3 respawnPoint = Vector3.zero;
         public FDMiReferencePoint[] refPoints;
         public FDMiReferencePoint localRootRefPoint;
         public FDMiPlayerPosition localPlayerPosition;
