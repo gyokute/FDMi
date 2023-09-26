@@ -86,7 +86,7 @@ namespace tech.gyoku.FDMi.sync
         public void Update()
         {
             if (!isInit || stopUpdate) return;
-            if (Networking.IsOwner(gameObject))
+            if (Networking.IsOwner(gameObject) && !body.isKinematic)
             {
                 Quaternion btr = body.transform.rotation;
                 Vector3 btp = body.transform.position;
