@@ -35,7 +35,7 @@ namespace tech.gyoku.FDMi.aerodynamics
         void FixedUpdate()
         {
             if (!isOwner) return;
-            airSpeed[0] = Quaternion.Inverse(rot[0]) * (body.velocity - wind[0]);
+            airSpeed[0] = body.velocity - Quaternion.Inverse(rot[0]) * wind[0];
         }
         void Update()
         {
