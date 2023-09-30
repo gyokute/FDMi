@@ -128,7 +128,7 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             Vector3 planfn = Vector3.Cross(spn, Vector3.forward).normalized;
             spanNormal.vector3Value = spn;
             planfNormal.vector3Value = planfn;
-            chordNormal.vector3Value = Vector3.Cross(spn, planfn);
+            chordNormal.vector3Value = -Vector3.Lerp(wing.SectionL.transform.forward, wing.SectionR.transform.forward, 0.5f);
 
             Vector3 cpl = spl - 0.25f * wing.SectionL.chordLength * bt.TransformDirection(wing.SectionL.transform.forward);
             Vector3 cpr = spr - 0.25f * wing.SectionR.chordLength * bt.TransformDirection(wing.SectionR.transform.forward);
@@ -158,7 +158,7 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             Vector3 Qr = (1f / RC.magnitude) * Vector3.Cross(u, RC).normalized;
             Vector3 Ql = (1f / CL.magnitude) * Vector3.Cross(u, CL).normalized;
             Vector3 Qrl = (Vector3.Dot(RLn, RC.normalized) * Vector3.Dot(RLn, CL.normalized)) * Vector3.Cross(spRL.vector3Value, RC).normalized;
-            return (0.5f / Mathf.PI) * (Qr + Ql /*+ Qrl*/);
+            return (0.25f / Mathf.PI) * (Qr + Ql /*+ Qrl*/);
         }
     }
 }
