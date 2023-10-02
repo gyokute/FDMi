@@ -7,25 +7,19 @@ using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class FDMiSyncedQuaternion : FDMiData
+    public class FDMiSyncedQuaternion : FDMiQuaternion
     {
-        public Quaternion[] data = new Quaternion[1];
-        [UdonSynced, FieldChangeCallback(nameof(Data))] public Quaternion syncedData;
-        public Quaternion Data
+        [UdonSynced] public Quaternion syncedData;
+        public override void OnDeserialization()
         {
-            get => data[0];
-            set
-            {
-                syncedData = value;
-                data[0] = value;
-                trigger();
-            }
+            Data = syncedData;
         }
 
         public void set(Quaternion src)
         {
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             syncedData = src;
+            Data = src;
             RequestSerialization();
         }
     }

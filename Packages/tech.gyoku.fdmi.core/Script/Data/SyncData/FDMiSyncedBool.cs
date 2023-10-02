@@ -7,25 +7,20 @@ using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class FDMiSyncedBool : FDMiData
+    public class FDMiSyncedBool : FDMiBool
     {
-        public bool[] data = new bool[1];
-        [UdonSynced, FieldChangeCallback(nameof(Data))] public bool syncedData;
-        public bool Data
+        [UdonSynced] public bool syncedData;
+
+        public override void OnDeserialization()
         {
-            get => data[0];
-            set
-            {
-                syncedData = value;
-                data[0] = value;
-                trigger();
-            }
+            Data = syncedData;
         }
 
         public void set(bool src)
         {
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             syncedData = src;
+            Data = src;
             RequestSerialization();
         }
     }

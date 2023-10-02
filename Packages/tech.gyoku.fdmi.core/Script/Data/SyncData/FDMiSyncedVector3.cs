@@ -7,25 +7,19 @@ using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class FDMiSyncedVector3 : FDMiData
+    public class FDMiSyncedVector3 : FDMiVector3
     {
-        public Vector3[] data = new Vector3[1];
-        [UdonSynced, FieldChangeCallback(nameof(Data))] public Vector3 syncedData;
-        public Vector3 Data
+        [UdonSynced] public Vector3 syncedData;
+        public override void OnDeserialization()
         {
-            get => data[0];
-            set
-            {
-                syncedData = value;
-                data[0] = value;
-                trigger();
-            }
+            Data = syncedData;
         }
 
         public void set(Vector3 src)
         {
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             syncedData = src;
+            Data = src;
             RequestSerialization();
         }
     }
