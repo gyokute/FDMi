@@ -14,11 +14,10 @@ namespace tech.gyoku.FDMi.input
         public float initialValue;
         public float multiply, min, max;
         public float[] detents;
-        private Vector3 initDir;
+
         public override void OnStartGrab()
         {
             base.OnStartGrab();
-            initDir = transform.InverseTransformPoint(pickup.transform.position);
             initialValue = LeverOutput.data[0];
         }
         public override void OnDropGrab()
@@ -36,13 +35,10 @@ namespace tech.gyoku.FDMi.input
                 }
             }
             if (detentIndex >= 0) LeverOutput.set(detents[detentIndex]);
-            Debug.Log(detentIndex);
-            Debug.Log(LeverOutput.data[0]);
-
         }
-        void LateUpdate()
+        void Update()
         {
-            if (!isGrab) return;
+            if (!grabNow) return;
             Quaternion q = Quaternion.FromToRotation(handStartPos, handPos);
             float rawInput = q.eulerAngles[(int)rotationAxis];
             rawInput = rawInput - Mathf.Floor(rawInput / 180.1f) * 360;

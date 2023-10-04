@@ -17,9 +17,9 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] private float pitchMul, rollMul, yawMul;
 
 
-        void LateUpdate()
+        void Update()
         {
-            if (!isGrab) return;
+            if (!grabNow) return;
             Pitch.set(yokeMove(pitchType, pitchMul, (int)pitchAxis));
             Roll.set(yokeMove(rollType, rollMul, (int)rollAxis));
             Yaw.set(yokeMove(yawType, yawMul, (int)yawAxis));
