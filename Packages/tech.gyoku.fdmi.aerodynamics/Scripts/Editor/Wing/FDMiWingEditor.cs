@@ -116,6 +116,7 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
 
         private void SetControlPoint()
         {
+            Undo.RegisterCompleteObjectUndo(wing.gameObject, "FDMiWing Setup");
             Transform bt = wing.GetComponentInParent<Rigidbody>().transform;
 
             Vector3 spl = bt.InverseTransformPoint(wing.SectionL.transform.position);
@@ -128,17 +129,17 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             Vector3 planfn = Vector3.Cross(spn, Vector3.forward).normalized;
             spanNormal.vector3Value = spn;
             planfNormal.vector3Value = planfn;
-            chordNormal.vector3Value = -Vector3.Lerp(wing.SectionL.transform.forward, wing.SectionR.transform.forward, 0.5f);
+            chordNormal.vector3Value = -bt.InverseTransformDirection(Vector3.Lerp(wing.SectionL.transform.forward, wing.SectionR.transform.forward, 0.5f));
 
-            Vector3 cpl = spl - 0.25f * wing.SectionL.chordLength * bt.TransformDirection(wing.SectionL.transform.forward);
-            Vector3 cpr = spr - 0.25f * wing.SectionR.chordLength * bt.TransformDirection(wing.SectionR.transform.forward);
+            Vector3 cpl = spl - 0.25f * wing.SectionL.chordLength * bt.InverseTransformDirection(wing.SectionL.transform.forward);
+            Vector3 cpr = spr - 0.25f * wing.SectionR.chordLength * bt.InverseTransformDirection(wing.SectionR.transform.forward);
             controlPoint.vector3Value = Vector3.Lerp(cpl, cpr, 0.5f);
 
             cpChordLength.floatValue = Mathf.Lerp(wing.SectionL.chordLength, wing.SectionR.chordLength, 0.5f);
             cpSpanLength.floatValue = Vector3.Project(spr - spl, spn).magnitude;
             cpArea.floatValue = cpChordLength.floatValue * cpSpanLength.floatValue;
             wing.transform.position = bt.TransformPoint(Vector3.Lerp(spl, spr, 0.5f));
-            wing.transform.rotation = bt.rotation * Quaternion.LookRotation(-chordNormal.vector3Value, planfNormal.vector3Value);
+            wing.transform.rotation = bt.rotation * Quaternion.LookRotation(Vector3.Cross(planfn, spn), planfn);
 
             Qij.arraySize = wing.affectWing.Length;
             for (int i = 0; i < wing.affectWing.Length; i++)
@@ -146,6 +147,8 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
                 FDMiWing aw = wing.affectWing[i];
                 Qij.GetArrayElementAtIndex(i).vector3Value = DownwashEffect(aw, controlPoint.vector3Value);
             }
+            EditorUtility.SetDirty(wing.gameObject);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(wing.gameObject);
         }
 
 
