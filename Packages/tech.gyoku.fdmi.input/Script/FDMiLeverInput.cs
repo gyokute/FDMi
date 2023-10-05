@@ -7,10 +7,12 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
+    public enum LeverControlType { pull, rotate }
     public class FDMiLeverInput : FDMiInput
     {
         public FDMiSyncedFloat LeverOutput;
-        public LeverAxis rotationAxis;
+        public LeverControlType controlType;
+        public LeverAxis leverAxis;
         public float initialValue;
         public float multiply, min, max;
         public float[] detents;
@@ -36,12 +38,21 @@ namespace tech.gyoku.FDMi.input
             }
             if (detentIndex >= 0) LeverOutput.set(detents[detentIndex]);
         }
+        float rawInput;
         void Update()
         {
             if (!grabNow) return;
-            Quaternion q = Quaternion.FromToRotation(handStartPos, handPos);
-            float rawInput = q.eulerAngles[(int)rotationAxis];
-            rawInput = rawInput - Mathf.Floor(rawInput / 180.1f) * 360;
+            if (controlType == LeverControlType.pull)
+            {
+                Vector3 p = (handPos - handStartPos);
+                rawInput = p[(int)leverAxis];
+            }
+            if (controlType == LeverControlType.rotate)
+            {
+                Quaternion q = Quaternion.FromToRotation(handStartPos, handPos);
+                rawInput = q.eulerAngles[(int)leverAxis];
+                rawInput = rawInput - Mathf.Floor(rawInput / 180.1f) * 360;
+            }
             LeverOutput.set(Mathf.Clamp(initialValue + multiply * rawInput, min, max));
         }
 
