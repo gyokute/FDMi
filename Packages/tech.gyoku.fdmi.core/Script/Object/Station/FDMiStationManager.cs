@@ -38,16 +38,18 @@ namespace tech.gyoku.FDMi.core
         {
             for (int i = 0; i < stations.Length; i++)
             {
-                if (stations[i].pilotPriority > pilotPriority) break;
+                if (stations[i].seatedPlayer == null)
+                {
+                    if (stations[i].pilotPriority > pilotPriority) return;
+                    else continue;
+                }
                 if (stations[i].seatedPlayer.isLocal)
                 {
                     IsPilot.Data = true;
                     objectManager.takeOwnerOfAllAttributes();
-                    return;
                 }
-                if (stations[i].seatedPlayer != null) return;
+                return;
             }
-
         }
         public void TryDelegatePilot()
         {
