@@ -1,4 +1,4 @@
-﻿
+
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public class FDMiInputTrigger : UdonSharpBehaviour
+    public class FDMiInputZone : UdonSharpBehaviour
     {
         public FDMiInput input;
         private FDMiFingerTracker fingerTracker;
