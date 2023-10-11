@@ -7,21 +7,23 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum LeverAxis { x, y, z }
+    public enum InputButton { Grab, Trigger, Jump, PadTouch, Length }
+    public enum InputAxis { Grab, Trigger, PadV, PadH, Length }
     public class FDMiInput : UdonSharpBehaviour
     {
         public FDMiInputManager inputManager;
-
-        [System.NonSerializedAttribute] VRCPlayerApi.TrackingData track;
+        public FDMiInputAddon[] InputAddons = new FDMiInputAddon[(int)InputButton.Length];
+        VRCPlayerApi.TrackingData track;
         [System.NonSerializedAttribute] public FDMiFingerTrackerType holdingHandType;
-        [System.NonSerializedAttribute] public float Grab, Trigger, stickX, stickY;
-        [System.NonSerializedAttribute] public float pGrab;
-        [System.NonSerializedAttribute] public Vector3 handPos, handStartPos;
-        [System.NonSerializedAttribute] public Quaternion handAxis, handStartAxis;
+        [System.NonSerializedAttribute] public float[] inputAxis = new float[(int)InputAxis.Length];
+        VRCPlayerApi.TrackingDataType handType;
+        int[] handKeyCode = { (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None };
+        int[] handKeyCodeL = { (int)KeyCode.JoystickButton4, (int)KeyCode.JoystickButton14, (int)KeyCode.JoystickButton3, (int)KeyCode.JoystickButton16 };
+        int[] handKeyCodeR = { (int)KeyCode.JoystickButton5, (int)KeyCode.JoystickButton15, (int)KeyCode.JoystickButton1, (int)KeyCode.JoystickButton17 };
         protected bool grabNow = false, fingerInZone = false;
 
 
-        private void OnDisable()
+        public virtual void OnDisable()
         {
             grabNow = false;
             fingerInZone = false;
@@ -31,58 +33,51 @@ namespace tech.gyoku.FDMi.input
         {
             if (!grabNow && !fingerInZone) gameObject.SetActive(false);
 
-            pGrab = Grab;
             if (holdingHandType == FDMiFingerTrackerType.L) getLeftHandStatus();
             if (holdingHandType == FDMiFingerTrackerType.R) getRightHandStatus();
-            handPos = transform.InverseTransformPoint(track.position);
-            handAxis = Quaternion.Inverse(transform.rotation) * track.rotation;
-            
-            if (!grabNow && (Grab - pGrab) > 0.5f) OnStartGrab();
-            if (grabNow && Grab < 0.25f) OnDropGrab();
-        }
 
+            for (int i = 0; i < (int)InputButton.Length; i++)
+            {
+                if (!InputAddons[i]) continue;
+                if (Input.GetKeyDown((KeyCode)handKeyCode[i])) InputAddons[i].OnCalled((KeyCode)handKeyCode[i], handType);
+            }
+            grabNow = Input.GetKey((KeyCode)handKeyCode[(int)InputButton.Grab]) || Input.GetKey((KeyCode)handKeyCode[(int)InputButton.Trigger]);
+        }
         void getLeftHandStatus()
         {
-            Grab = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryHandTrigger");
-            Trigger = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryIndexTrigger");
-            stickX = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickHorizontal");
-            stickY = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickVertical");
-            track = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.LeftHand);
+            inputAxis[(int)InputAxis.Grab] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryHandTrigger");
+            inputAxis[(int)InputAxis.Trigger] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryIndexTrigger");
+            inputAxis[(int)InputAxis.PadH] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickHorizontal");
+            inputAxis[(int)InputAxis.PadV] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickVertical");
+            handKeyCode = handKeyCodeL;
+            handType = VRCPlayerApi.TrackingDataType.LeftHand;
         }
         void getRightHandStatus()
         {
-            Grab = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryHandTrigger");
-            Trigger = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryIndexTrigger");
-            stickX = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickHorizontal");
-            stickY = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickVertical");
-            track = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.RightHand);
-        }
-        public virtual void OnStartGrab()
-        {
-            grabNow = true;
-            inputManager.OnStartGrab(holdingHandType, this);
-            handStartPos = handPos;
-            handStartAxis = handAxis;
-        }
-
-        public virtual void OnDropGrab()
-        {
-            grabNow = false;
-            inputManager.OnStartGrab(holdingHandType, this);
+            inputAxis[(int)InputAxis.Grab] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryHandTrigger");
+            inputAxis[(int)InputAxis.Trigger] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryIndexTrigger");
+            inputAxis[(int)InputAxis.PadH] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickHorizontal");
+            inputAxis[(int)InputAxis.PadV] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickVertical");
+            handKeyCode = handKeyCodeR;
+            handType = VRCPlayerApi.TrackingDataType.RightHand;
         }
 
         #region Finger Input
-        public void OnFingerEnter(FDMiFingerTracker finger)
+        public virtual void OnFingerEnter(FDMiFingerTracker finger)
         {
-            gameObject.SetActive(true);
+            finger.targetInput = this;
             fingerInZone = true;
             holdingHandType = finger.fingerType;
+            inputManager.OnFingerEnter(finger.fingerType);
+            gameObject.SetActive(true);
         }
-        public void OnFingerLeave(FDMiFingerTracker finger)
+        public virtual void OnFingerLeave(FDMiFingerTracker finger)
         {
+            if (finger.targetInput == this) finger.targetInput = null;
             if (holdingHandType != finger.fingerType) return;
             fingerInZone = false;
             holdingHandType = FDMiFingerTrackerType.None;
+            inputManager.OnFingerLeave(finger.fingerType);
         }
         #endregion
     }

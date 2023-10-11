@@ -8,7 +8,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum FDMiFingerTrackerType { None, L, R }
+    public enum FDMiFingerTrackerType { L, R, None }
     public class FDMiFingerTracker : UdonSharpBehaviour
     {
         public FDMiFingerTrackerType fingerType;
@@ -32,7 +32,6 @@ namespace tech.gyoku.FDMi.input
                 gameObject.SetActive(true);
         }
 
-
         void FixedUpdate()
         {
             fingerPos = localPlayer.GetBonePosition(finger);
@@ -40,6 +39,5 @@ namespace tech.gyoku.FDMi.input
             body.position = fingerPos;
             body.rotation = fingerAxis;
         }
-        
     }
 }

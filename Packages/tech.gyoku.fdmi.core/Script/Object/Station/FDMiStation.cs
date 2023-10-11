@@ -12,6 +12,12 @@ namespace tech.gyoku.FDMi.core
         public FDMiStationManager stationManager;
         public int pilotPriority;
         public VRCPlayerApi seatedPlayer;
+        public GameObject onlyInSeat;
+        public UdonSharpBehaviour[] InSeatBehaviours;
+        void Start()
+        {
+            if (onlyInSeat) onlyInSeat.SetActive(false);
+        }
         public override void Interact()
         {
             localPlayer.UseAttachedStation();
@@ -21,11 +27,17 @@ namespace tech.gyoku.FDMi.core
         {
             seatedPlayer = player;
             if (player.isLocal) stationManager.TryTakePilot(pilotPriority);
+            if (onlyInSeat) onlyInSeat.SetActive(true);
+            foreach (UdonSharpBehaviour usb in InSeatBehaviours)
+                if (usb) usb.SendCustomEvent("FDMiOnSeatEnter");
         }
 
         public override void OnStationExited(VRCPlayerApi player)
         {
             seatedPlayer = null;
+            if (onlyInSeat) onlyInSeat.SetActive(false);
+            foreach (UdonSharpBehaviour usb in InSeatBehaviours)
+                if (usb) usb.SendCustomEvent("FDMiOnSeatEnter");
         }
     }
 }

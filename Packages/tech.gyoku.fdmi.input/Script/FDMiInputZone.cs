@@ -28,14 +28,11 @@ namespace tech.gyoku.FDMi.input
         private void connectToFinger(Collider other)
         {
             input.OnFingerEnter(fingerTracker);
-            fingerTracker.targetInput = input;
         }
 
         private void disconnectFromFinger(Collider other)
         {
             input.OnFingerLeave(fingerTracker);
-            if (fingerTracker.targetInput == input)
-                fingerTracker.targetInput = null;
         }
 
     }

@@ -9,18 +9,32 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiInputManager : UdonSharpBehaviour
     {
-        [HideInInspector] public bool[] isGrab = new bool[3];
-        [HideInInspector] public FDMiInput[] holdingInput = new FDMiInput[3];
-        // public FDMiInput[] inputs;
+        public FDMiFingerTracker[] fingerTrackers = new FDMiFingerTracker[(int)FDMiFingerTrackerType.None];
+        [HideInInspector] public FDMiInput[] defaultGrabObject = new FDMiInput[(int)FDMiFingerTrackerType.None];
+        [HideInInspector] public bool[] isGrab = new bool[(int)FDMiFingerTrackerType.None];
+        [HideInInspector] public FDMiInput[] grabingInput = new FDMiInput[(int)FDMiFingerTrackerType.None];
+
         public void OnStartGrab(FDMiFingerTrackerType handType, FDMiInput target)
         {
             isGrab[(int)handType] = true;
-            holdingInput[(int)handType] = target;
+            grabingInput[(int)handType] = target;
         }
-        public void OnDropGrab(FDMiFingerTrackerType handType, FDMiInput target)
+        public void OnDropGrab(FDMiFingerTrackerType handType)
         {
             isGrab[(int)handType] = false;
-            holdingInput[(int)handType] = null;
+            grabingInput[(int)handType] = null;
+        }
+
+        public void OnFingerEnter(FDMiFingerTrackerType handType)
+        {
+            if (!defaultGrabObject[(int)handType]) return;
+            defaultGrabObject[(int)handType].OnFingerLeave(fingerTrackers[(int)handType]);
+        }
+        public void OnFingerLeave(FDMiFingerTrackerType handType)
+        {
+            if (!defaultGrabObject[(int)handType]) return;
+            defaultGrabObject[(int)handType].OnFingerEnter(fingerTrackers[(int)handType]);
+            fingerTrackers[(int)handType].targetInput = defaultGrabObject[(int)handType];
         }
     }
 }

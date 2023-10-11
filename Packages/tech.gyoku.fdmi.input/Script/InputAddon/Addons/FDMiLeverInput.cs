@@ -8,7 +8,8 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.input
 {
     public enum LeverControlType { pull, rotate }
-    public class FDMiLeverInput : FDMiInput
+    public enum LeverAxis { x, y, z }
+    public class FDMiLeverInput : FDMiInputAddon
     {
         public FDMiSyncedFloat LeverOutput;
         public LeverControlType controlType;
@@ -17,14 +18,14 @@ namespace tech.gyoku.FDMi.input
         public float multiply, min, max;
         public float[] detents;
 
-        public override void OnStartGrab()
+        public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
         {
-            base.OnStartGrab();
+            base.OnCalled(callKey, trackType);
             initialValue = LeverOutput.data[0];
         }
-        public override void OnDropGrab()
+        public override void OnReleased()
         {
-            base.OnDropGrab();
+            base.OnReleased();
             int detentIndex = -1;
             float minDetDiff = max;
             for (int i = 0; i < detents.Length; i++)
@@ -39,9 +40,9 @@ namespace tech.gyoku.FDMi.input
             if (detentIndex >= 0) LeverOutput.set(detents[detentIndex]);
         }
         float rawInput;
-        void Update()
+        public override void Update()
         {
-            if (!grabNow) return;
+            base.Update();
             if (controlType == LeverControlType.pull)
             {
                 Vector3 p = (handPos - handStartPos);
@@ -54,6 +55,7 @@ namespace tech.gyoku.FDMi.input
                 rawInput = rawInput - Mathf.Floor(rawInput / 180.1f) * 360;
             }
             LeverOutput.set(Mathf.Clamp(initialValue + multiply * rawInput, min, max));
+            if (!Input.GetKey(triggeredKey)) OnReleased();
         }
 
     }
