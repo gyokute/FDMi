@@ -22,6 +22,8 @@ namespace tech.gyoku.FDMi.input
         }
         public virtual void Update()
         {
+            // If not Init, return
+            if(handType == VRCPlayerApi.TrackingDataType.Head) return;
             if (!Input.GetKey(triggeredKey)) OnReleased();
             track = Networking.LocalPlayer.GetTrackingData(handType);
             handPos = transform.InverseTransformPoint(track.position);
