@@ -12,10 +12,11 @@ namespace tech.gyoku.FDMi.input
     {
         [SerializeField] FDMiSyncedFloat Output;
         [SerializeField] InputAxis inputAxisType;
+        [SerializeField] float multiply = 1f;
         public override void Update()
         {
             base.Update();
-            Output.set(input.inputAxis[(int)inputAxisType]);
+            Output.set(multiply * inputAxis[(int)inputAxisType]);
         }
         public override void OnReleased()
         {
