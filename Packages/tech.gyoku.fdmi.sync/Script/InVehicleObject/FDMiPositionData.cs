@@ -10,7 +10,7 @@ namespace tech.gyoku.FDMi.sync
     public class FDMiPositionData : FDMiAttribute
     {
         public FDMiReferencePoint refPoint;
-        public FDMiVector3 Position, KmPosition, Velocity, Attitude;
+        public FDMiVector3 Position, KmPosition, Velocity;
         public FDMiQuaternion Rotation;
         Vector3[] pos, kmPos, vel, attitude;
         Quaternion[] rot;
@@ -19,7 +19,6 @@ namespace tech.gyoku.FDMi.sync
             pos = Position.data;
             kmPos = KmPosition.data;
             vel = Velocity.data;
-            attitude = Attitude.data;
             rot = Rotation.data;
         }
 
@@ -29,8 +28,6 @@ namespace tech.gyoku.FDMi.sync
             kmPos[0] = refPoint._kmPosition;
             vel[0] = refPoint.velocity;
             rot[0] = refPoint._direction;
-            attitude[0] = rot[0].eulerAngles;
-
         }
     }
 }
