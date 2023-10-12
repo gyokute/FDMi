@@ -48,7 +48,7 @@ namespace tech.gyoku.FDMi.aerodynamics
 
             tas[0] = airSpeed[0].z;
             ias[0] = tas[0] * Mathf.Sqrt(rho[0] / 1.2f);
-            mach[0] = tas[0] / sonic[0];
+            mach[0] = tas[0] / Mathf.Max(sonic[0], 0.0001f);
             // tat[0] = (1f + 0.2f * mach[0] * mach[0]) / sat[0];
         }
     }
