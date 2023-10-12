@@ -40,7 +40,7 @@ namespace tech.gyoku.FDMi.input
             if (detentIndex >= 0) LeverOutput.set(detents[detentIndex]);
         }
         float rawInput;
-        public override void Update()
+        protected override void Update()
         {
             base.Update();
             if (controlType == LeverControlType.pull)

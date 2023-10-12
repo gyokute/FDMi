@@ -542,7 +542,7 @@ MonoBehaviour:
       Data: 29|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: tech.gyoku.FDMi.input.LeverControlType, tech.gyoku.FDMi.input
+      Data: tech.gyoku.FDMi.input.LeverControlType, tech.gyoku.FDMi.ui.core
     - Name: 
       Entry: 8
       Data: 
@@ -602,7 +602,7 @@ MonoBehaviour:
       Data: 33|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: tech.gyoku.FDMi.input.LeverAxis, tech.gyoku.FDMi.input
+      Data: tech.gyoku.FDMi.input.LeverAxis, tech.gyoku.FDMi.ui.core
     - Name: 
       Entry: 8
       Data: 

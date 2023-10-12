@@ -116,7 +116,7 @@ MonoBehaviour:
       Data: 6|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: tech.gyoku.FDMi.input.FDMiInputManager, tech.gyoku.FDMi.input
+      Data: tech.gyoku.FDMi.input.FDMiInputManager, tech.gyoku.FDMi.ui.core
     - Name: 
       Entry: 8
       Data: 
@@ -176,7 +176,7 @@ MonoBehaviour:
       Data: 10|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: tech.gyoku.FDMi.input.FDMiInputAddon[], tech.gyoku.FDMi.input
+      Data: tech.gyoku.FDMi.input.FDMiInputAddon[], tech.gyoku.FDMi.ui.core
     - Name: 
       Entry: 8
       Data: 
@@ -290,7 +290,7 @@ MonoBehaviour:
       Data: 17|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: tech.gyoku.FDMi.input.FDMiFingerTrackerType, tech.gyoku.FDMi.input
+      Data: tech.gyoku.FDMi.input.FDMiFingerTrackerType, tech.gyoku.FDMi.ui.core
     - Name: 
       Entry: 8
       Data: 

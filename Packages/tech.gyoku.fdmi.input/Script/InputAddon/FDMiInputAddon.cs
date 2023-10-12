@@ -12,16 +12,16 @@ namespace tech.gyoku.FDMi.input
     {
         protected KeyCode triggeredKey = KeyCode.None;
         VRCPlayerApi.TrackingData track;
-        VRCPlayerApi.TrackingDataType handType = VRCPlayerApi.TrackingDataType.Head;
+        protected VRCPlayerApi.TrackingDataType handType = VRCPlayerApi.TrackingDataType.Head;
         protected float[] inputAxis = new float[(int)InputAxis.Length];
         protected Vector3 handPos, handStartPos;
         protected Quaternion handAxis, handStartAxis;
 
-        void Start()
+        protected virtual void Start()
         {
             gameObject.SetActive(false);
         }
-        public virtual void Update()
+        protected virtual void Update()
         {
             // If not Init, return
             if (handType == VRCPlayerApi.TrackingDataType.Head) return;

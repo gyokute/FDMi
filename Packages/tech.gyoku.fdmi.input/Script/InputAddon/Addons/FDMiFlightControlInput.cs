@@ -17,7 +17,7 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] private float pitchMul, rollMul, yawMul;
 
 
-        public override void Update()
+        protected override void Update()
         {
             base.Update();
             Pitch.set(yokeMove(pitchType, pitchMul, (int)pitchAxis));

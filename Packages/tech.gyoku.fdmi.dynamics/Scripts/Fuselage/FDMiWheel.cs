@@ -26,7 +26,7 @@ namespace tech.gyoku.FDMi.dynamics
         {
             rpm = wheel.rpm;
             // Ground Detection
-            wheel.brakeTorque = parkbrake[0] * brakePressure + parkbrake[0] * parkBrakePressure;
+            wheel.brakeTorque = brake[0] * brakePressure + parkbrake[0] * parkBrakePressure;
             wheel.motorTorque = Mathf.Clamp01(wheel.rpm + 0.01f) * Mathf.Clamp01(1f - parkbrake[0] - parkbrake[0]) * preLoadTorque;
             wheel.steerAngle = tiller[0] * rotateAngle;
         }
