@@ -61,15 +61,15 @@ namespace tech.gyoku.FDMi.sync
                 tgtTransform.SetParent(null);
             }
             localRootRefPoint = target;
-            localPlayerPosition.ParentIndex = target.index;
             localPlayerPosition.transform.SetParent(target.transform);
+            localPlayerPosition.ParentIndex = target.index;
 
             for (int i = 0; i < refPoints.Length; i++)
             {
                 refPoints[i].onChangeRootRefPoint(target);
             }
-            target.windupPositionAndRotation();
-            prevRoot.windupPositionAndRotation();
+            // target.windupPositionAndRotation();
+            // prevRoot.windupPositionAndRotation();
         }
 
     }

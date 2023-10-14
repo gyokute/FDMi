@@ -36,6 +36,7 @@ namespace tech.gyoku.FDMi.sync
         public VRCPlayerApi Player;
         [SerializeField] private bool isMine;
         private bool isPlayerJoined = false;
+        private bool isPlayerSitting = false;
         private bool isUserInVR;
         void Start()
         {
@@ -73,7 +74,7 @@ namespace tech.gyoku.FDMi.sync
         }
         public void useSeat()
         {
-            if (!inVehicle) station.UseStation(Player);
+            if (!inVehicle && !isPlayerSitting) station.UseStation(Player);
         }
 
         public override void handleParentIndex(int value)
@@ -84,18 +85,21 @@ namespace tech.gyoku.FDMi.sync
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
             if (value < 0) return;
-            Vector3 teleportPos = prevPRP.direction * (Position + 1000f * kmPosition);
-            teleportPos += prevPRP.Position - parentRefPoint.Position;
-            teleportPos += (prevPRP.kmPosition - parentRefPoint.kmPosition) * 1000f;
+            Vector3 teleportPos = prevPRP.direction * Position + prevPRP.Position - parentRefPoint.Position;
+            teleportPos += (prevPRP.direction * kmPosition + prevPRP.kmPosition - parentRefPoint.kmPosition) * 1000f;
             teleportPos = Quaternion.Inverse(parentRefPoint.direction) * teleportPos;
             Quaternion teleportRot = Quaternion.Inverse(parentRefPoint.direction) * prevPRP.direction * direction;
             localPlayer.TeleportTo(teleportPos, teleportRot, VRC_SceneDescriptor.SpawnOrientation.Default, false);
+            Position = teleportPos;
+            direction = teleportRot;
             kmPosition = Vector3.zero;
         }
 
         #region station events
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
+            if (Player != null) if (Player.isLocal) useSeat();
+            if (!player.isLocal) return;
             transform.localPosition = getViewPosition();
             transform.localRotation = getViewRotation();
             isPlayerJoined = true;
@@ -106,6 +110,7 @@ namespace tech.gyoku.FDMi.sync
             if (Player == null) return;
             if (Player.playerId == player.playerId)
             {
+                isPlayerSitting = false;
                 gameObject.SetActive(false);
             }
         }
@@ -122,11 +127,13 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnStationEntered(VRCPlayerApi player)
         {
+            isPlayerSitting = true;
             if (Player.isLocal) gameObject.SetActive(true);
         }
 
         public override void OnStationExited(VRCPlayerApi player)
         {
+            isPlayerSitting = false;
             if (!Player.isLocal) return;
             if (!inVehicle)
             {
@@ -155,16 +162,18 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void windupPositionAndRotation()
         {
-            transform.localPosition = getViewPosition();
-            transform.localRotation = Quaternion.identity;
+            prevPos = getViewPosition();
+            prevRot = Quaternion.identity;
         }
         public void Update()
         {
             if (!isInit || !isPlayerJoined) return;
             if (!inVehicle)
             {
-                transform.localPosition = getViewPosition();
-                transform.localRotation = getViewRotation();
+                prevPos = getViewPosition();
+                prevRot = getViewRotation();
+                transform.localPosition = prevPos;
+                transform.localRotation = prevRot;
             }
             if (Networking.IsOwner(gameObject))
             {
