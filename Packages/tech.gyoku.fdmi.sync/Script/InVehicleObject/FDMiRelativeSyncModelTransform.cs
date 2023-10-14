@@ -19,7 +19,7 @@ namespace tech.gyoku.FDMi.sync
         public void OnChangeInZone()
         {
             if (InZone.data[0]) transform.SetParent(onlyIsRoot);
-            if (!InZone.data[0]) transform.SetParent(body.transform);
+            if (!InZone.data[0] && body) transform.SetParent(body.transform);
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
         }

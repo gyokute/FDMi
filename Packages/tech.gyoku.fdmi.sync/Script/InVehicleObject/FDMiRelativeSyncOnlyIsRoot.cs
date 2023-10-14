@@ -8,8 +8,9 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeSyncOnlyIsRoot : FDMiAttribute
     {
-        void Start()
+        public override void init()
         {
+            base.init();
             transform.SetParent(body.transform.parent);
             transform.position = Vector3.zero;
             transform.rotation = Quaternion.identity;
