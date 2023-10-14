@@ -52,7 +52,14 @@ namespace tech.gyoku.FDMi.sync
         {
             playerId = player.playerId;
             Networking.SetOwner(player, playerPosition.gameObject);
+            SendCustomEventDelayedSeconds(nameof(delayCheckSeating), 3f);
             RequestSerialization();
+        }
+
+        void delayCheckSeating()
+        {
+            if (_playerId != Networking.LocalPlayer.playerId) return;
+            if (!playerPosition._inVehicle) playerPosition.useSeat();
         }
         void playerAttached(int pId)
         {
