@@ -9,8 +9,8 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeSyncModelTransform : FDMiAttribute
     {
-        public FDMiBool InZone;
-        public Transform onlyIsRoot, onlyNotRoot;
+        [SerializeField] FDMiBool InZone;
+        [SerializeField] Transform onlyIsRoot;
         void Start()
         {
             InZone.subscribe(this, "OnChangeInZone");
@@ -19,7 +19,7 @@ namespace tech.gyoku.FDMi.sync
         public void OnChangeInZone()
         {
             if (InZone.data[0]) transform.SetParent(onlyIsRoot);
-            if (!InZone.data[0]) transform.SetParent(onlyNotRoot);
+            if (!InZone.data[0]) transform.SetParent(body.transform);
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
         }

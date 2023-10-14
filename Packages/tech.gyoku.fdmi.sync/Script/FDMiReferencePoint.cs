@@ -58,13 +58,10 @@ namespace tech.gyoku.FDMi.sync
             set
             {
                 _isRoot = value;
-                if (onlyIsRoot) onlyIsRoot.SetActive(value);
-                if (onlyNotRoot) onlyNotRoot.SetActive(!value);
             }
         }
 
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
-        public GameObject onlyIsRoot, onlyNotRoot;
         protected bool isInit = false;
         public Vector3 respawnPoint;
 
@@ -76,11 +73,6 @@ namespace tech.gyoku.FDMi.sync
             rootRefPoint = syncManager;
             if (parentRefPoint) ParentIndex = parentRefPoint.index;
 
-            if (onlyIsRoot)
-            {
-                onlyIsRoot.SetActive(false);
-            }
-            if (onlyNotRoot) onlyNotRoot.SetActive(true);
             waitUpdate();
             isInit = true;
         }

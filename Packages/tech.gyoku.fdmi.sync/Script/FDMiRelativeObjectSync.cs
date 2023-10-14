@@ -35,18 +35,6 @@ namespace tech.gyoku.FDMi.sync
                 body.rotation = transform.rotation;
                 body.transform.position = transform.position;
                 body.transform.rotation = transform.rotation;
-                if (isRoot && onlyIsRoot)
-                {
-                    onlyIsRoot.transform.parent = body.transform.parent;
-                    onlyIsRoot.transform.position = Vector3.zero;
-                    onlyIsRoot.transform.rotation = Quaternion.identity;
-                }
-                if (!isRoot && onlyIsRoot)
-                {
-                    onlyIsRoot.transform.parent = body.transform;
-                    onlyIsRoot.transform.localPosition = Vector3.zero;
-                    onlyIsRoot.transform.localRotation = Quaternion.identity;
-                }
             }
 
         }
