@@ -11,7 +11,7 @@ namespace tech.gyoku.FDMi.core
         public FDMiObjectManager objectManager;
         [System.NonSerializedAttribute] public Rigidbody body;
         [System.NonSerializedAttribute] public VRCPlayerApi localPlayer;
-        public bool isOwner, isInit = false;
+        protected bool isOwner, isInit = false;
         #endregion
 
         #region Ownership
