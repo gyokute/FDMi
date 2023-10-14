@@ -143,6 +143,8 @@ namespace tech.gyoku.FDMi.sync
             if (Player.isLocal) gameObject.SetActive(false);
         }
         #endregion
+
+        #region RelativePosition
         // public override bool setPosition(Vector3 pos)
         // {
         //     Position = pos;
@@ -160,21 +162,26 @@ namespace tech.gyoku.FDMi.sync
             // if (isRoot) return Quaternion.identity;
             // return Quaternion.Inverse(rootRefPoint.direction) * direction;
         }
+        public override Vector3 getViewPositionInterpolated()
+        {
+            if (Networking.IsOwner(gameObject)) return getViewPosition();
+            return Vector3.Lerp(prevSyncedPos, getViewPosition(), (Time.time - syncDeltaTIme - lastSyncedTime) / syncDeltaTIme);
+        }
+        public override Quaternion getViewRotationInterpolated()
+        {
+            if (Networking.IsOwner(gameObject)) return getViewRotation();
+            return Quaternion.Slerp(prevSyncedDir, getViewRotation(), (Time.time - syncDeltaTIme - lastSyncedTime) / syncDeltaTIme);
+        }
+
         public override void windupPositionAndRotation()
         {
             prevPos = getViewPosition();
             prevRot = Quaternion.identity;
         }
+        #endregion
         public void Update()
         {
             if (!isInit || !isPlayerJoined) return;
-            if (!inVehicle)
-            {
-                prevPos = getViewPosition();
-                prevRot = getViewRotation();
-                transform.localPosition = prevPos;
-                transform.localRotation = prevRot;
-            }
             if (Networking.IsOwner(gameObject))
             {
                 setPosition(localPlayer.GetPosition());
@@ -182,7 +189,11 @@ namespace tech.gyoku.FDMi.sync
                 RequestSerialization();
                 return;
             }
-
+            if (!inVehicle)
+            {
+                transform.localPosition = getViewPositionInterpolated();
+                transform.localRotation = getViewRotationInterpolated();
+            }
         }
     }
 }
