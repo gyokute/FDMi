@@ -11,8 +11,11 @@ namespace tech.gyoku.FDMi.core
         public FDMiFloat[] output;
         public FDMiFloat[] data;
         public float multiply, min, max;
-
-        void Update()
+        void Start()
+        {
+            foreach (FDMiFloat d in data) d.subscribe(this, "OnChange");
+        }
+        public void OnChange()
         {
             float outs = 0f;
             foreach (FDMiFloat d in data) outs += d.data[0];

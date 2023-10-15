@@ -17,9 +17,10 @@ namespace tech.gyoku.FDMi.core
         void Start()
         {
             input = Input.data;
+            Input.subscribe(this, "OnChange");
         }
 
-        void Update()
+        public void OnChange()
         {
             targetTransform.localPosition = Vector3.Lerp(zeroPosition, onePosition, outputValue.Evaluate(input[0]));
         }

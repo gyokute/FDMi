@@ -17,9 +17,10 @@ namespace tech.gyoku.FDMi.core
         void Start()
         {
             input = Input.data;
+            Input.subscribe(this, "OnChange");
         }
 
-        void Update()
+        public void OnChange()
         {
             animator.SetFloat(paramator, outputValue.Evaluate(input[0]));
         }
