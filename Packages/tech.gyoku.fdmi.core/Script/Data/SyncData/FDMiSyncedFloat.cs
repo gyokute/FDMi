@@ -9,18 +9,21 @@ namespace tech.gyoku.FDMi.core
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiSyncedFloat : FDMiFloat
     {
-        [UdonSynced] public float syncedData;
-        
-        public override void OnDeserialization()
+        [UdonSynced, FieldChangeCallback(nameof(SyncedData))] public float syncedData;
+        public float SyncedData
         {
-            data[0] = syncedData;
-            trigger();
+            get => syncedData;
+            set
+            {
+                syncedData = value;
+                data[0] = value;
+                trigger();
+            }
         }
 
         public override void set(float src)
         {
-            base.set(src);
-            syncedData = src;
+            SyncedData = src;
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
         }
