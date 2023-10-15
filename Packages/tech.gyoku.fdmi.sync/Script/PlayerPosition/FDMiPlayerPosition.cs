@@ -36,7 +36,6 @@ namespace tech.gyoku.FDMi.sync
         public VRCPlayerApi Player;
         [SerializeField] private bool isMine;
         private bool isPlayerJoined = false;
-        private bool isPlayerSitting = false;
         private bool isUserInVR;
         void Start()
         {
@@ -74,7 +73,9 @@ namespace tech.gyoku.FDMi.sync
         }
         public void useSeat()
         {
-            if (!inVehicle && !isPlayerSitting) station.UseStation(Player);
+            if (inVehicle) return;
+            station.UseStation(Player);
+            SendCustomEventDelayedSeconds(nameof(useSeat), 10f);
         }
 
         public override void handleParentIndex(int value)
@@ -98,7 +99,7 @@ namespace tech.gyoku.FDMi.sync
         #region station events
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
-            if (Player != null) if (Player.isLocal) useSeat();
+            // if (Player != null) if (Player.isLocal) useSeat();
             if (!player.isLocal) return;
             transform.localPosition = getViewPosition();
             transform.localRotation = getViewRotation();
@@ -110,7 +111,6 @@ namespace tech.gyoku.FDMi.sync
             if (Player == null) return;
             if (Player.playerId == player.playerId)
             {
-                isPlayerSitting = false;
                 gameObject.SetActive(false);
             }
         }
@@ -127,13 +127,11 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnStationEntered(VRCPlayerApi player)
         {
-            isPlayerSitting = true;
             if (Player.isLocal) gameObject.SetActive(true);
         }
 
         public override void OnStationExited(VRCPlayerApi player)
         {
-            isPlayerSitting = false;
             if (!Player.isLocal) return;
             if (!inVehicle)
             {
