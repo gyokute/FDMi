@@ -12,11 +12,14 @@ namespace tech.gyoku.FDMi.core
         public bool Data
         {
             get => data[0];
-            set
-            {
-                data[0] = value;
-                trigger();
-            }
+            set => set(value);
         }
+        
+        public virtual void set(bool src)
+        { 
+            data[0] = src; 
+            trigger();
+        }
+
     }
 }

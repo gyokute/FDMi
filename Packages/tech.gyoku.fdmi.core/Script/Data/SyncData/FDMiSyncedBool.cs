@@ -10,17 +10,18 @@ namespace tech.gyoku.FDMi.core
     public class FDMiSyncedBool : FDMiBool
     {
         [UdonSynced] public bool syncedData;
-
+        
         public override void OnDeserialization()
         {
-            Data = syncedData;
+            data[0] = syncedData;
+            trigger();
         }
 
-        public void set(bool src)
+        public override void set(bool src)
         {
-            if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            base.set(src);
             syncedData = src;
-            Data = src;
+            if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
         }
     }

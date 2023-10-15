@@ -12,14 +12,15 @@ namespace tech.gyoku.FDMi.core
         [UdonSynced] public Vector3 syncedData;
         public override void OnDeserialization()
         {
-            Data = syncedData;
+            data[0] = syncedData;
+            trigger();
         }
 
-        public void set(Vector3 src)
+        public override void set(Vector3 src)
         {
-            if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            base.set(src);
             syncedData = src;
-            Data = src;
+            if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
         }
     }
