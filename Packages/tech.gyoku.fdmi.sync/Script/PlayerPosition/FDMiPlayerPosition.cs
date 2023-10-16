@@ -75,7 +75,9 @@ namespace tech.gyoku.FDMi.sync
         {
             if (inVehicle) return;
             station.UseStation(Player);
+#if !UNITY_EDITOR
             SendCustomEventDelayedSeconds(nameof(useSeat), 10f);
+#endif
         }
 
         public override void handleParentIndex(int value)
