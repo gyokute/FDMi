@@ -20,10 +20,7 @@ namespace tech.gyoku.FDMi.sync
             get => _position;
             set
             {
-                prevSyncedPos = getViewPosition();
-                syncDeltaTIme = Mathf.Max(Time.time - lastSyncedTime, 0.001f);
                 _position = value;
-                lastSyncedTime = Time.time;
             }
         }
         [UdonSynced, FieldChangeCallback(nameof(direction))] public Quaternion _direction;
@@ -32,7 +29,6 @@ namespace tech.gyoku.FDMi.sync
             get => _direction;
             set
             {
-                prevSyncedDir = getViewRotation();
                 _direction = value;
             }
         }
@@ -74,9 +70,8 @@ namespace tech.gyoku.FDMi.sync
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
         protected bool isInit = false;
         public Vector3 respawnPoint;
-        protected Vector3 prevSyncedPos;
-        protected Quaternion prevSyncedDir;
-        protected float lastSyncedTime, syncDeltaTIme;
+        protected Vector3 prevPos;
+        protected Quaternion prevRot;
 
         #region RelativePosition
         public bool stopUpdate = true;
@@ -170,12 +165,11 @@ namespace tech.gyoku.FDMi.sync
             diff += 1000f * kmDiff;
             return dir * diff;
         }
-        protected Vector3 prevPos;
         public virtual Vector3 getViewPositionInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewPosition();
-            prevPos = Vector3.Lerp(prevPos + velocity * Time.deltaTime, getViewPosition(), 0.25f);
-            return prevPos;
+            prevPos = Vector3.Lerp(prevPos, getViewPosition(), Time.deltaTime * 10);
+            return getViewPosition();
         }
         public virtual Quaternion getViewRotation()
         {
@@ -183,12 +177,11 @@ namespace tech.gyoku.FDMi.sync
             if (!rootRefPoint) return direction;
             return (Quaternion.Inverse(rootRefPoint.direction) * direction).normalized;
         }
-        protected Quaternion prevRot;
         public virtual Quaternion getViewRotationInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewRotation();
-            prevRot = Quaternion.Slerp(prevRot, getViewRotation(), 0.25f);
-            return prevRot;
+            prevRot = Quaternion.Slerp(prevRot, getViewRotation(), Time.deltaTime * 10);
+            return getViewRotation();
         }
         public virtual void windupPositionAndRotation()
         {

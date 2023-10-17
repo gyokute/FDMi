@@ -165,12 +165,14 @@ namespace tech.gyoku.FDMi.sync
         public override Vector3 getViewPositionInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewPosition();
-            return Vector3.Lerp(prevSyncedPos, getViewPosition(), (Time.time - syncDeltaTIme - lastSyncedTime) / syncDeltaTIme);
+            prevPos = Vector3.Lerp(prevPos, getViewPosition(), Time.deltaTime * 10);
+            return prevPos;
         }
         public override Quaternion getViewRotationInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewRotation();
-            return Quaternion.Slerp(prevSyncedDir, getViewRotation(), (Time.time - syncDeltaTIme - lastSyncedTime) / syncDeltaTIme);
+            prevRot = Quaternion.Slerp(prevRot, getViewRotation(), Time.deltaTime * 10);
+            return prevRot;
         }
 
         public override void windupPositionAndRotation()
