@@ -32,7 +32,7 @@ namespace tech.gyoku.FDMi.input
         {
             base.OnDisable();
             fingerInZone = false;
-            if (inputManager.defaultGrabObject[(int)fingerTrackerType] != this)
+            if (inputManager.defaultGrabObject[(int)fingerTrackerType] == this)
                 inputManager.defaultGrabObject[(int)fingerTrackerType] = null;
             if(inputManager.fingerTrackers[(int)fingerTrackerType].targetInput == this)
             inputManager.fingerTrackers[(int)fingerTrackerType].targetInput = null;
