@@ -58,11 +58,11 @@ namespace tech.gyoku.FDMi.sync
                 isMine = true;
                 syncManager.localPlayerPosition = this;
                 SendCustomEventDelayedFrames(nameof(useSeat), 1);
-                kmPosition = Vector3.zero;
+                syncManager.changeRootRefPoint(syncManager);
                 transform.position = syncManager.respawnPoint;
-                Position = syncManager.respawnPoint;
+                localPlayer.TeleportTo(syncManager.respawnPoint, Quaternion.identity);
                 station.PlayerMobility = VRCStation.Mobility.Mobile;
-
+                RequestSerialization();
             }
             else
             {
@@ -106,6 +106,7 @@ namespace tech.gyoku.FDMi.sync
             transform.localPosition = getViewPosition();
             transform.localRotation = getViewRotation();
             isPlayerJoined = true;
+            SendCustomEventDelayedSeconds(nameof(RespawnLocalPlayer), 1f);
         }
         public override void OnPlayerLeft(VRCPlayerApi player)
         {
@@ -114,19 +115,26 @@ namespace tech.gyoku.FDMi.sync
             if (Player.playerId == player.playerId)
             {
                 gameObject.SetActive(false);
+                ParentIndex = syncManager.index;
+                kmPosition = Vector3.zero;
+                transform.position = syncManager.respawnPoint;
+                Position = syncManager.respawnPoint;
             }
         }
         public override void OnPlayerRespawn(VRCPlayerApi player)
         {
-
-            if (isMine)
-            {
-                localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPoint, Quaternion.identity);
-                inVehicle = false;
-                kmPosition = Vector3.zero;
-                Position = syncManager.rootRefPoint.respawnPoint;
-            }
+            if (isMine) RespawnLocalPlayer();
         }
+        void RespawnLocalPlayer()
+        {
+            ParentIndex = syncManager.rootRefPoint.index;
+            localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPoint, Quaternion.identity);
+            inVehicle = false;
+            kmPosition = Vector3.zero;
+            Position = syncManager.rootRefPoint.respawnPoint;
+            RequestSerialization();
+        }
+
         public override void OnStationEntered(VRCPlayerApi player)
         {
             if (Player.isLocal) gameObject.SetActive(true);

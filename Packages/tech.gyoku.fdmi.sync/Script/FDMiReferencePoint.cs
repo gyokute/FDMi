@@ -50,7 +50,7 @@ namespace tech.gyoku.FDMi.sync
             set { velocity = value; }
         }
 
-        [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] private int _parentIndex;
+        [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] protected int _parentIndex;
         public int ParentIndex
         {
             get => _parentIndex;
