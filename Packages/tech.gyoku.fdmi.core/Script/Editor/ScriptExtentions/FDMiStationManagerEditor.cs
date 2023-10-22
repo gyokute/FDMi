@@ -13,12 +13,12 @@ namespace tech.gyoku.FDMi.core.editor
     [CustomEditor(typeof(FDMiStationManager), true)]
     public class FDMiStationManagerEditor : FDMiAttributeEditor
     {
-        public override void ShowPropertyOption(Component tgt, SerializedProperty property)
+        public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
-            base.ShowPropertyOption(tgt, property);
+            base.SetPropertyOption(tgt, property, forceSetup);
             if (property.name == nameof(FDMiStationManager.stations))
             {
-                if (FDMiEditorUI.Button("Find"))
+                if ((FDMiEditorUI.Button("Find")|| forceSetup))
                 {
                     FDMiStation[] stations = FDMiEditorUI.FindChildrenComponents<FDMiStation>(tgt).OrderBy(s => s.pilotPriority).ToArray();
                     FDMiEditorUI.SetObjectArrayProperty<FDMiStation>(property, stations);

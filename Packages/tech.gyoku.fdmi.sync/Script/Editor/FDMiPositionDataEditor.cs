@@ -15,11 +15,11 @@ namespace tech.gyoku.FDMi.sync.editor
     [CustomEditor(typeof(FDMiPositionData), true)]
     public class FDMiPositionDataEditor : FDMiAttributeEditor
     {
-        public override void ShowPropertyOption(Component tgt, SerializedProperty property)
+        public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
-            base.ShowPropertyOption(tgt, property);
+            base.SetPropertyOption(tgt, property, forceSetup);
             var ltgt = target as FDMiPositionData;
-            if (property.name == nameof(FDMiPositionData.refPoint) && FDMiEditorUI.Button("Find"))
+            if (property.name == nameof(FDMiPositionData.refPoint) && (FDMiEditorUI.Button("Find") || forceSetup))
                 property.objectReferenceValue = FDMiEditorUI.FindChildrenComponents<FDMiReferencePoint>(ltgt.objectManager).First();
         }
         public override void SetupAll()

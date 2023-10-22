@@ -20,7 +20,6 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
         private SerializedProperty spL, spR, spRL, spanNormal, planfNormal, chordNormal, controlPoint;
         private SerializedProperty cpChordLength, cpSpanLength, cpArea, Qij;
         private SerializedProperty Cl_Alpha, Cd_Alpha, Cl_Mach, Cd_Mach;
-        private bool _foldPlanform = true, foldBase = false;
         private float totalArea;
 
         private void OnEnable()
@@ -48,9 +47,9 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             drawPlanform(wing);
         }
 
-        public override void ShowPropertyOption(Component tgt, SerializedProperty property)
+        public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
-            base.ShowPropertyOption(tgt, property);
+            base.SetPropertyOption(tgt, property, forceSetup);
             if (property.type == Cl_Alpha.type)
                 SetAnimatorCurve(property);
             if (property.name == nameof(wing.SectionL) && FDMiEditorUI.Button("Maybe"))

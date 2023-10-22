@@ -5,11 +5,11 @@ using VRC.SDKBase;
 using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
-    public class FDMiAttribute : UdonSharpBehaviour
+    public class FDMiAttribute : FDMiBehaviour
     {
         #region paramators
         public FDMiObjectManager objectManager;
-        [System.NonSerializedAttribute] public Rigidbody body;
+        public Rigidbody body;
         [System.NonSerializedAttribute] public VRCPlayerApi localPlayer;
         protected bool isOwner, isInit = false;
         #endregion
@@ -26,7 +26,6 @@ namespace tech.gyoku.FDMi.core
         public virtual void init()
         {
             if (!objectManager) return;
-            body = objectManager.body;
             isInit = true;
         }
         public override void OnPlayerJoined(VRCPlayerApi player)

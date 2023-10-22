@@ -1,13 +1,18 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEditor;
 using UdonSharpEditor;
 using UnityEngine.SceneManagement;
 using VRC.SDKBase.Editor.BuildPipeline;
+using tech.gyoku.FDMi.core;
+
 namespace tech.gyoku.FDMi.core.editor
 {
+    [CustomEditor(typeof(FDMiBehaviour), true)]
     public class FDMiEditorExt : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
@@ -23,34 +28,35 @@ namespace tech.gyoku.FDMi.core.editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.PropertyField(property, true);
-                    ShowPropertyOption(tgt, property);
+                    SetPropertyOption(tgt, property, false);
                 }
             }
             serializedObject.ApplyModifiedProperties();
         }
 
-        public virtual void ShowPropertyOption(Component tgt, SerializedProperty property)
+        public virtual void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup = false)
         {
-            if (property.type == "PPtr<$FDMiEvent>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiEvent>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiBool>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiBool>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiFloat>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiFloat>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiVector3>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiVector3>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiQuaternion>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiQuaternion>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedBool>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiSyncedBool>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedFloat>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiSyncedFloat>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedVector3>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiSyncedVector3>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedQuaternion>" && FDMiEditorUI.Button("Find"))
-                property.objectReferenceValue = FindDataByName<FDMiSyncedQuaternion>(tgt, property.name);
+            UnityEngine.Object refevent = null;
+            if (property.type == "PPtr<$FDMiEvent>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiEvent>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiBool>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiBool>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiFloat>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiFloat>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiVector3>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiVector3>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiQuaternion>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiQuaternion>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiSyncedBool>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiSyncedBool>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiSyncedFloat>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiSyncedFloat>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiSyncedVector3>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiSyncedVector3>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiSyncedQuaternion>" && (FDMiEditorUI.Button("Find") || forceSetup))
+                refevent = FindDataByName<FDMiSyncedQuaternion>(tgt, property.name);
+            if (refevent) property.objectReferenceValue = refevent;
         }
-
         public virtual void SetupAll()
         {
             var tgt = target as Component;
@@ -59,24 +65,7 @@ namespace tech.gyoku.FDMi.core.editor
             property.NextVisible(true);
             while (property.NextVisible(false))
             {
-                if (property.type == "PPtr<$FDMiEvent>")
-                    property.objectReferenceValue = FindDataByName<FDMiEvent>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiBool>")
-                    property.objectReferenceValue = FindDataByName<FDMiBool>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiFloat>")
-                    property.objectReferenceValue = FindDataByName<FDMiFloat>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiVector3>")
-                    property.objectReferenceValue = FindDataByName<FDMiVector3>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiQuaternion>")
-                    property.objectReferenceValue = FindDataByName<FDMiQuaternion>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiSyncedBool>")
-                    property.objectReferenceValue = FindDataByName<FDMiSyncedBool>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiSyncedFloat>")
-                    property.objectReferenceValue = FindDataByName<FDMiSyncedFloat>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiSyncedVector3>")
-                    property.objectReferenceValue = FindDataByName<FDMiSyncedVector3>(tgt, property.name);
-                if (property.type == "PPtr<$FDMiSyncedQuaternion>")
-                    property.objectReferenceValue = FindDataByName<FDMiSyncedQuaternion>(tgt, property.name);
+                SetPropertyOption(tgt, property, true);
             }
             serializedObject.ApplyModifiedProperties();
         }

@@ -13,34 +13,17 @@ namespace tech.gyoku.FDMi.core.editor
     [CustomEditor(typeof(FDMiAttribute), true)]
     public class FDMiAttributeEditor : FDMiEditorExt
     {
-        public override void ShowPropertyOption(Component tgt, SerializedProperty property)
+        public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
-            base.ShowPropertyOption(tgt, property);
-            if (property.name == nameof(FDMiAttribute.objectManager))
-            {
-                if (FDMiEditorUI.Button("Find"))
-                    property.objectReferenceValue = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
-            }
-        }
+            base.SetPropertyOption(tgt, property, forceSetup);
+            if (property.name == nameof(FDMiAttribute.objectManager) && (FDMiEditorUI.Button("Find") || forceSetup))
+                property.objectReferenceValue = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
 
-        public override void SetupAll()
-        {
-            base.SetupAll();
-            serializedObject.Update();
-            var tgt = target as FDMiAttribute;
-            var property = serializedObject.GetIterator();
-            property.NextVisible(true);
-            while (property.NextVisible(false))
+            if (property.name == nameof(FDMiAttribute.body) && (FDMiEditorUI.Button("Find") || forceSetup))
             {
-                if (property.name == nameof(tgt.objectManager))
-                    property.objectReferenceValue = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
-                if (property.name == nameof(tgt.body))
-                {
-                    FDMiObjectManager man = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
-                    property.objectReferenceValue = FDMiEditorUI.FindParentComponent<Rigidbody>(man);
-                }
+                FDMiObjectManager man = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
+                property.objectReferenceValue = man.GetComponentInChildren<Rigidbody>();
             }
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }
