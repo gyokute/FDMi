@@ -9,21 +9,19 @@ namespace tech.gyoku.FDMi.dynamics
 {
     public class FDMiFuselage : FDMiAttribute
     {
-        public FDMiFloat OEW, Fuel, Payload;
+        public FDMiFloat Mass;
         public FDMiVector3 CoG, InertiaTensor;
         [SerializeField] private bool overrideMass, overrideInertia, overrideCog;
         // weight and COG settings
-        private float[] oew, fuel, payload;
+        private float[] mass;
         private Vector3[] cog, inertia;
         public override void init()
         {
             base.init();
-            oew = OEW.data;
-            fuel = Fuel.data;
-            payload = Payload.data;
+            mass = Mass.data;
             cog = CoG.data;
             inertia = InertiaTensor.data;
-            if (overrideMass) body.mass = oew[0] + fuel[0] + payload[0];
+            if (overrideMass) body.mass = mass[0];
             if (overrideInertia) body.inertiaTensor = inertia[0];
             if (overrideCog) body.centerOfMass = cog[0];
         }
@@ -31,7 +29,7 @@ namespace tech.gyoku.FDMi.dynamics
         void Update()
         {
             if (!isInit) return;
-            if (overrideMass) body.mass = oew[0] + fuel[0] + payload[0];
+            if (overrideMass) body.mass = mass[0];
             if (overrideInertia) body.inertiaTensor = inertia[0];
             if (overrideCog) body.centerOfMass = cog[0];
         }
