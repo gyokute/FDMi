@@ -9,17 +9,21 @@ namespace tech.gyoku.FDMi.core
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiSyncedQuaternion : FDMiQuaternion
     {
-        [UdonSynced] public Quaternion syncedData;
-        public override void OnDeserialization()
+        [UdonSynced, FieldChangeCallback(nameof(SyncedData)), HideInInspector] public Quaternion syncedData;
+        public Quaternion SyncedData
         {
-            data[0] = syncedData;
-            trigger();
+            get => syncedData;
+            set
+            {
+                syncedData = value;
+                data[0] = value;
+                trigger();
+            }
         }
 
         public override void set(Quaternion src)
         {
-            base.set(src);
-            syncedData = src;
+            SyncedData = src;
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
         }

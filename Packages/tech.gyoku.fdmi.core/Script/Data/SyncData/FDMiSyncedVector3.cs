@@ -9,17 +9,21 @@ namespace tech.gyoku.FDMi.core
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiSyncedVector3 : FDMiVector3
     {
-        [UdonSynced] public Vector3 syncedData;
-        public override void OnDeserialization()
+        [UdonSynced, FieldChangeCallback(nameof(SyncedData)), HideInInspector] public Vector3 syncedData;
+        public Vector3 SyncedData
         {
-            data[0] = syncedData;
-            trigger();
+            get => syncedData;
+            set
+            {
+                syncedData = value;
+                data[0] = value;
+                trigger();
+            }
         }
 
         public override void set(Vector3 src)
         {
-            base.set(src);
-            syncedData = src;
+            SyncedData = src;
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
         }
