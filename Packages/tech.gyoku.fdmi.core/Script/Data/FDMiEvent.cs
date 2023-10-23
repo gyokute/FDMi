@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiEvent : UdonSharpBehaviour
     {
-        public string name;
+        public string VariableName;
         public UdonSharpBehaviour[] callbackBehaviour = new UdonSharpBehaviour[128];
         public string[] callbackFunctionName = new string[128];
 

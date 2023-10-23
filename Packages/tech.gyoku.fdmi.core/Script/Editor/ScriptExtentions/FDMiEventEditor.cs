@@ -16,7 +16,7 @@ namespace tech.gyoku.FDMi.core.editor
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
             base.SetPropertyOption(tgt, property, forceSetup);
-            if (property.name == nameof(FDMiEvent.name))
+            if (property.name == nameof(FDMiEvent.VariableName))
             {
                 if ((FDMiEditorUI.Button("Maybe"))) property.stringValue = tgt.transform.name;
                 if ((FDMiEditorUI.Button("FullPath"))) property.stringValue = GetFullPath(tgt.transform);
