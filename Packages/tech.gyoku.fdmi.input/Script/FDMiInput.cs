@@ -34,10 +34,11 @@ namespace tech.gyoku.FDMi.input
             if (holdingHandType == FDMiFingerTrackerType.L) getLeftHandStatus();
             if (holdingHandType == FDMiFingerTrackerType.R) getRightHandStatus();
 
-            for (int i = 0; i < (int)InputButton.Length; i++)
+            for (int i = 0; i < InputAddons.Length; i++)
             {
                 if (!InputAddons[i]) continue;
-                if (Input.GetKeyDown((KeyCode)handKeyCode[i])) InputAddons[i].OnCalled((KeyCode)handKeyCode[i], handType);
+                if (Input.GetKeyDown((KeyCode)handKeyCode[(int)InputAddons[i].SelectInputType]))
+                    InputAddons[i].OnCalled((KeyCode)handKeyCode[(int)InputAddons[i].SelectInputType], handType);
             }
         }
         void getLeftHandStatus()

@@ -10,6 +10,7 @@ namespace tech.gyoku.FDMi.input
     public enum InputAxis { Grab, Trigger, PadV, PadH, Length }
     public class FDMiInputAddon : UdonSharpBehaviour
     {
+        public InputButton SelectInputType = InputButton.Grab;
         protected KeyCode triggeredKey = KeyCode.None;
         VRCPlayerApi.TrackingData track;
         protected VRCPlayerApi.TrackingDataType handType = VRCPlayerApi.TrackingDataType.Head;
