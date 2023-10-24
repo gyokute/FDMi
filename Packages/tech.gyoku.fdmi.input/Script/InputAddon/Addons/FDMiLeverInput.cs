@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum LeverControlType { pull, rotate }
+    public enum LeverControlType { pull, rotate, twist }
     public enum LeverAxis { x, y, z }
     public class FDMiLeverInput : FDMiInputAddon
     {
@@ -53,6 +53,11 @@ namespace tech.gyoku.FDMi.input
                 Quaternion q = Quaternion.FromToRotation(handStartPos, handPos);
                 rawInput = q.eulerAngles[(int)leverAxis];
                 rawInput = rawInput - Mathf.Floor(rawInput / 180.1f) * 360;
+            }
+            if (controlType == LeverControlType.twist)
+            {
+                Vector3 eular = (Quaternion.Inverse(handStartAxis) * handAxis).eulerAngles;
+                rawInput = eular[(int)leverAxis] - Mathf.Floor(eular[(int)leverAxis] / 180.1f) * 360;
             }
             LeverOutput.set(Mathf.Clamp(initialValue + multiply * rawInput, min, max));
             if (!Input.GetKey(triggeredKey)) OnReleased();
