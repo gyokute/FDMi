@@ -5,7 +5,7 @@ using VRC.SDKBase;
 using VRC.Udon;
 namespace tech.gyoku.FDMi.input
 {
-    public class FDMiDefaultInput : FDMiInput
+    public class FDMiDefaultInput : FDMiInputPage
     {
         [SerializeField] FDMiFingerTrackerType fingerTrackerType;
         void Start()

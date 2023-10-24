@@ -8,7 +8,7 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.input
 {
     public enum InputButton { Grab, Trigger, Jump, PadTouch, Length }
-    public class FDMiInput : UdonSharpBehaviour
+    public class FDMiInputPage : UdonSharpBehaviour
     {
         public bool enable = true;
         public FDMiInputManager inputManager;

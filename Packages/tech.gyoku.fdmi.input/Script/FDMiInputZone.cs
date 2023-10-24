@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiInputZone : UdonSharpBehaviour
     {
-        public FDMiInput input;
+        public FDMiInputPage input;
         private FDMiFingerTracker fingerTracker;
 
         private void OnTriggerEnter(Collider other)

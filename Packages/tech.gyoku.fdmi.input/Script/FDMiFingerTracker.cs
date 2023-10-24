@@ -13,7 +13,7 @@ namespace tech.gyoku.FDMi.input
     {
         public FDMiFingerTrackerType fingerType;
         [SerializeField] private Rigidbody body;
-        public FDMiInput targetInput;
+        public FDMiInputPage targetInput;
         private VRCPlayerApi localPlayer;
         private HumanBodyBones finger = HumanBodyBones.LeftIndexDistal;
         [System.NonSerializedAttribute] public Vector3 fingerPos;
