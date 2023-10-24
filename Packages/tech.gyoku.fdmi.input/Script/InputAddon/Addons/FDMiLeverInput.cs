@@ -15,7 +15,7 @@ namespace tech.gyoku.FDMi.input
         public LeverControlType controlType;
         public LeverAxis leverAxis;
         public float initialValue;
-        public float multiply, min, max;
+        public AnimationCurve multiplier;
         public float[] detents;
 
         public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
@@ -27,7 +27,7 @@ namespace tech.gyoku.FDMi.input
         {
             base.OnReleased();
             int detentIndex = -1;
-            float minDetDiff = max;
+            float minDetDiff = float.MaxValue;
             for (int i = 0; i < detents.Length; i++)
             {
                 float detDiff = Mathf.Abs(detents[i] - LeverOutput.data[0]);
@@ -59,7 +59,7 @@ namespace tech.gyoku.FDMi.input
                 Vector3 eular = (Quaternion.Inverse(handStartAxis) * handAxis).eulerAngles;
                 rawInput = eular[(int)leverAxis] - Mathf.Floor(eular[(int)leverAxis] / 180.1f) * 360;
             }
-            LeverOutput.set(Mathf.Clamp(initialValue + multiply * rawInput, min, max));
+            LeverOutput.set(initialValue + multiplier.Evaluate(LeverOutput.data[0]) * rawInput);
             if (!Input.GetKey(triggeredKey)) OnReleased();
         }
 
