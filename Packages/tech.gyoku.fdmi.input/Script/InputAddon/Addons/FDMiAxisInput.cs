@@ -14,12 +14,12 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] FDMiSyncedFloat Output;
         [SerializeField] InputAxis inputAxisType;
         [SerializeField] AxisBehaviourType behaviourType;
-        [SerializeField] float multiply = 1f;
+        [SerializeField] float multiply = 1f, min = 0f, max = 1f;
         protected override void Update()
         {
             base.Update();
             if (behaviourType == AxisBehaviourType.momentum)
-                Output.set(multiply * inputAxis[(int)inputAxisType]);
+                Output.set(Mathf.Clamp(multiply * inputAxis[(int)inputAxisType], min, max));
         }
         public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
         {
