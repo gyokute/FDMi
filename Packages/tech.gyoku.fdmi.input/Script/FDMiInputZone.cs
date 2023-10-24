@@ -11,6 +11,7 @@ namespace tech.gyoku.FDMi.input
     {
         public FDMiInputPage input;
         private FDMiFingerTracker fingerTracker;
+        [SerializeField]private GameObject highlightObject;
 
         private void OnTriggerEnter(Collider other)
         {
@@ -28,11 +29,13 @@ namespace tech.gyoku.FDMi.input
         private void connectToFinger(Collider other)
         {
             input.OnFingerEnter(fingerTracker);
+            if (highlightObject) InputManager.EnableObjectHighlight(highlightObject, true);
         }
 
         private void disconnectFromFinger(Collider other)
         {
             input.OnFingerLeave(fingerTracker);
+            if (highlightObject) InputManager.EnableObjectHighlight(highlightObject, false);
         }
 
     }
