@@ -59,7 +59,7 @@ namespace tech.gyoku.FDMi.input
                 Vector3 eular = (Quaternion.Inverse(handStartAxis) * handAxis).eulerAngles;
                 rawInput = eular[(int)leverAxis] - Mathf.Floor(eular[(int)leverAxis] / 180.1f) * 360;
             }
-            LeverOutput.set(initialValue + multiplier.Evaluate(LeverOutput.data[0]) * rawInput);
+            LeverOutput.set(initialValue + multiplier.Evaluate(rawInput));
             if (!Input.GetKey(triggeredKey)) OnReleased();
         }
 

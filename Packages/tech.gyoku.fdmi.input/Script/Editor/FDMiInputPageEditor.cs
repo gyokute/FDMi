@@ -22,7 +22,7 @@ namespace tech.gyoku.FDMi.input.editor
             if (property.name == nameof(FDMiInputPage.inputManager) && (FDMiEditorUI.Button("Find") || forceSetup))
                 property.objectReferenceValue = tgt.GetComponentInParent<FDMiInputManager>();
             if (property.name == nameof(FDMiInputPage.InputAddons) && (FDMiEditorUI.Button("Find") || forceSetup))
-                FDMiEditorUI.SetObjectArrayProperty<FDMiInputAddon>(property, FDMiEditorUI.FindChildrenComponents<FDMiInputAddon>(tgt));
+                FDMiEditorUI.SetObjectArrayProperty<FDMiInputAddon>(property, FDMiEditorUI.FindChildrenComponents<FDMiInputAddon>(tgt.transform.parent));
 
         }
     }
