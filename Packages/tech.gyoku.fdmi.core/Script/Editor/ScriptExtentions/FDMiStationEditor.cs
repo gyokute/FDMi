@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,9 +23,17 @@ namespace tech.gyoku.FDMi.core.editor
                 {
                     UdonSharpBehaviour[] behaviours = FDMiEditorUI.FindChildrenComponents<UdonSharpBehaviour>(tgt).ToArray();
                     FDMiEditorUI.SetObjectArrayProperty<UdonSharpBehaviour>(property, behaviours);
-
+                }
+            }
+            if (property.name == nameof(FDMiStation.onlyInSeat))
+            {
+                if ((FDMiEditorUI.Button("Find") || forceSetup))
+                {
+                    GameObject obj = tgt.transform.Find("OnlyInSeat").gameObject;
+                    property.objectReferenceValue = obj ? obj : property.objectReferenceValue;
                 }
             }
         }
+
     }
 }
