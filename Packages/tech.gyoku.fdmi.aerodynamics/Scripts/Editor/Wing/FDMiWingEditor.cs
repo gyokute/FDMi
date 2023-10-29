@@ -75,9 +75,9 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             }
         }
 
-        public override void SetupAll()
+        public override void SetupAll(Component tgt, SerializedObject serializedObject)
         {
-            base.SetupAll();
+            base.SetupAll(tgt, serializedObject);
             SetControlPoint();
             serializedObject.ApplyModifiedProperties();
             Undo.RecordObject(wing.transform, "Set FDMiWing Transform");

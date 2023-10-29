@@ -19,8 +19,8 @@ namespace tech.gyoku.FDMi.core.editor
         {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
             serializedObject.Update();
-            if (FDMiEditorUI.BigButton("Setup All")) SetupAll();
             var tgt = target as Component;
+            if (FDMiEditorUI.BigButton("Setup This")) SetupAll(tgt, serializedObject);
             var property = serializedObject.GetIterator();
             property.NextVisible(true);
             while (property.NextVisible(false))
@@ -37,29 +37,28 @@ namespace tech.gyoku.FDMi.core.editor
         public virtual void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup = false)
         {
             UnityEngine.Object refevent = null;
-            if (property.type == "PPtr<$FDMiEvent>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiEvent>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiEvent>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiBool>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiBool>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiBool>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiFloat>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiFloat>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiFloat>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiVector3>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiVector3>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiVector3>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiQuaternion>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiQuaternion>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiQuaternion>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedBool>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiSyncedBool>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiSyncedBool>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedFloat>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiSyncedFloat>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiSyncedFloat>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedVector3>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiSyncedVector3>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiSyncedVector3>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedQuaternion>" && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.type == "PPtr<$FDMiSyncedQuaternion>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiSyncedQuaternion>(tgt, property.name);
             if (refevent) property.objectReferenceValue = refevent;
         }
-        public virtual void SetupAll()
+        public virtual void SetupAll(Component tgt, SerializedObject serializedObject)
         {
-            var tgt = target as Component;
             serializedObject.Update();
             var property = serializedObject.GetIterator();
             property.NextVisible(true);
@@ -94,6 +93,24 @@ namespace tech.gyoku.FDMi.core.editor
             if (ret) return ret;
 
             return null;
+        }
+    }
+
+    public class FDMiEditorExtSetupAll : Editor
+    {
+        [MenuItem("TESI/FDMi/Setup All FDMi Behaviours", false, 1000)]
+        public static void setupAllFDMiComponents()
+        {
+            var FDMiBehaviours = Resources.FindObjectsOfTypeAll<FDMiBehaviour>();
+            foreach (FDMiBehaviour behaviour in FDMiBehaviours)
+            {
+                var editorComponent = Editor.CreateEditor(behaviour) as FDMiEditorExt;
+                if (editorComponent)
+                {
+                    editorComponent.SetupAll(behaviour, editorComponent.serializedObject);
+                }
+                if (editorComponent != null) DestroyImmediate(editorComponent);
+            }
         }
     }
 }
