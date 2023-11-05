@@ -8,38 +8,36 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.avionics
 {
+    public enum AnalogDrumMode { Linear, Step }
     public class FDMiAnalogDrum : UdonSharpBehaviour
     {
         public FDMiFloat Value;
         public Transform rotateTransform;
+        public AnalogDrumMode mode = AnalogDrumMode.Step;
         public Vector3 rotateAxis;
-        public float multiplier;
-        public int rotateDigit;
-        public bool rotateStep, rotateSmooth;
+        public float multiplier = 1f;
+        public float offset = 0f;
         private float[] datam;
         private Vector3 initial;
-        public float digitValue, digit, subDigit;
+        [SerializeField] private float digit, drumRotateSpeed = 10f;
+        private float subDigit;
         void Start()
         {
             datam = Value.data;
             initial = rotateTransform.localEulerAngles;
-            subDigit = digit * 0.1f;
+            subDigit = digit * 10;
         }
+        float drumValue;
         void Update()
         {
-            subDigit = digit * 0.1f;
-            float dat = datam[0] * multiplier;
-            digitValue = dat / digit;
-            if (!rotateSmooth && !rotateStep)
+            if (mode == AnalogDrumMode.Linear)
+                drumValue = (datam[0] + offset) * multiplier / digit;
+            if (mode == AnalogDrumMode.Step)
             {
-                digitValue = Mathf.Floor(digitValue);
+                float targetValue = (float)(Mathf.FloorToInt((datam[0] + offset) * multiplier / digit) % 10);
+                drumValue = Mathf.MoveTowards(drumValue, targetValue, drumRotateSpeed * Time.deltaTime);
             }
-            if (rotateStep)
-            {
-                digitValue = Mathf.Floor(digitValue);
-                digitValue += Mathf.Clamp01((Mathf.Floor((dat * subDigit) % 10) - 9f) * 0.1f);
-            }
-            rotateTransform.localEulerAngles = initial + digitValue * rotateAxis;
+            rotateTransform.localEulerAngles = initial + drumValue * rotateAxis;
         }
     }
 }
