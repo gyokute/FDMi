@@ -11,7 +11,7 @@ namespace tech.gyoku.FDMi.input
     public enum LeverAxis { x, y, z }
     public class FDMiLeverInput : FDMiInputAddon
     {
-        public FDMiSyncedFloat LeverOutput;
+        public FDMiFloat LeverOutput;
         public LeverControlType controlType;
         public LeverAxis leverAxis;
         public float initialValue, multiplier, min, max;

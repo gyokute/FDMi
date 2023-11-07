@@ -7,11 +7,11 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum AxisBehaviourType { momentum, alternate }
+    public enum AxisBehaviourType { momentum, alternate, force }
 
     public class FDMiAxisInput : FDMiInputAddon
     {
-        [SerializeField] FDMiSyncedFloat Output;
+        [SerializeField] FDMiFloat Output;
         [SerializeField] InputAxis inputAxisType;
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] float multiply = 1f, min = 0f, max = 1f;
@@ -27,6 +27,10 @@ namespace tech.gyoku.FDMi.input
             if (behaviourType == AxisBehaviourType.alternate)
             {
                 Output.set(Mathf.Approximately(multiply, Output.data[0]) ? 0f : multiply);
+            }
+            if (behaviourType == AxisBehaviourType.force)
+            {
+                Output.set(multiply);
             }
         }
         public override void OnReleased()
