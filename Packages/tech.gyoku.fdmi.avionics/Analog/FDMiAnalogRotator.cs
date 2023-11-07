@@ -20,8 +20,9 @@ namespace tech.gyoku.FDMi.avionics
         {
             datam = Value.data;
             initial = rotateTransform.localEulerAngles;
+            Value.subscribe(this, "OnChange");
         }
-        void Update()
+        public void OnChange()
         {
             rotateTransform.localEulerAngles = initial + multiplier.Evaluate(datam[0]) * rotateAxis;
         }
