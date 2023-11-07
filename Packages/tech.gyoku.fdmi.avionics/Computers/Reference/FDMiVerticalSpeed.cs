@@ -11,16 +11,14 @@ namespace tech.gyoku.FDMi.avionics
     {
         [SerializeField] FDMiFloat VerticalSpeed;
         [SerializeField] FDMiVector3 Velocity;
-        float[] vs;
         Vector3[] vel;
         void Start()
         {
-            vs = VerticalSpeed.data;
             vel = Velocity.data;
         }
         void Update()
         {
-            vs[0] = vel[0].y;
+            VerticalSpeed.Data = vel[0].y;
         }
     }
 }
