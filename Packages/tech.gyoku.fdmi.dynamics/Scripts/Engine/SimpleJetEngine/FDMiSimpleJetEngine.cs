@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.dynamics
 {
     public class FDMiSimpleJetEngine : FDMiAttribute
     {
-        public FDMiFloat FuelSW, AirSW, Input, Reverser;
+        public FDMiFloat FuelSW, AirSW, Throttle, Reverser;
         public FDMiFloat Mach, Pressure, SAT;
         public FDMiFloat FuelFlow, EGT;
         public FDMiFloat N1, N2;
@@ -25,7 +25,7 @@ namespace tech.gyoku.FDMi.dynamics
         {
             sw = FuelSW.data;
             airsw = AirSW.data;
-            input = Input.data;
+            input = Throttle.data;
             rev = Reverser.data;
             mach = Mach.data;
             pressure = Pressure.data;
@@ -41,23 +41,22 @@ namespace tech.gyoku.FDMi.dynamics
             float theta = Mathf.Sqrt(sat[0] / 288f) * Time.fixedDeltaTime;
             float noise = 1 + Mathf.Lerp(inputNoise, -inputNoise, Mathf.PerlinNoise(Time.time, 0));
 
-            float N2tgt = sw[0] * Mathf.Lerp(N2min, N2max, input[0]);
-            n2[0] = Mathf.MoveTowards(n2[0], N2tgt * noise, N2dt * theta);
-            n2[0] = Mathf.Max(n2[0], Mathf.MoveTowards(n2[0], maxAirN2 * airsw[0] * noise, airN2Coef * theta));
-
             float dN1 = n2[0] * 2f - 1f - n1[0];
             n1[0] = Mathf.MoveTowards(n1[0], n1[0] + dN1 * noise, N1dt * theta);
-            n1[0] = Mathf.Max(n1[0], 0f);
+            N1.Data = Mathf.Max(n1[0], 0f);
 
             // Fuel flow(kg/s)
-            ff[0] = Mathf.MoveTowards(ff[0], sw[0] * Mathf.Lerp(ffIdle, ffMax, input[0]), ffDt * theta);
+            FuelFlow.Data = Mathf.MoveTowards(ff[0], sw[0] * Mathf.Lerp(ffIdle, ffMax, input[0]), ffDt * theta);
             // EGT calculate section
             egt[0] = Mathf.MoveTowards(egt[0], Mathf.Lerp(sat[0], egtMax, Mathf.Sqrt(ff[0] / ffMax) * noise), egtDt * theta);
-            egt[0] = Mathf.Max(egt[0], sat[0]);
+            EGT.Data = Mathf.Max(egt[0], sat[0]);
 
             if (isOwner)
             {
-                N2.Data = n2[0];
+                float N2tgt = sw[0] * Mathf.Lerp(N2min, N2max, input[0]);
+                n2[0] = Mathf.MoveTowards(n2[0], N2tgt * noise, N2dt * theta);
+                N2.Data = Mathf.Max(n2[0], Mathf.MoveTowards(n2[0], maxAirN2 * airsw[0] * noise, airN2Coef * theta));
+
                 thrust = Mathf.Lerp(1f, N1ReverserRatio, rev[0]) * n1[0] * n1[0] * N1StaticThrust;
                 thrust += Mathf.Lerp(1f, N2ReverserRatio, rev[0]) * n2[0] * n2[0] * N2StaticThrust;
                 thrust *= thrustMachMultiplier.Evaluate(mach[0]) * thrustPressureMultiplier.Evaluate(pressure[0]);
