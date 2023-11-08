@@ -26,7 +26,7 @@ namespace tech.gyoku.FDMi.input
             base.OnCalled(callKey, trackType);
             if (behaviourType == AxisBehaviourType.alternate)
             {
-                Output.set(Mathf.Approximately(multiply, Output.data[0]) ? 0f : multiply);
+                Output.set(Mathf.Approximately(max, Output.data[0]) ? min : max);
             }
             if (behaviourType == AxisBehaviourType.force)
             {
@@ -37,7 +37,7 @@ namespace tech.gyoku.FDMi.input
         {
             base.OnReleased();
             if (behaviourType == AxisBehaviourType.momentum)
-                Output.set(0f);
+                Output.set(min);
         }
     }
 }

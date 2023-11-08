@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum FDMiKeyboardInputType { momentum, alternate, detent, addition, stepAddition }
+    public enum FDMiKeyboardInputType { momentum, alternate, detent, addition, stepAddition, smoothMomental }
     public class FDMiKeyboardInput : UdonSharpBehaviour
     {
         [SerializeField] FDMiFloat floatVal;
@@ -50,6 +50,10 @@ namespace tech.gyoku.FDMi.input
                 case FDMiKeyboardInputType.stepAddition:
                     if (Input.GetKeyDown(key)) floatVal.set(Mathf.Clamp(floatVal.Data + multiplier, min, max));
                     if (Input.GetKeyUp(key)) floatVal.set(Mathf.Clamp(floatVal.Data - multiplier, min, max));
+                    break;
+                case FDMiKeyboardInputType.smoothMomental:
+                    if (Input.GetKey(key)) floatVal.set(Mathf.Clamp(floatVal.Data + multiplier * Time.deltaTime, min, max));
+                    if (Input.GetKeyUp(key)) floatVal.set(initial);
                     break;
             }
         }
