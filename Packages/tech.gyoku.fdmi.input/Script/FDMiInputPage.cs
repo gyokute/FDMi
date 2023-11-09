@@ -37,7 +37,7 @@ namespace tech.gyoku.FDMi.input
             for (int i = 0; i < InputAddons.Length; i++)
             {
                 if (!InputAddons[i]) continue;
-                if (Input.GetKeyDown((KeyCode)handKeyCode[(int)InputAddons[i].SelectInputType]))
+                if (Input.GetKey((KeyCode)handKeyCode[(int)InputAddons[i].SelectInputType]) && !InputAddons[i].isActive)
                     InputAddons[i].OnCalled((KeyCode)handKeyCode[(int)InputAddons[i].SelectInputType], handType);
             }
         }

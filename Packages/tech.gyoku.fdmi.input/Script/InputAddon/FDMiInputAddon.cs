@@ -10,6 +10,7 @@ namespace tech.gyoku.FDMi.input
     public enum InputAxis { Grab, Trigger, PadV, PadH, Length }
     public class FDMiInputAddon : UdonSharpBehaviour
     {
+        [HideInInspector] public bool isActive = false;
         public InputButton SelectInputType = InputButton.Grab;
         protected KeyCode triggeredKey = KeyCode.None;
         VRCPlayerApi.TrackingData track;
@@ -50,6 +51,7 @@ namespace tech.gyoku.FDMi.input
 
         public virtual void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
         {
+            isActive = true;
             triggeredKey = callKey;
             handType = trackType;
             track = Networking.LocalPlayer.GetTrackingData(trackType);
@@ -59,6 +61,7 @@ namespace tech.gyoku.FDMi.input
         }
         public virtual void OnReleased()
         {
+            isActive = false;
             gameObject.SetActive(false);
         }
         void OnDisable()
