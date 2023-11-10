@@ -9,6 +9,8 @@ namespace tech.gyoku.FDMi.core
     {
         [SerializeField] Transform headPosition;
         [SerializeField] Transform seatEnterPosition;
+        [SerializeField] FDMiVector3 SeatOffset;
+
         void Start()
         {
 
@@ -26,7 +28,7 @@ namespace tech.gyoku.FDMi.core
             Vector3 headData = td.position;
             // headData = Vector3.Lerp(headData, Networking.LocalPlayer.GetBonePosition(HumanBodyBones.RightEye), 0.5f);
             Vector3 posDiff = headData - headPosition.position;
-            seatEnterPosition.position -= posDiff;
+            SeatOffset.Data = posDiff;
         }
     }
 }
