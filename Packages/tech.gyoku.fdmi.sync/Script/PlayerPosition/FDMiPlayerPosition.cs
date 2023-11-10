@@ -196,6 +196,9 @@ namespace tech.gyoku.FDMi.sync
             {
                 setPosition(localPlayer.GetPosition());
                 direction = localPlayer.GetRotation();
+                // for preventing very-far jumping
+                if (localPlayer.GetPosition().magnitude > 25000f) RespawnLocalPlayer();
+                
                 RequestSerialization();
                 return;
             }
