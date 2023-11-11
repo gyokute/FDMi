@@ -73,23 +73,27 @@ namespace tech.gyoku.FDMi.core.editor
         {
             // Find FDMiEvent in same gameObject.
             var objs = tgt.GetComponents<T>();
-            var ret = objs.FirstOrDefault(o => o.name == name);
+            var ret = objs.FirstOrDefault(o => o.VariableName == name);
             if (ret) return ret;
             // If not, find FDMiEvent in children.
             objs = tgt.GetComponentsInChildren<T>();
-            ret = objs.FirstOrDefault(o => o.name == name);
+            ret = objs.FirstOrDefault(o => o.VariableName == name);
+            if (ret) return ret;
+            // If not, find FDMiEvent from parent.
+            objs = tgt.transform.parent.GetComponents<T>();
+            ret = objs.FirstOrDefault(o => o.VariableName == name);
             if (ret) return ret;
             // If not, find through each vehicle
             var objMan = tgt.GetComponentInParent<FDMiObjectManager>();
             if (objMan)
             {
                 objs = objMan.GetComponentsInChildren<T>();
-                ret = objs.FirstOrDefault(o => o.name == name);
+                ret = objs.FirstOrDefault(o => o.VariableName == name);
                 if (ret) return ret;
             }
             // If not, find through scene... and it's maybe heavy!
             objs = FindObjectsOfType<T>();
-            ret = objs.FirstOrDefault(o => o.name == name);
+            ret = objs.FirstOrDefault(o => o.VariableName == name);
             if (ret) return ret;
 
             return null;
