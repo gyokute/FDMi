@@ -25,23 +25,23 @@ namespace tech.gyoku.FDMi.aerodynamics
 
         [HideInInspector] public Vector3 spanNormal, planfNormal, chordNormal, controlPoint, Vni;
         [HideInInspector] public float cpChordLength, cpSpanLength, cpArea, alpha, chordAirSpeed;
-        private Quaternion invRot;
+        private Quaternion invRot, iniRot;
         private int gammaLength = 0;
+        private float cosAlpha;
 
         void Start()
         {
             airspeed = AirSpeed.data;
             rho = Rho.data;
             mach = Mach.data;
+            iniRot = Quaternion.Inverse(transform.localRotation);
         }
         void FixedUpdate()
         {
             if (!isInit) return;
             Vni = Vector3.zero;
             invRot = Quaternion.Inverse(body.rotation);
-            Quaternion rot = body.rotation * transform.rotation;
-            // spanNormal = rot * Vector3.right;
-            chordNormal = rot * -Vector3.forward;
+            Vector3 rNormal = iniRot * transform.localRotation * chordNormal;
 
             cpAirVec = -airspeed[0] - Vector3.Cross(invRot * body.angularVelocity, controlPoint);
 
@@ -52,24 +52,26 @@ namespace tech.gyoku.FDMi.aerodynamics
             cpAirVec += Vni;
             cpAirVec = Vector3.ProjectOnPlane(cpAirVec, spanNormal);
 
-            alpha = Vector3.SignedAngle(cpAirVec, chordNormal, spanNormal);
+            alpha = Vector3.SignedAngle(cpAirVec, rNormal, spanNormal);
+            cosAlpha = Mathf.Max(Mathf.Abs(Mathf.Cos(Mathf.Deg2Rad * alpha)), 0.1f);
             float chordAirSpeed = cpAirVec.magnitude;
 
             float C = 0.5f * chordAirSpeed;
             float Cl = Cl_Alpha.Evaluate(alpha) * Cl_Mach.Evaluate(mach[0]);
             float nGamma = C * Cl * cpChordLength;
-            C *= rho[0] * chordAirSpeed * cpChordLength * cpSpanLength * Mathf.Abs(Mathf.Cos(Mathf.Deg2Rad * alpha));
+            C *= rho[0] * chordAirSpeed * cpChordLength * cpSpanLength;
 
-            Lift = C * Cl;
-            Drag = C * Cd_Alpha.Evaluate(alpha) * Cd_Mach.Evaluate(mach[0]);
+            Lift = C * Cl * cosAlpha;
+            Drag = C * Cd_Alpha.Evaluate(alpha) * Cd_Mach.Evaluate(mach[0]) * cosAlpha;
 
             Vector3 DNormal = Vector3.Normalize(cpAirVec);
             Vector3 LNormal = Vector3.Cross(DNormal, spanNormal);
             Force = Lift * LNormal + Drag * DNormal + rho[0] * nGamma * cpSpanLength * Vni;
-            Moment = Vector3.Cross(controlPoint - body.centerOfMass, Force);
-            Gamma = Mathf.Lerp(Gamma, nGamma, Time.fixedDeltaTime * 10f);
-            body.AddRelativeForce(Force);
-            body.AddRelativeTorque(Moment);
+            // Moment = Vector3.Cross(controlPoint - body.centerOfMass, Force);
+            Gamma = Mathf.Lerp(Gamma, nGamma, 0.1f);
+            // body.AddRelativeForce(Force);
+            // body.AddRelativeTorque(Moment);
+            body.AddForceAtPosition(Force, body.position + controlPoint + 0.25f * chordNormal);
 #if UNITY_EDITOR
             DebugForce();
 #endif
@@ -78,7 +80,7 @@ namespace tech.gyoku.FDMi.aerodynamics
         void DebugForce()
         {
             Transform bt = body.transform;
-            Vector3 worldcp = bt.TransformPoint(controlPoint);
+            Vector3 worldcp = bt.TransformPoint(controlPoint + 0.25f * chordNormal);
             Vector3 DNormal = bt.TransformDirection(Vector3.Normalize(cpAirVec));
             Vector3 LNormal = bt.TransformDirection(Vector3.Cross(DNormal, spanNormal));
             Debug.DrawRay(worldcp, bt.TransformDirection(Vni / 10), Color.cyan, 0f, false);

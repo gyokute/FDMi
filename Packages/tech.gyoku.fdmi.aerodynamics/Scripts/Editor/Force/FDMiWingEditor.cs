@@ -126,9 +126,12 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
 
             Vector3 spn = (spl - spr).normalized;
             Vector3 planfn = Vector3.Cross(spn, Vector3.forward).normalized;
-            spanNormal.vector3Value = spn;
+            Vector3 chordn = -bt.InverseTransformDirection(Vector3.Lerp(wing.SectionL.transform.forward, wing.SectionR.transform.forward, 0.5f));
+
+            Vector3 lpspn = Vector3.Lerp(spn, Vector3.Cross(planfn, chordn), 0.5f).normalized;
+            spanNormal.vector3Value = lpspn;
             planfNormal.vector3Value = planfn;
-            chordNormal.vector3Value = -bt.InverseTransformDirection(Vector3.Lerp(wing.SectionL.transform.forward, wing.SectionR.transform.forward, 0.5f));
+            chordNormal.vector3Value = Vector3.Cross(lpspn, planfn);
 
             Vector3 cpl = spl - 0.25f * wing.SectionL.chordLength * bt.InverseTransformDirection(wing.SectionL.transform.forward);
             Vector3 cpr = spr - 0.25f * wing.SectionR.chordLength * bt.InverseTransformDirection(wing.SectionR.transform.forward);
