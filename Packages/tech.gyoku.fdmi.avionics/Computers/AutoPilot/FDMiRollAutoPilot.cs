@@ -1,4 +1,5 @@
-﻿using UdonSharp;
+﻿
+using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
@@ -6,18 +7,17 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.avionics
 {
-    public enum AutoPilotSWMode { OFF, CWS, CMD };
-    public enum PitchAutoPilotMode { CWS, Alt, VS, IAS, Mach, VNAV };
-    public class FDMiPitchAutoPilot : FDMiBehaviour
+    public enum RollAutoPilotMode { CWS };
+    public class FDMiRollAutoPilot : FDMiBehaviour
     {
-        public FDMiFloat APSW, PitchCommand, PitchInputL, PitchInputR;
-        public FDMiFloat Pitch, VerticalSpeed, Altitude;
+        public FDMiFloat APSW, RollCommand, RollInputL, RollInputR;
+        public FDMiFloat Roll, HDG;
         private AutoPilotSWMode apswMode = AutoPilotSWMode.OFF;
-        private PitchAutoPilotMode pitchMode = PitchAutoPilotMode.CWS;
+        private RollAutoPilotMode RollMode = RollAutoPilotMode.CWS;
 
         [SerializeField] float kp, ki, kInput = 0.1f, kq, a = 1f;
         float output, pOut, cmd, err, pErr, omega;
-        float pitchRate, prevPitch;
+        float RollRate, prevRoll;
         void Start()
         {
             APSW.subscribe(this, "OnChangeAPSW");
@@ -33,34 +33,31 @@ namespace tech.gyoku.FDMi.avionics
             if (Mathf.Approximately(APSW.data[0], 0.5f))
             {
                 apswMode = AutoPilotSWMode.CWS;
-                pitchMode = PitchAutoPilotMode.CWS;
+                RollMode = RollAutoPilotMode.CWS;
             }
             if (Mathf.Approximately(APSW.data[0], 1f))
             {
                 apswMode = AutoPilotSWMode.CMD;
-                pitchMode = PitchAutoPilotMode.CWS;
+                RollMode = RollAutoPilotMode.CWS;
             }
         }
-        void AutoPitchTrim()
-        {
 
-        }
         void Update()
         {
-            float pitchInput = Mathf.Clamp(PitchInputL.Data + PitchInputR.Data, -1f, 1f);
-            if (apswMode == AutoPilotSWMode.OFF) { PitchCommand.Data = pitchInput; return; }
-            pitchRate = Mathf.Lerp((Pitch.Data - prevPitch) / Time.deltaTime, pitchRate, omega);
+            float RollInput = Mathf.Clamp(RollInputL.Data + RollInputR.Data, -1f, 1f);
+            if (apswMode == AutoPilotSWMode.OFF) { RollCommand.Data = RollInput; return; }
+            RollRate = Mathf.Lerp((Roll.Data - prevRoll) / Time.deltaTime, RollRate, omega);
 
-            if (pitchMode == PitchAutoPilotMode.CWS)
+            if (RollMode == RollAutoPilotMode.CWS)
             {
-                output = pitchInput - kq * pitchRate;
+                output = RollInput - kq * RollRate;
             }
             // output = kp * (err - pErr) + ki * err;
             // pOut = Mathf.Clamp(pOut + output * Time.deltaTime, -1, 1);
             pOut = Mathf.Clamp(pOut + output * Time.deltaTime, -1, 1);
             pErr = err;
-            PitchCommand.Data = pOut;
-            prevPitch = Pitch.Data;
+            RollCommand.Data = pOut;
+            prevRoll = Roll.Data;
         }
     }
 }
