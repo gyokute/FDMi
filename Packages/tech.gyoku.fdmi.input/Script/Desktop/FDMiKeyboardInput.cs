@@ -49,7 +49,6 @@ namespace tech.gyoku.FDMi.input
                     break;
                 case FDMiKeyboardInputType.stepAddition:
                     if (Input.GetKeyDown(key)) floatVal.set(Mathf.Clamp(floatVal.Data + multiplier, min, max));
-                    if (Input.GetKeyUp(key)) floatVal.set(Mathf.Clamp(floatVal.Data - multiplier, min, max));
                     break;
                 case FDMiKeyboardInputType.smoothMomental:
                     if (Input.GetKey(key)) floatVal.set(Mathf.Clamp(floatVal.Data + multiplier * Time.deltaTime, min, max));
