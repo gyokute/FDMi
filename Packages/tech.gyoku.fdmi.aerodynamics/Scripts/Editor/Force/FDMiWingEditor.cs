@@ -68,7 +68,7 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             {
                 Transform bt = wing.GetComponentInParent<Rigidbody>().transform;
                 FDMiWing[] wings = bt.GetComponentsInChildren<FDMiWing>();
-                wings = Array.FindAll(wings, delegate (FDMiWing w) { return w != wing; });
+                // wings = Array.FindAll(wings, delegate (FDMiWing w) { return w != wing; });
                 wings = Array.FindAll(wings, delegate (FDMiWing w) { return w.transform.parent == wing.transform.parent; });
                 property.arraySize = 0;
                 FDMiEditorUI.SetObjectArrayProperty<FDMiWing>(property, wings);
@@ -154,16 +154,27 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
         }
 
 
-        private Vector3 DownwashEffect(FDMiWing affectedWing, Vector3 cp)
+        private Vector3 DownwashEffect(FDMiWing affectWing, Vector3 cp)
         {
             Vector3 u = -Vector3.forward;
-            Vector3 RC = cp - affectedWing.spR;
-            Vector3 CL = affectedWing.spL - cp;
-            Vector3 RLn = spRL.vector3Value.normalized;
-            Vector3 Qr = (1f / RC.magnitude) * Vector3.Cross(u, RC).normalized;
-            Vector3 Ql = (1f / CL.magnitude) * Vector3.Cross(u, CL).normalized;
-            Vector3 Qrl = (Vector3.Dot(RLn, RC.normalized) * Vector3.Dot(RLn, CL.normalized)) * Vector3.Cross(spRL.vector3Value, RC).normalized;
-            return (0.25f / Mathf.PI) * (Qr + Ql /*+ Qrl*/);
+            Vector3 AB = affectWing.spR - affectWing.spL;
+            Vector3 AC = cp - affectWing.spL;
+            Vector3 BC = cp - affectWing.spR;
+            // A-> infinity
+            float psi = 1 + AC.x / AC.magnitude;
+            Vector3 phi = Vector3.ProjectOnPlane(AC, Vector3.right);
+            phi = (1 / phi.sqrMagnitude) * phi;
+            Vector3 vInduced = psi * phi;
+            // B->infinity
+            psi = 1 + BC.x / BC.magnitude;
+            phi = Vector3.ProjectOnPlane(BC, Vector3.right);
+            phi = (1 / phi.sqrMagnitude) * phi;
+            // A->B
+            // psi = Vector3.Dot(AB, AC.normalized - BC.normalized);
+            // phi = Vector3.Cross(AC, BC);
+            // phi = (1 / phi.sqrMagnitude) * phi;
+            // vInduced += psi * phi;
+            return (0.25f / Mathf.PI) * vInduced;
         }
     }
 }

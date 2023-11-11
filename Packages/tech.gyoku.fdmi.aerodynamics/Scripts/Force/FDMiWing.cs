@@ -28,20 +28,21 @@ namespace tech.gyoku.FDMi.aerodynamics
         private Quaternion invRot, iniRot;
         private int gammaLength = 0;
         private float cosAlpha;
+        Vector3 rNormal;
 
         void Start()
         {
             airspeed = AirSpeed.data;
             rho = Rho.data;
             mach = Mach.data;
-            iniRot = Quaternion.Inverse(transform.localRotation);
+            iniRot = Quaternion.Inverse(Quaternion.Inverse(body.rotation) * transform.rotation);
         }
         void FixedUpdate()
         {
             if (!isInit) return;
             Vni = Vector3.zero;
             invRot = Quaternion.Inverse(body.rotation);
-            Vector3 rNormal = iniRot * transform.localRotation * chordNormal;
+            rNormal = iniRot * invRot * transform.rotation * chordNormal;
 
             cpAirVec = -airspeed[0] - Vector3.Cross(invRot * body.angularVelocity, controlPoint);
 
@@ -83,6 +84,7 @@ namespace tech.gyoku.FDMi.aerodynamics
             Vector3 worldcp = bt.TransformPoint(controlPoint + 0.25f * chordNormal);
             Vector3 DNormal = bt.TransformDirection(Vector3.Normalize(cpAirVec));
             Vector3 LNormal = bt.TransformDirection(Vector3.Cross(DNormal, spanNormal));
+            Debug.DrawRay(worldcp, rNormal * 3, Color.cyan, 0f, false);
             Debug.DrawRay(worldcp, bt.TransformDirection(Vni / 10), Color.cyan, 0f, false);
             Debug.DrawRay(worldcp, bt.TransformDirection(cpAirVec / 10), Color.yellow, 0f, false);
             Debug.DrawRay(worldcp, Lift / 0.098f / body.mass * LNormal, Color.green, 0f, false);
