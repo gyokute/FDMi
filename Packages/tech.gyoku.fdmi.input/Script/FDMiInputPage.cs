@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum InputButton { Grab, Trigger, Jump, PadTouch, Length }
+    public enum InputButton { Grab, Trigger, Jump, PadTouch, PadPush, Length }
     public class FDMiInputPage : UdonSharpBehaviour
     {
         public bool enable = true;
@@ -16,9 +16,9 @@ namespace tech.gyoku.FDMi.input
         VRCPlayerApi.TrackingData track;
         [System.NonSerializedAttribute] public FDMiFingerTrackerType holdingHandType;
         VRCPlayerApi.TrackingDataType handType;
-        int[] handKeyCode = { (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None };
-        int[] handKeyCodeL = { (int)KeyCode.JoystickButton4, (int)KeyCode.JoystickButton14, (int)KeyCode.JoystickButton3, (int)KeyCode.JoystickButton16 };
-        int[] handKeyCodeR = { (int)KeyCode.JoystickButton5, (int)KeyCode.JoystickButton15, (int)KeyCode.JoystickButton1, (int)KeyCode.JoystickButton17 };
+        int[] handKeyCode = { (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None };
+        int[] handKeyCodeL = { (int)KeyCode.JoystickButton4, (int)KeyCode.JoystickButton14, (int)KeyCode.JoystickButton3, (int)KeyCode.JoystickButton16, (int)KeyCode.JoystickButton8 };
+        int[] handKeyCodeR = { (int)KeyCode.JoystickButton5, (int)KeyCode.JoystickButton15, (int)KeyCode.JoystickButton1, (int)KeyCode.JoystickButton17, (int)KeyCode.JoystickButton9 };
         protected bool fingerInZone = false;
 
 
