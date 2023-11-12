@@ -10,17 +10,29 @@ namespace tech.gyoku.FDMi.dynamics
     public class FDMiWheel : FDMiAttribute
     {
         public WheelCollider wheel;
-        public FDMiFloat TillerInput, BrakeInput, ParkBrakeInput;
+        public FDMiFloat TillerInput, BrakeInput, ParkBrakeInput, Retract;
         public float brakePressure = 3000f, parkBrakePressure = 3000f;
         [SerializeField] private float preLoadTorque = 0.0001f;
         [SerializeField] private float rpm;
         [SerializeField] private float rotateAngle = 60f;
+        [SerializeField] private float retractThreshold = 0.5f;
+        [SerializeField] private Vector3 retractDirection;
+        [SerializeField] private AnimationCurve retractCurve;
+        private Vector3 wheelOriginPos = Vector3.zero;
         private float[] tiller, brake, parkbrake;
         void Start()
         {
             tiller = TillerInput.data;
             brake = BrakeInput.data;
             parkbrake = ParkBrakeInput.data;
+            wheelOriginPos = wheel.transform.localPosition;
+            if (Retract) Retract.subscribe(this, nameof(OnRetract));
+        }
+
+        public void OnRetract()
+        {
+            wheel.transform.localPosition = wheelOriginPos + retractCurve.Evaluate(Retract.Data) * retractDirection;
+            wheel.gameObject.SetActive(Retract.Data < retractThreshold);
         }
         void Update()
         {
