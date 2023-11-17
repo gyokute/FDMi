@@ -41,6 +41,8 @@ namespace tech.gyoku.FDMi.core.editor
                 refevent = FindDataByName<FDMiEvent>(tgt, property.name);
             if (property.type == "PPtr<$FDMiBool>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiBool>(tgt, property.name);
+            if (property.type == "PPtr<$FDMiInt>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+                refevent = FindDataByName<FDMiInt>(tgt, property.name);
             if (property.type == "PPtr<$FDMiFloat>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
                 refevent = FindDataByName<FDMiFloat>(tgt, property.name);
             if (property.type == "PPtr<$FDMiVector3>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
