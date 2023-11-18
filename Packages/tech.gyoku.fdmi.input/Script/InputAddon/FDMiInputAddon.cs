@@ -8,7 +8,7 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.input
 {
     public enum InputAxis { Grab, Trigger, PadV, PadH, Length }
-    public class FDMiInputAddon : UdonSharpBehaviour
+    public class FDMiInputAddon : FDMiBehaviour
     {
         [HideInInspector] public bool isActive = false;
         public InputButton SelectInputType = InputButton.Grab;
