@@ -92,7 +92,10 @@ namespace tech.gyoku.FDMi.sync
             teleportPos += (prevPRP.direction * kmPosition + prevPRP.kmPosition - parentRefPoint.kmPosition) * 1000f;
             teleportPos = Quaternion.Inverse(parentRefPoint.direction) * teleportPos;
             Quaternion teleportRot = Quaternion.Inverse(parentRefPoint.direction) * prevPRP.direction * direction;
+            Vector3 playerVelocity = Quaternion.Inverse(parentRefPoint.direction) * prevPRP.direction * localPlayer.GetVelocity();
+            playerVelocity += prevPRP.Velocity - parentRefPoint.Velocity;
             localPlayer.TeleportTo(teleportPos, teleportRot, VRC_SceneDescriptor.SpawnOrientation.Default, false);
+            localPlayer.SetVelocity(playerVelocity);
             Position = teleportPos;
             direction = teleportRot;
             kmPosition = Vector3.zero;
@@ -198,7 +201,7 @@ namespace tech.gyoku.FDMi.sync
                 direction = localPlayer.GetRotation();
                 // for preventing very-far jumping
                 if (localPlayer.GetPosition().magnitude > 25000f) RespawnLocalPlayer();
-                
+
                 RequestSerialization();
                 return;
             }
