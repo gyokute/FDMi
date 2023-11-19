@@ -56,6 +56,7 @@ namespace tech.gyoku.FDMi.input
         protected override void Update()
         {
             base.Update();
+            if(!isActive) return;
             if (controlType == LeverControlType.pull)
             {
                 Vector3 p = (handPos - prevPos);
