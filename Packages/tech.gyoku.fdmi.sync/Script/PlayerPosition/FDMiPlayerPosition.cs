@@ -192,6 +192,7 @@ namespace tech.gyoku.FDMi.sync
             prevRot = Quaternion.identity;
         }
         #endregion
+
         public void Update()
         {
             if (!isInit || !isPlayerJoined) return;
@@ -200,9 +201,11 @@ namespace tech.gyoku.FDMi.sync
                 setPosition(localPlayer.GetPosition());
                 direction = localPlayer.GetRotation();
                 // for preventing very-far jumping
-                if (localPlayer.GetPosition().magnitude > 25000f) RespawnLocalPlayer();
-
-                RequestSerialization();
+                if (localPlayer.GetPosition().magnitude > 100000f) RespawnLocalPlayer();
+                if (Vector3.Distance(prevPos, _position) > 0.05f || Quaternion.Angle(prevRot, _direction) > 0.0188f)
+                    RequestSerialization();
+                prevPos = _position;
+                prevRot = _direction;
                 return;
             }
             if (!inVehicle)
