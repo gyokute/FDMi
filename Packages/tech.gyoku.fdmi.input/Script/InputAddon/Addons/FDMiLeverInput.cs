@@ -14,7 +14,7 @@ namespace tech.gyoku.FDMi.input
         public FDMiFloat LeverOutput, Multiplier;
         public LeverControlType controlType;
         public LeverAxis leverAxis;
-        public float multiplier, min, max;
+        public float angleDiv = 1f, multiplier, min, max;
         [SerializeField] bool doRepeat, doRound, preventSetWhileHold;
         public float[] detents;
         float[] mul = { 0f };
@@ -56,7 +56,7 @@ namespace tech.gyoku.FDMi.input
         protected override void Update()
         {
             base.Update();
-            if(!isActive) return;
+            if (!isActive) return;
             if (controlType == LeverControlType.pull)
             {
                 Vector3 p = (handPos - prevPos);
@@ -65,11 +65,15 @@ namespace tech.gyoku.FDMi.input
             if (controlType == LeverControlType.rotate)
             {
                 Quaternion q = Quaternion.FromToRotation(prevPos, handPos);
-                rawInput = Mathf.Repeat(q.eulerAngles[(int)leverAxis] + 180, 360) - 180;
+                rawInput = q.eulerAngles[(int)leverAxis];
+                rawInput = Mathf.Sign(rawInput) * Mathf.Floor(Mathf.Abs(rawInput) / angleDiv) * angleDiv;
+                rawInput = Mathf.Repeat(rawInput + 180, 360) - 180;
             }
             if (controlType == LeverControlType.twist)
             {
                 Vector3 eular = (Quaternion.Inverse(prevAxis) * handAxis).eulerAngles;
+                rawInput = eular[(int)leverAxis];
+                rawInput = Mathf.Sign(rawInput) * Mathf.Floor(Mathf.Abs(rawInput) / angleDiv) * angleDiv;
                 rawInput = Mathf.Repeat(eular[(int)leverAxis] + 180, 360) - 180;
             }
             ret = LeverOutput.Data + mul[0] * rawInput;
