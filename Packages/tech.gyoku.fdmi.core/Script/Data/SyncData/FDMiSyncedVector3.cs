@@ -24,6 +24,7 @@ namespace tech.gyoku.FDMi.core
         public override void set(Vector3 src)
         {
             SyncedData = src;
+            if (!isPlayerJoined) return;
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             RequestSerialization();
         }
