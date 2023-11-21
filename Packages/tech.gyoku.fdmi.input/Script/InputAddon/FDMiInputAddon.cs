@@ -18,13 +18,18 @@ namespace tech.gyoku.FDMi.input
         protected float[] inputAxis = new float[(int)InputAxis.Length];
         protected Vector3 handPos, handStartPos;
         protected Quaternion handAxis, handStartAxis;
-
+        protected bool isInit = false;
         protected virtual void Start()
         {
             gameObject.SetActive(false);
         }
+        public override void OnPlayerJoined(VRCPlayerApi player)
+        {
+            if (player.isLocal) isInit = true;
+        }
         protected virtual void Update()
         {
+            if (!isInit) return;
             // If not Init, return
             if (handType == VRCPlayerApi.TrackingDataType.Head) return;
             if (!Input.GetKey(triggeredKey)) OnReleased();

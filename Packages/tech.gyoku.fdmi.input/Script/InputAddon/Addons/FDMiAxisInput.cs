@@ -17,6 +17,7 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] float multiply = 1f, min = 0f, max = 1f;
         protected override void Update()
         {
+            if (!isInit) return;
             base.Update();
             if (behaviourType == AxisBehaviourType.momentum)
                 Output.set(Mathf.Clamp(multiply * inputAxis[(int)inputAxisType], min, max));
