@@ -11,26 +11,22 @@ namespace tech.gyoku.FDMi.avionics
     public class FDMiGroundSpoiler : FDMiBehaviour
     {
         [SerializeField] FDMiFloat SpoilerLever, GroundSpoilerLever;
-        [SerializeField] FDMiBool[] IsGround;
+        [SerializeField] FDMiBool AnyIsGround;
         [SerializeField] float SpoilerLeverMaxMove = 1.2f, MoveSpeed = 1f;
         float[] gsLever, spoiler;
-        private bool armed = false;
+        bool[] anyGround;
         void Start()
         {
             spoiler = SpoilerLever.data;
             gsLever = GroundSpoilerLever.data;
+            anyGround = AnyIsGround.data;
             GroundSpoilerLever.subscribe(this, nameof(OnChangeGSLever));
             gameObject.SetActive(false);
         }
         int i;
         void Update()
         {
-            armed = false;
-            for (i = 0; i < IsGround.Length; i++)
-            {
-                armed = armed || IsGround[i].data[0];
-            }
-            SpoilerLever.Data = Mathf.MoveTowards(spoiler[0], armed ? SpoilerLeverMaxMove : 0, MoveSpeed * Time.deltaTime);
+            SpoilerLever.Data = Mathf.MoveTowards(spoiler[0], anyGround[0] ? SpoilerLeverMaxMove : 0, MoveSpeed * Time.deltaTime);
             if (Mathf.Approximately(spoiler[0], SpoilerLeverMaxMove)) GroundSpoilerLever.Data = 0f;
         }
 
