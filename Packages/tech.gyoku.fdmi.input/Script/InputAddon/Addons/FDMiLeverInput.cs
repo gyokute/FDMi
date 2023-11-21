@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] bool doRepeat, doRound, preventSetWhileHold;
         public float[] detents;
         float[] mul = { 0f };
-        float initial, rawInput, ret, rotateAcc;
+        float initial,rawInput, ret, rotateAcc;
         Vector3 prevPos;
         Quaternion prevAxis;
 
@@ -58,7 +58,7 @@ namespace tech.gyoku.FDMi.input
         protected override void Update()
         {
             base.Update();
-            if (!isActive || !isInit) return;
+            if (!isActive) return;
             if (controlType == LeverControlType.pull)
             {
                 Vector3 p = (handPos - handStartPos);
