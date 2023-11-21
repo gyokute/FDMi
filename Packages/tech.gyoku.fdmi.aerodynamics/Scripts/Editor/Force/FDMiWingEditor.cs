@@ -52,19 +52,19 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             base.SetPropertyOption(tgt, property, forceSetup);
             if (property.type == Cl_Alpha.type)
                 SetAnimatorCurve(property);
-            if (property.name == nameof(wing.SectionL) && FDMiEditorUI.Button("Maybe"))
+            if (property.name == nameof(wing.SectionL) && FDMiEditorUI.Button(false, "Maybe"))
             {
                 int thisIndex = wing.transform.GetSiblingIndex();
                 FDMiWingSection[] secs = wing.transform.parent.GetComponentsInChildren<FDMiWingSection>();
                 property.objectReferenceValue = secs.First(s => s.transform.GetSiblingIndex() == thisIndex - 1);
             }
-            if (property.name == nameof(wing.SectionR) && FDMiEditorUI.Button("Maybe"))
+            if (property.name == nameof(wing.SectionR) && FDMiEditorUI.Button(false, "Maybe"))
             {
                 int thisIndex = wing.transform.GetSiblingIndex();
                 FDMiWingSection[] secs = wing.transform.parent.GetComponentsInChildren<FDMiWingSection>();
                 property.objectReferenceValue = secs.First(s => s.transform.GetSiblingIndex() == thisIndex + 1);
             }
-            if (property.name == nameof(wing.affectWing) && FDMiEditorUI.Button("Maybe"))
+            if (property.name == nameof(wing.affectWing) && FDMiEditorUI.Button(false, "Maybe"))
             {
                 Transform bt = wing.GetComponentInParent<Rigidbody>().transform;
                 FDMiWing[] wings = bt.GetComponentsInChildren<FDMiWing>();
@@ -110,7 +110,7 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
         }
         private void SetAnimatorCurve(SerializedProperty sp)
         {
-            if (FDMiEditorUI.Button("Load")) { sp.animationCurveValue = AnimationCurveUtils.LoadCSVToAnimationCurve(); }
+            if (FDMiEditorUI.Button(false, "Load")) { sp.animationCurveValue = AnimationCurveUtils.LoadCSVToAnimationCurve(); }
         }
 
         private void SetControlPoint()

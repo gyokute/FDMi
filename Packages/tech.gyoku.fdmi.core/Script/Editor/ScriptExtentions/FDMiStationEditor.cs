@@ -19,7 +19,7 @@ namespace tech.gyoku.FDMi.core.editor
             base.SetPropertyOption(tgt, property, forceSetup);
             if (property.name == nameof(FDMiStation.InSeatBehaviours))
             {
-                if ((forceSetup ? true : FDMiEditorUI.Button("Find")))
+                if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 {
                     UdonSharpBehaviour[] behaviours = FDMiEditorUI.FindChildrenComponents<UdonSharpBehaviour>(tgt).ToArray();
                     FDMiEditorUI.SetObjectArrayProperty<UdonSharpBehaviour>(property, behaviours);
@@ -27,7 +27,7 @@ namespace tech.gyoku.FDMi.core.editor
             }
             if (property.name == nameof(FDMiStation.onlyInSeat))
             {
-                if ((forceSetup ? true : FDMiEditorUI.Button("Find")))
+                if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 {
                     GameObject obj = tgt.transform.Find("OnlyInSeat").gameObject;
                     property.objectReferenceValue = obj ? obj : property.objectReferenceValue;

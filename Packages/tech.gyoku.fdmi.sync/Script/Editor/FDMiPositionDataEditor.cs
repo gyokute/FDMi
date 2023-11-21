@@ -20,7 +20,7 @@ namespace tech.gyoku.FDMi.sync.editor
             base.SetPropertyOption(tgt, property, forceSetup);
             var ltgt = target as FDMiPositionData;
             var objManager = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
-            if (property.name == nameof(FDMiPositionData.refPoint) && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.name == nameof(FDMiPositionData.refPoint) && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 property.objectReferenceValue = FDMiEditorUI.FindChildrenComponents<FDMiReferencePoint>(objManager).First();
         }
 

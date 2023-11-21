@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
     public class FDMiObjectActivator : FDMiBehaviour
     {
         [SerializeField] FDMiBool Boolean;
-        [SerializeField] bool onWhenDisable;
+        public bool onWhenDisable;
         void Start()
         {
             Boolean.subscribe(this, "OnChange");

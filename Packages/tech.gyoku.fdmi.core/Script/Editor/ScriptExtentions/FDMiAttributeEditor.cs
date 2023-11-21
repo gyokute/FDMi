@@ -16,10 +16,10 @@ namespace tech.gyoku.FDMi.core.editor
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
             base.SetPropertyOption(tgt, property, forceSetup);
-            if (property.name == nameof(FDMiAttribute.objectManager) && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.name == nameof(FDMiAttribute.objectManager) && (FDMiEditorUI.Button(forceSetup, "Find") || forceSetup))
                 property.objectReferenceValue = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
 
-            if (property.name == nameof(FDMiAttribute.body) && (FDMiEditorUI.Button("Find") || forceSetup))
+            if (property.name == nameof(FDMiAttribute.body) && (FDMiEditorUI.Button(forceSetup, "Find") || forceSetup))
             {
                 FDMiObjectManager man = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
                 property.objectReferenceValue = man.GetComponentInChildren<Rigidbody>();

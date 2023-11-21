@@ -18,8 +18,8 @@ namespace tech.gyoku.FDMi.core.editor
             base.SetPropertyOption(tgt, property, forceSetup);
             if (property.name == nameof(FDMiEvent.VariableName))
             {
-                if ((FDMiEditorUI.Button("Maybe"))) property.stringValue = tgt.transform.name;
-                if ((FDMiEditorUI.Button("FullPath"))) property.stringValue = GetFullPath(tgt.transform);
+                if ((FDMiEditorUI.Button(false, "Maybe"))) property.stringValue = tgt.transform.name;
+                if ((FDMiEditorUI.Button(false, "FullPath"))) property.stringValue = GetFullPath(tgt.transform);
             }
         }
         public static string GetFullPath(Transform t)

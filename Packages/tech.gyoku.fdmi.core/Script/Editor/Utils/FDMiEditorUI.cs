@@ -9,9 +9,10 @@ namespace tech.gyoku.FDMi.core.editor
 {
     public static class FDMiEditorUI
     {
-        public static bool Button(string label)
+        public static bool Button(bool forceSetup, string label)
         {
-            return GUILayout.Button(label, EditorStyles.miniButton, GUILayout.ExpandWidth(false));
+            if (forceSetup) return true;
+            else return GUILayout.Button(label, EditorStyles.miniButton, GUILayout.ExpandWidth(false));
         }
         public static bool BigButton(string label)
         {

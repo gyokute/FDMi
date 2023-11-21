@@ -101,7 +101,7 @@ namespace tech.gyoku.FDMi.avionics
             pitchRate = LPF((Pitch.Data - prevPitch) / Time.fixedDeltaTime, pitchRate, omega);
             prevPitch = pitch[0];
 
-            output = Mathf.Clamp(pitchCommand() - kq * pitchRate, -1f, 1f);
+            output = Mathf.Clamp(IControl(pitchCommand() -  pitchRate, output, kq), -1f, 1f);
             FDPitch.Data = output;
             PitchOutput.Data = Mathf.Clamp(output * Mathf.Round(APSW.data[0]) + pitchInput, -1f, 1f);
         }

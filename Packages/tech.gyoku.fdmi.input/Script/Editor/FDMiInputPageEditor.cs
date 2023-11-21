@@ -19,12 +19,12 @@ namespace tech.gyoku.FDMi.input.editor
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
             base.SetPropertyOption(tgt, property, forceSetup);
-            if (property.name == nameof(FDMiInputPage.inputManager) && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.name == nameof(FDMiInputPage.inputManager) && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
             {
                 FDMiObjectManager man = tgt.GetComponentInParent<FDMiObjectManager>();
                 property.objectReferenceValue = man.GetComponentInChildren<FDMiInputManager>();
             }
-            if (property.name == nameof(FDMiInputPage.InputAddons) && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.name == nameof(FDMiInputPage.InputAddons) && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 FDMiEditorUI.SetObjectArrayProperty<FDMiInputAddon>(property, FDMiEditorUI.FindChildrenComponents<FDMiInputAddon>(tgt.transform.parent));
         }
     }

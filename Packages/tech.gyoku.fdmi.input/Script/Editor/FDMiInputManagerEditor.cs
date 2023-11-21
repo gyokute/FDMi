@@ -19,7 +19,7 @@ namespace tech.gyoku.FDMi.input.editor
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
             base.SetPropertyOption(tgt, property, forceSetup);
-            if (property.name == nameof(FDMiInputManager.fingerTrackers) && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.name == nameof(FDMiInputManager.fingerTrackers) && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 FDMiEditorUI.SetObjectArrayProperty<FDMiFingerTracker>(property, FindObjectsOfType<FDMiFingerTracker>());
 
         }

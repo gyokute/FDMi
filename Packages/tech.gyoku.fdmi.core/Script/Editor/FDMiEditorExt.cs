@@ -37,25 +37,25 @@ namespace tech.gyoku.FDMi.core.editor
         public virtual void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup = false)
         {
             UnityEngine.Object refevent = null;
-            if (property.type == "PPtr<$FDMiEvent>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiEvent>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiEvent>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiBool>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiBool>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiBool>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiInt>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiInt>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiInt>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiFloat>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiFloat>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiFloat>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiVector3>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiVector3>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiVector3>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiQuaternion>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiQuaternion>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiQuaternion>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedBool>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiSyncedBool>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiSyncedBool>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedFloat>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiSyncedFloat>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiSyncedFloat>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedVector3>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiSyncedVector3>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiSyncedVector3>(tgt, property.name);
-            if (property.type == "PPtr<$FDMiSyncedQuaternion>" && (forceSetup ? true : FDMiEditorUI.Button("Find")))
+            if (property.type == "PPtr<$FDMiSyncedQuaternion>" && (forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 refevent = FindDataByName<FDMiSyncedQuaternion>(tgt, property.name);
             if (refevent) property.objectReferenceValue = refevent;
         }
@@ -108,14 +108,20 @@ namespace tech.gyoku.FDMi.core.editor
         public static void setupAllFDMiComponents()
         {
             var FDMiBehaviours = Resources.FindObjectsOfTypeAll<FDMiBehaviour>();
+            var classes = Assembly.GetAssembly(typeof(FDMiEditorExt)).GetTypes().Where(x => x.IsSubclassOf(typeof(FDMiEditorExt)) && !x.IsAbstract);
+            classes = classes.Append(typeof(FDMiEditorExt));
+
             foreach (FDMiBehaviour behaviour in FDMiBehaviours)
             {
-                var editorComponent = Editor.CreateEditor(behaviour) as FDMiEditorExt;
-                if (editorComponent)
+                foreach (var cl in classes)
                 {
-                    editorComponent.SetupAll(behaviour, editorComponent.serializedObject);
+                    var editorComponent = Editor.CreateEditor(behaviour, cl);
+                    if (editorComponent != null)
+                    {
+                        ((dynamic)editorComponent).SetupAll(behaviour, editorComponent.serializedObject);
+                        DestroyImmediate(editorComponent);
+                    }
                 }
-                if (editorComponent != null) DestroyImmediate(editorComponent);
             }
         }
     }

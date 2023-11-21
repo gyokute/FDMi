@@ -15,13 +15,13 @@ namespace tech.gyoku.FDMi.core.editor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
-            base.SetPropertyOption(tgt, property);
+            base.SetPropertyOption(tgt, property, forceSetup);
             if (property.name == nameof(FDMiObjectManager.body))
-                if ((FDMiEditorUI.Button("Find")|| forceSetup))
+                if ((FDMiEditorUI.Button(forceSetup, "Find")|| forceSetup))
                     property.objectReferenceValue = tgt.GetComponentsInChildren<Rigidbody>().OrderByDescending(s => s.mass).FirstOrDefault();
 
             if (property.name == nameof(FDMiObjectManager.attributes))
-                if ((FDMiEditorUI.Button("Find")|| forceSetup))
+                if ((FDMiEditorUI.Button(forceSetup, "Find")|| forceSetup))
                     FDMiEditorUI.SetObjectArrayProperty(property, FDMiEditorUI.FindChildrenComponents<FDMiAttribute>(tgt));
         }
 

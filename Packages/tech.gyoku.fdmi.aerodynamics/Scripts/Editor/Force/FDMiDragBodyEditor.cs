@@ -20,7 +20,7 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
         {
             FDMiDragBody db = (FDMiDragBody)tgt;
             base.SetPropertyOption(tgt, property, forceSetup);
-            if (property.name == nameof(FDMiDragBody.cdA) && (FDMiEditorUI.Button("Set") || forceSetup))
+            if (property.name == nameof(FDMiDragBody.cdA) && (FDMiEditorUI.Button(forceSetup, "Set")))
                 property.floatValue = 0.5f * (db.cdp + db.lambda * db.l / db.d) * (Mathf.PI * db.d);
         }
 
