@@ -32,6 +32,7 @@ namespace tech.gyoku.FDMi.input
         public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
         {
             base.OnCalled(callKey, trackType);
+            if (!isActive) return;
             prevPos = handStartPos;
             prevAxis = handStartAxis;
             initial = LeverOutput.Data;
