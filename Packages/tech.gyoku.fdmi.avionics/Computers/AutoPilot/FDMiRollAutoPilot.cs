@@ -7,14 +7,16 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.avionics
 {
-    public enum RollAutoPilotMode { HDGHOLD, HDGSEL, FMSCAP, FMSTRK, RADCAP, RADTRK, CWS, LOCCAP, LOCTRK };
+    public enum RollAutoPilotMode { CWS, HDGHOLD, HDGSEL, FMSCAP, FMSTRK, LOCCAP, LOCTRK };
     public class FDMiRollAutoPilot : FDMiAutoPilot
     {
-        public FDMiFloat APSW, RollMode, RollOutput, RollInputL, RollInputR, FDRoll;
-        public FDMiFloat Roll, HDG, HDGCommand, RollLimit, NAVRMI, NAVCRS;
+        public FDMiFloat APSW, RollMode, APOutput, RollInputL, RollInputR, FDRoll;
+        public FDMiFloat Roll, HDG, HDGCommand, RollLimit, LOC;
         private AutoPilotSWMode apswMode;
-        private float[] mode, inL, inR, roll, hdg, hdgcmd, rollLim;
-        [SerializeField] float kp, ki, kInput = 0.1f, kq, a = 1f;
+        private float[] mode, inL, inR, roll, hdg, hdgcmd, rollLim, loc;
+        [SerializeField] float kpHDG, kiHDG;
+        [SerializeField] float kpLOC, kiLOC;
+        [SerializeField] float kp, ki, kq, a = 1f;
         float tau, rollRate, prevRoll;
         float rollInput, holdHDG, holdRoll;
 
@@ -27,33 +29,42 @@ namespace tech.gyoku.FDMi.avionics
             hdg = HDG.data;
             hdgcmd = HDGCommand.data;
             rollLim = RollLimit.data;
+            loc = LOC.data;
 
             APSW.subscribe(this, "OnChangeAPSW");
             RollMode.subscribe(this, "OnChangeRollMode");
             tau = LPFTau(a);
+            OnChangeAPSW();
         }
         public void OnChangeAPSW()
         {
             if (Mathf.Approximately(APSW.data[0], 0f))
             {
                 apswMode = AutoPilotSWMode.OFF;
+                APOutput.Data = 0f;
             }
             if (Mathf.Approximately(APSW.data[0], 0.5f))
             {
                 apswMode = AutoPilotSWMode.CWS;
-                if (isOwner) RollMode.Data = (int)RollAutoPilotMode.CWS;
                 holdRoll = roll[0];
             }
             if (Mathf.Approximately(APSW.data[0], 1f))
             {
                 apswMode = AutoPilotSWMode.CMD;
-                if (isOwner) RollMode.Data = (int)RollAutoPilotMode.HDGHOLD;
+                OnChangeRollMode();
             }
         }
+
         public void OnChangeRollMode()
         {
+            output = 0f;
+            rollErr = 0f;
+            pRollErr = 0f;
             switch ((RollAutoPilotMode)Mathf.RoundToInt(mode[0]))
             {
+                case RollAutoPilotMode.CWS:
+                    holdRoll = roll[0];
+                    break;
                 case RollAutoPilotMode.HDGHOLD:
                     holdHDG = hdg[0];
                     break;
@@ -62,39 +73,47 @@ namespace tech.gyoku.FDMi.avionics
 
         float hdgRepeat(float c) { return (Mathf.Abs(c) >= 180f) ? c - 360f * Mathf.Sign(c) : c; }
 
+        float ret, ploc;
         float rollCommand()
         {
-            float ret = 0f;
+            if (apswMode == AutoPilotSWMode.CWS)
+            {
+                holdRoll = Mathf.Lerp(holdRoll, roll[0], rollInput);
+                return holdRoll - roll[0];
+            }
             switch ((RollAutoPilotMode)Mathf.RoundToInt(mode[0]))
             {
+                case RollAutoPilotMode.CWS:
+                    holdRoll = Mathf.Lerp(holdRoll, roll[0], rollInput);
+                    return holdRoll - roll[0];
                 case RollAutoPilotMode.HDGHOLD:
                     ret = hdgRepeat(holdHDG - hdg[0]);
                     break;
+                case RollAutoPilotMode.LOCCAP:
                 case RollAutoPilotMode.HDGSEL:
                     ret = hdgRepeat(hdgcmd[0] - hdg[0]);
                     break;
-                case RollAutoPilotMode.CWS:
-                    holdRoll = Mathf.Lerp(holdRoll, roll[0], Mathf.Abs(rollInput));
-                    ret = holdRoll;
+                case RollAutoPilotMode.LOCTRK:
+                    ret = PControl(loc[0], kpLOC);
+                    ploc = loc[0];
                     break;
+
             }
             return Mathf.Clamp(ret, -rollLim[0], rollLim[0]) - roll[0];
         }
-        float rollErr, pRollErr, angleOut, rateErr, output, pOut;
+        float rollErr, pRollErr, output;
         void FixedUpdate()
         {
-            rollInput = Mathf.Clamp(inL[0] + inR[0], -1f, 1f);
-            if (apswMode == AutoPilotSWMode.OFF) { RollOutput.Data = rollInput; return; }
+            rollInput = Mathf.Clamp01(Mathf.Abs(inL[0] + inR[0]));
             rollRate = LPF((roll[0] - prevRoll) / Time.fixedDeltaTime, rollRate, tau);
             prevRoll = roll[0];
 
-            rollErr = rollCommand() - rollRate * kq;
-            rateErr = PIControl(rollErr, pRollErr, angleOut, kp, ki);
+            rollErr = rollCommand();
             pRollErr = rollErr;
 
-            output = Mathf.Clamp(rateErr - kq * rollRate, -1f, 1f);
+            output = Mathf.Clamp(PControl(rollErr - rollRate, kq) * (1f - rollInput), -1f, 1f);
             FDRoll.Data = output;
-            RollOutput.Data = Mathf.Clamp(output + rollInput, -1f, 1f);
+            APOutput.Data = Mathf.Clamp(output * Mathf.Round(APSW.data[0] + 0.1f), -1f, 1f);
         }
     }
 }

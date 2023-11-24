@@ -29,8 +29,8 @@ namespace tech.gyoku.FDMi.avionics
         }
         protected float PIControl(float err, float prevErr, float prevOut, float kp, float ki)
         {
-            float output = kp / Time.fixedDeltaTime * (err - prevErr) + ki * err;
-            return prevOut + output * Time.fixedDeltaTime;
+            float output = kp * (err - prevErr) + ki * err * Time.fixedDeltaTime;
+            return prevOut + output;
         }
     }
 }

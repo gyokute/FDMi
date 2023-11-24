@@ -7,18 +7,17 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.avionics
 {
     public enum AutoPilotSWMode { OFF, CWS, CMD };
-    public enum PitchAutoPilotMode { IASHOLD, MACHOLD, TURB, VS, ALTCAP, ALTHOLD, CWS, GSCAP, GSTRK, GA, TAKEOFF, VNAV };
+    public enum PitchAutoPilotMode { CWS, IASHOLD, MACHHOLD, TURB, VS, ALTCAP, ALTHOLD, GSCAP, GSTRK, GA, TAKEOFF };
     public class FDMiPitchAutoPilot : FDMiAutoPilot
     {
-        public FDMiFloat APSW, PitchMode, PitchOutput, PitchInputL, PitchInputR, FDPitch;
+        public FDMiFloat APSW, PitchMode, APOutput, PitchInputL, PitchInputR, FDPitch;
         public FDMiFloat VSCommand, AltCommand;
         public FDMiFloat Pitch, Roll, VerticalSpeed, Altitude;
         private AutoPilotSWMode apswMode = AutoPilotSWMode.OFF;
         private float[] mode, inL, inR, pitch, roll, vs, alt, vscmd, altcmd;
-        [SerializeField] float kp, ki, kAlt, kpVS, kiVS, kq, a = 1f;
-        float output, pOut, cmd, err, pErr, omega, vsLPF;
-        float pitchRate, prevPitch;
-        float pitchInput, holdAlt, holdPitch;
+        [SerializeField] float kp, ki, kAlt, kq, a = 1f;
+        [SerializeField] float kpVS, kiVS, VSLimit = 22.86f;
+        float cmd, err, pErr, omega, vsLPF;
         void Start()
         {
             mode = PitchMode.data;
@@ -34,76 +33,103 @@ namespace tech.gyoku.FDMi.avionics
             VSCommand.subscribe(this, "OnChangeVSCommand");
             PitchMode.subscribe(this, "OnChangePitchMode");
             omega = LPFTau(a);
+            OnChangeAPSW();
         }
         public void OnChangeAPSW()
         {
             if (Mathf.Approximately(APSW.data[0], 0f))
             {
                 apswMode = AutoPilotSWMode.OFF;
+                APOutput.Data = 0f;
             }
             if (Mathf.Approximately(APSW.data[0], 0.5f))
             {
                 apswMode = AutoPilotSWMode.CWS;
-                if (isOwner) PitchMode.Data = (int)PitchAutoPilotMode.CWS;
                 holdPitch = pitch[0];
             }
             if (Mathf.Approximately(APSW.data[0], 1f))
             {
                 apswMode = AutoPilotSWMode.CMD;
-                if (isOwner) PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
+                OnChangePitchMode();
             }
         }
         public void OnChangeVSCommand()
         {
-            mode[0] = (float)PitchAutoPilotMode.VS;
+            if (Mathf.Approximately(vscmd[0], 0f))
+            {
+                if (PitchMode.Data != (int)PitchAutoPilotMode.ALTHOLD) PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
+                return;
+            }
+            if (PitchMode.Data != (int)PitchAutoPilotMode.VS) PitchMode.Data = (int)PitchAutoPilotMode.VS;
+
         }
         public void OnChangePitchMode()
         {
+            output = 0f;
+            ret = 0f;
+            vsErr = 0f;
+            pPitchErr = 0f;
+
             switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
             {
+                case PitchAutoPilotMode.CWS:
+                    holdPitch = pitch[0];
+                    break;
                 case PitchAutoPilotMode.ALTHOLD:
                     holdAlt = alt[0];
                     break;
             }
         }
-        float ret, pret, pVSErr, pPitchErr;
+
+        float pitchInput, holdAlt, holdPitch;
+        public float rate, pRate, ret, pret, vsErr, pVSErr, rateErr, pPitchErr;
         float pitchCommand()
         {
+            if (apswMode == AutoPilotSWMode.CWS)
+            {
+                holdPitch = Mathf.Lerp(holdPitch, pitch[0], pitchInput);
+                return PControl(holdPitch - pitch[0], kp);
+            }
             switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
             {
-                case PitchAutoPilotMode.ALTHOLD:
-                    ret = PIControl(-vs[0], pVSErr, ret, kpVS, kiVS);
-                    pVSErr = -vs[0];
-                    break;
-                case PitchAutoPilotMode.ALTCAP:
-                    return kAlt * Mathf.Clamp(altcmd[0] * 30.48f - alt[0], -30.48f, 30.48f);
-                case PitchAutoPilotMode.VS:
-                    return kpVS * (vscmd[0] - vs[0] * 1.9685039f);
                 case PitchAutoPilotMode.CWS:
-                    holdPitch = Mathf.Lerp(holdPitch, pitch[0], Mathf.Abs(pitchInput));
-                    ret = PIControl(holdPitch - pitch[0], pPitchErr, ret, kp, ki);
-                    pPitchErr = holdPitch - pitch[0];
+                    holdPitch = Mathf.Lerp(holdPitch, pitch[0], pitchInput);
+                    return PControl(holdPitch - pitch[0], kp);
+
+                case PitchAutoPilotMode.ALTCAP:
+                    vsErr = Mathf.Clamp(kAlt * (altcmd[0] * 0.3048f - alt[0]), -22.86f, 22.86f);
+                    ret = PIControl(vsErr - vs[0], pVSErr, ret, kpVS, kiVS);
+                    pVSErr = vsErr;
+                    break;
+                    return kAlt * Mathf.Clamp(altcmd[0] * 30.48f - alt[0], -30.48f, 30.48f);
+                case PitchAutoPilotMode.ALTHOLD:
+                case PitchAutoPilotMode.VS:
+                    vsErr = PIControl(vscmd[0] * 0.508f - vs[0], pVSErr, vsErr, kpVS, kiVS);
+                    pVSErr = vscmd[0] * 0.508f - vs[0];
+                    ret = PControl(vsErr - pitch[0], kp);
                     break;
             }
             return ret;
         }
-        float rateErr, pRateErr;
+        float pitchRate, prevPitch, pitchErr, output;
 
         void FixedUpdate()
         {
-            pitchInput = Mathf.Clamp(inL[0] + inR[0], -1f, 1f);
+            pitchInput = Mathf.Clamp01(Mathf.Abs(inL[0] + inR[0]) * 10f);
             vsLPF = LPF(vs[0], vsLPF, omega);
-            if (!Mathf.Approximately(mode[0], (int)PitchAutoPilotMode.VS))
+            if (!Mathf.Approximately(mode[0], (int)PitchAutoPilotMode.VS) && !Mathf.Approximately(mode[0], (int)PitchAutoPilotMode.ALTHOLD))
             {
                 VSCommand.data[0] = vsLPF * 1.9685039f;
             }
-
-            pitchRate = LPF((Pitch.Data - prevPitch) / Time.fixedDeltaTime, pitchRate, omega);
+            pitchRate = LPF((pitch[0] - prevPitch) / Time.fixedDeltaTime, pitchRate, omega);
             prevPitch = pitch[0];
 
-            output = Mathf.Clamp(IControl(pitchCommand() -  pitchRate, output, kq), -1f, 1f);
+            pitchErr = pitchCommand();
+            output = Mathf.Clamp(PControl(pitchErr - pitchRate, kq), -1f, 1f);
             FDPitch.Data = output;
-            PitchOutput.Data = Mathf.Clamp(output * Mathf.Round(APSW.data[0]) + pitchInput, -1f, 1f);
+            if (apswMode == AutoPilotSWMode.OFF) return;
+            // output *= (1f - pitchInput);
+            APOutput.Data = Mathf.Clamp(output, -1f, 1f);
         }
     }
 }
