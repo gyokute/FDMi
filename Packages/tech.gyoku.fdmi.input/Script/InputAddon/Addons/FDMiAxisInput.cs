@@ -15,11 +15,18 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] InputAxis inputAxisType;
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] float multiply = 1f, min = 0f, max = 1f;
+        [SerializeField] float threshold = 0.5f;
+
         protected override void Update()
         {
             base.Update();
             if (behaviourType == AxisBehaviourType.momentum)
                 Output.set(Mathf.Clamp(multiply * inputAxis[(int)inputAxisType], min, max));
+            if (behaviourType == AxisBehaviourType.force)
+            {
+                if (inputAxis[(int)inputAxisType] * multiply > threshold)
+                    Output.set(max);
+            }
         }
         public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
         {
@@ -27,10 +34,6 @@ namespace tech.gyoku.FDMi.input
             if (behaviourType == AxisBehaviourType.alternate)
             {
                 Output.set(Mathf.Approximately(max, Output.data[0]) ? min : max);
-            }
-            if (behaviourType == AxisBehaviourType.force)
-            {
-                Output.set(multiply);
             }
         }
         public override void OnReleased()
