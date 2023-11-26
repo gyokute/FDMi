@@ -81,6 +81,12 @@ namespace tech.gyoku.FDMi.core.editor
             objs = tgt.GetComponentsInChildren<T>();
             ret = objs.FirstOrDefault(o => o.VariableName == name);
             if (ret) return ret;
+            // with underbar, find in children
+            if (name.Contains("_"))
+            {
+                ret = objs.FirstOrDefault(o => o.VariableName.Contains(name.Substring(1)));
+                if (ret) return ret;
+            }
             // If not, find FDMiEvent from parent.
             objs = tgt.transform.parent.GetComponents<T>();
             ret = objs.FirstOrDefault(o => o.VariableName == name);
