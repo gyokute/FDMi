@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.core
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiSyncedFloat : FDMiFloat
     {
-        [UdonSynced, FieldChangeCallback(nameof(SyncedData)), HideInInspector] public float syncedData;
+        [UdonSynced, FieldChangeCallback(nameof(SyncedData))] public float syncedData;
         public float SyncedData
         {
             get => syncedData;
