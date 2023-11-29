@@ -14,7 +14,7 @@ namespace tech.gyoku.FDMi.avionics
         public FDMiFloat Roll, HDG, HDGCommand, RollLimit, _LOC, _CRS;
         private AutoPilotSWMode apswMode;
         private float[] mode, inL, inR, roll, hdg, hdgcmd, rollLim, loc, crs;
-        [SerializeField] float kpHDG, kiHDG;
+        [SerializeField] float kpHDG;
         [SerializeField] float kpLOC, kiLOC, locTRKTransition = 10f, ilsTRKTransition = 2f;
         [SerializeField] float kp, ki, kq, a = 1f;
         float tau, rollRate, prevRoll;
@@ -70,6 +70,10 @@ namespace tech.gyoku.FDMi.avionics
                 case RollAutoPilotMode.ILSCAP:
                 case RollAutoPilotMode.HDGHOLD:
                     holdHDG = hdg[0];
+                    pHdgErr = hdgRepeat(holdHDG - hdg[0]);
+                    break;
+                case RollAutoPilotMode.HDGSEL:
+                    pHdgErr = hdgRepeat(hdgcmd[0] - hdg[0]);
                     break;
                 case RollAutoPilotMode.LOCTRK:
                 case RollAutoPilotMode.ILSTRK:
@@ -89,7 +93,8 @@ namespace tech.gyoku.FDMi.avionics
                 {
                     case RollAutoPilotMode.LOCCAP:
                         locErr = PControl(loc[0], kpLOC);
-                        if (Mathf.Abs(loc[0]) < locTRKTransition) _RollMode.Data = (float)RollAutoPilotMode.LOCTRK;
+                        if (Mathf.Abs(loc[0]) < locTRKTransition && Mathf.Abs(locErr) < Mathf.Abs(crs[0] - hdg[0]))
+                            _RollMode.Data = (float)RollAutoPilotMode.LOCTRK;
                         break;
                     case RollAutoPilotMode.ILSCAP:
                         locErr = PControl(loc[0], kpLOC);
@@ -116,13 +121,13 @@ namespace tech.gyoku.FDMi.avionics
                     // locErr = PControl(loc[0], kpLOC);
                     locErr = PIControl(loc[0], pLoc, locErr, kpLOC, kiLOC);
                     hdgErr = hdgRepeat(crs[0] + locErr - hdg[0]);
-                    Debug.Log(locErr);
                     pLoc = loc[0];
                     break;
             }
-            ret = PIControl(hdgErr, pHdgErr, ret, kpHDG, kiHDG);
+            ret = Mathf.Clamp(PControl(hdgErr, kpHDG), -rollLim[0], rollLim[0]);
+            // ret = PIControl(hdgErr, pHdgErr, ret, kpHDG, kiHDG);
             pHdgErr = hdgErr;
-            return Mathf.Clamp(ret, -rollLim[0], rollLim[0]) - roll[0];
+            return ret - roll[0];
         }
         float rollErr, pRollErr, output;
         void FixedUpdate()
