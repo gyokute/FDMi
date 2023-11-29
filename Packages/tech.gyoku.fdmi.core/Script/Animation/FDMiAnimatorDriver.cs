@@ -13,7 +13,6 @@ namespace tech.gyoku.FDMi.core
         [SerializeField] private Animator animator;
         [SerializeField] private string paramator;
         [SerializeField] private AnimationCurve outputValue;
-        public
         void Start()
         {
             input = Input.data;
