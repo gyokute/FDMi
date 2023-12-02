@@ -32,18 +32,17 @@ namespace tech.gyoku.FDMi.avionics
             galt = GroundAltitude.data;
             omega = 2 * Mathf.PI * a;
             omega = omega / (omega + 1);
-            ATSSW.subscribe(this, "OnChangeATSSW");
+            // ATSSW.subscribe(this, "OnChangeATSSW");
         }
 
-        public void OnChangeATSSW()
-        {
-            if (Mathf.Approximately(sw[0], 1f))
-                ATSMode.Data = (int)AutoThrottle_Mode.IAS;
-        }
+        // public void OnChangeATSSW()
+        // {
+        //     if (Mathf.Approximately(sw[0], 1f))
+        //         ATSMode.Data = (int)AutoThrottle_Mode.IAS;
+        // }
         float prevThrottle;
         void Update()
         {
-            if (!isOwner) return;
             if (sw[0] < 0.7f || grabThrottle[0]) { return; }
             // IAS LPF
             lpias = ias[0] * omega + (1f - omega) * lpias;
