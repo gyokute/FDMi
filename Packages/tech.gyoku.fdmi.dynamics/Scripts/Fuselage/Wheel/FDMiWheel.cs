@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.dynamics
         [SerializeField] private float preLoadTorque = 0.0001f;
         [SerializeField] private float rpm;
         [SerializeField] private float rotateAngle = 60f;
-        [SerializeField] private float retractThreshold = 0.5f;
+        // [SerializeField] private float retractThreshold = 0.5f;
         [SerializeField] private Vector3 retractDirection;
         [SerializeField] private AnimationCurve retractCurve;
         private Vector3 wheelOriginPos = Vector3.zero;
@@ -33,7 +33,7 @@ namespace tech.gyoku.FDMi.dynamics
             parkbrake = ParkBrakeInput.data;
 
             susmove = SuspensionMove.data;
-            if(WheelRotate) wheelRot = WheelRotate.data;
+            if (WheelRotate) wheelRot = WheelRotate.data;
             isground = IsGround.data;
 
             wheelOriginPos = wheel.transform.localPosition;
@@ -47,7 +47,7 @@ namespace tech.gyoku.FDMi.dynamics
         public void OnRetract()
         {
             wheel.transform.localPosition = wheelOriginPos + retractCurve.Evaluate(Retract.Data) * retractDirection;
-            wheel.enabled = (Retract.Data < retractThreshold);
+            // wheel.enabled = (Retract.Data < retractThreshold);
         }
         RaycastHit[] results = new RaycastHit[1];
         int resultLen;
@@ -58,8 +58,12 @@ namespace tech.gyoku.FDMi.dynamics
             resultLen = Physics.RaycastNonAlloc(groundRay, results, rayMaxLen, groundLayer);
             if (resultLen > 0)
             {
-                susmove[0] = results[0].distance / rayMaxLen;
-                wheelRot[0] = Mathf.Repeat(wheelRot[0] + Time.deltaTime * Vector3.Dot(body.GetPointVelocity(wheel.transform.position), transform.forward) * wheelCircumference, 1f);
+                SuspensionMove.Data = results[0].distance / rayMaxLen;
+                WheelRotate.Data = Time.deltaTime * Vector3.Dot(body.GetPointVelocity(wheel.transform.position), transform.forward) * wheelCircumference;
+            }
+            else
+            {
+                SuspensionMove.Data = 1f;
             }
             if (isOwner)
             {
