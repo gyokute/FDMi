@@ -62,6 +62,7 @@ namespace tech.gyoku.FDMi.avionics
                     output = Mathf.MoveTowards(output, n1[0], Time.deltaTime);
                     break;
                 case AutoThrottle_Mode.Clamp:
+                    if (galt[0] > retardThreshold) ATSMode.Data = (int)AutoThrottle_Mode.IAS;
                     output = Mathf.MoveTowards(output, 0f, Time.deltaTime);
                     break;
                 case AutoThrottle_Mode.Retard:
