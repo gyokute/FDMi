@@ -16,6 +16,7 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] float multiply = 1f, min = 0f, max = 1f;
         [SerializeField] float threshold = 0.5f;
+        bool alternateLatch = false;
 
         protected override void Update()
         {
@@ -27,15 +28,23 @@ namespace tech.gyoku.FDMi.input
                 if (inputAxis[(int)inputAxisType] * multiply > threshold)
                     Output.set(max);
             }
-        }
-        public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
-        {
-            base.OnCalled(callKey, trackType);
             if (behaviourType == AxisBehaviourType.alternate)
             {
-                Output.set(Mathf.Approximately(max, Output.data[0]) ? min : max);
+                if (inputAxis[(int)inputAxisType] * multiply > threshold)
+                {
+                    if (!alternateLatch)
+                    {
+                        Output.set(Mathf.Approximately(max, Output.data[0]) ? min : max);
+                        alternateLatch = true;
+                    }
+                }
+                else
+                {
+                    alternateLatch = false;
+                }
             }
         }
+
         public override void OnReleased()
         {
             base.OnReleased();
