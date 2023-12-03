@@ -69,7 +69,7 @@ namespace tech.gyoku.FDMi.avionics
                     float altscale = galt[0] / retardThreshold;
                     if (altscale < 0.02f) ATSMode.Data = (int)AutoThrottle_Mode.Clamp;
                     if (altscale > 1f) ATSMode.Data = (int)AutoThrottle_Mode.IAS;
-                    output = Mathf.MoveTowards(output, galt[0] / retardThreshold, Time.deltaTime);
+                    output = Mathf.MoveTowards(output, Mathf.Max(output, galt[0] / retardThreshold), Time.deltaTime);
                     break;
             }
             Throttle.Data = output;
