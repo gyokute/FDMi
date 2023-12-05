@@ -23,10 +23,11 @@ namespace tech.gyoku.FDMi.core
 
         public override void set(Vector3 src)
         {
+            if (Vector3.Distance(SyncedData, src) <= Mathf.Epsilon) return;
             SyncedData = src;
             if (!isPlayerJoined) return;
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
-            RequestSerialization();
+            TrySerialize();
         }
     }
 }

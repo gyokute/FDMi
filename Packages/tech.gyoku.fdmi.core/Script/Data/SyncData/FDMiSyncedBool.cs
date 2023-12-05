@@ -23,10 +23,11 @@ namespace tech.gyoku.FDMi.core
 
         public override void set(bool src)
         {
+            if (SyncedData == src) return;
             SyncedData = src;
             if (!isPlayerJoined) return;
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
-            RequestSerialization();
+            TrySerialize();
         }
     }
 }

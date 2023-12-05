@@ -31,5 +31,21 @@ namespace tech.gyoku.FDMi.core
             for (int i = 0; i < callbackBehaviour.Length; i++)
                 if (callbackBehaviour[i]) callbackBehaviour[i].SendCustomEvent(callbackFunctionName[i]);
         }
+
+        [SerializeField] protected float updateInterval = 0.25f;
+        protected double nextUpdateTime;
+        public void TrySerialize()
+        {
+            // Try Serialize.
+            if (Time.time > nextUpdateTime)
+            {
+                if (!Networking.IsClogged)
+                {
+                    RequestSerialization();
+                    nextUpdateTime = Time.time + updateInterval;
+                }
+                else { SendCustomEventDelayedSeconds("TrySerialize", updateInterval); }
+            }
+        }
     }
 }
