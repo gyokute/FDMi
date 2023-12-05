@@ -188,7 +188,7 @@ MonoBehaviour:
       Data: 12|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: tech.gyoku.FDMi.input.FDMiKeyboardInputType, tech.gyoku.FDMi.ui.core
+      Data: tech.gyoku.FDMi.input.FDMiKeyboardInputType, tech.gyoku.FDMi.input
     - Name: 
       Entry: 8
       Data: 
