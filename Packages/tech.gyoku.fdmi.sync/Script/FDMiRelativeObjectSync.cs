@@ -43,9 +43,17 @@ namespace tech.gyoku.FDMi.sync
             }
         }
 
+        private Vector3 tentativeVel;
         public void SetLocalPlayerAsOwner()
         {
+            tentativeVel = _velocity;
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            SendCustomEventDelayedFrames(nameof(RevertTentativeVelocity), 3);
+        }
+        public void RevertTentativeVelocity()
+        {
+            _velocity = tentativeVel;
+            body.velocity = Quaternion.Inverse(_rotation) * _velocity;
         }
         Vector3 tPos = Vector3.zero, tVel = Vector3.zero, tAngVel = Vector3.zero;
         Quaternion tRot = Quaternion.identity;
