@@ -164,11 +164,17 @@ namespace tech.gyoku.FDMi.sync
         public override Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
+            if (!Networking.IsOwner(gameObject))
+            {
+                _kmPosition = syncedKmPos;
+                _position = syncedPos;
+            }
             return 1000f * _kmPosition + _position;
         }
 
         public override Quaternion getViewRotation()
         {
+            if (!Networking.IsOwner(gameObject)) _rotation = syncedRot;
             return _rotation;
             // if (isRoot) return Quaternion.identity;
             // return Quaternion.Inverse(rootRefPoint.direction) * direction;
@@ -189,7 +195,7 @@ namespace tech.gyoku.FDMi.sync
         public override void windupPositionAndRotation()
         {
             prevPos = getViewPosition();
-            prevRot = Quaternion.identity;
+            prevRot = getViewRotation();
         }
         #endregion
 
