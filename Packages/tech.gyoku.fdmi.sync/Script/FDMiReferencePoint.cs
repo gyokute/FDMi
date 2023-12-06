@@ -14,48 +14,29 @@ namespace tech.gyoku.FDMi.sync
         public bool parentIsRoot;// use in FDMiRelativeObjectSyncManager.
         public FDMiRelativeObjectSyncManager syncManager;
         public Rigidbody body;
-        [UdonSynced, FieldChangeCallback(nameof(Position))] public Vector3 _position;
-        public Vector3 Position
-        {
-            get => _position;
-            set
-            {
-                _position = value;
-            }
-        }
-        [UdonSynced, FieldChangeCallback(nameof(direction))] public Quaternion _direction;
-        public Quaternion direction
-        {
-            get => _direction;
-            set
-            {
-                _direction = value;
-            }
-        }
-
-        [UdonSynced, FieldChangeCallback(nameof(kmPosition))] public Vector3 _kmPosition;
-        public Vector3 kmPosition
-        {
-            get => _kmPosition;
-            set
-            {
-                _kmPosition = value;
-                handleChangeKmPosition(value);
-            }
-        }
-        [UdonSynced, FieldChangeCallback(nameof(Velocity))] public Vector3 velocity;
-        public Vector3 Velocity
-        {
-            get => velocity;
-            set { velocity = value; }
-        }
-
         [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] protected int _parentIndex;
         public int ParentIndex
         {
             get => _parentIndex;
             set { handleParentIndex(value); }
         }
+
+        [UdonSynced] public Vector3 syncedPos;
+        [UdonSynced] public Quaternion syncedRot;
+        [UdonSynced, FieldChangeCallback(nameof(SyncedKmPos))] public Vector3 syncedKmPos;
+        public Vector3 SyncedKmPos
+        {
+            get => syncedKmPos;
+            set
+            {
+                syncedKmPos = value;
+                handleChangeKmPosition(value);
+            }
+        }
+        public Vector3 _position, _velocity, _kmPosition;
+        public Quaternion _rotation;
+
+
 
         public bool _isRoot = false;
         public bool isRoot
@@ -159,7 +140,7 @@ namespace tech.gyoku.FDMi.sync
             {
                 kmDiff -= rootRefPoint._kmPosition;
                 diff -= rootRefPoint._position;
-                dir = Quaternion.Inverse(rootRefPoint.direction);
+                dir = Quaternion.Inverse(rootRefPoint._rotation);
             }
             // diff += 1000f * (kmDiff - syncManager.localPlayerPosition.kmPosition);
             diff += 1000f * kmDiff;
@@ -167,20 +148,20 @@ namespace tech.gyoku.FDMi.sync
         }
         public virtual Vector3 getViewPositionInterpolated()
         {
-            if (Networking.IsOwner(gameObject)) return getViewPosition();
-            prevPos = Vector3.Lerp(prevPos, getViewPosition(), Time.deltaTime * 10);
+            // if (Networking.IsOwner(gameObject)) return getViewPosition();
+            // prevPos = Vector3.Lerp(prevPos, getViewPosition(), Time.deltaTime * 10);
             return getViewPosition();
         }
         public virtual Quaternion getViewRotation()
         {
             if (isRoot) return Quaternion.identity;
-            if (!rootRefPoint) return direction;
-            return (Quaternion.Inverse(rootRefPoint.direction) * direction).normalized;
+            if (!rootRefPoint) return _rotation;
+            return (Quaternion.Inverse(rootRefPoint._rotation) * _rotation).normalized;
         }
         public virtual Quaternion getViewRotationInterpolated()
         {
-            if (Networking.IsOwner(gameObject)) return getViewRotation();
-            prevRot = Quaternion.Slerp(prevRot, getViewRotation(), Time.deltaTime * 10);
+            // if (Networking.IsOwner(gameObject)) return getViewRotation();
+            // prevRot = Quaternion.Slerp(prevRot, getViewRotation(), Time.deltaTime * 10);
             return getViewRotation();
         }
         public virtual void windupPositionAndRotation()
@@ -193,7 +174,7 @@ namespace tech.gyoku.FDMi.sync
 
         public virtual bool setPosition(Vector3 pos)
         {
-            Vector3 v = pos, k = kmPosition;
+            Vector3 v = pos, k = _kmPosition;
             bool updateKmPos = false;
             for (int i = 0; i < 3; i++)
             {
@@ -207,16 +188,41 @@ namespace tech.gyoku.FDMi.sync
                     v[i] -= s * 1000f;
                 }
             }
-            if (updateKmPos) kmPosition = k;
-            Position = v;
+            if (updateKmPos) _kmPosition = k;
+            _position = v;
             return updateKmPos;
         }
         public virtual void setRotation(Quaternion rot)
         {
-            direction = rot;
+            _rotation = rot;
         }
 
         public virtual void handleChangeKmPosition(Vector3 value) { }
+        #endregion
+        #region Serialize
+        [SerializeField] protected float updateInterval = 0.25f;
+        protected double nextUpdateTime, ServerTimeDiff;
+        protected void ResetSyncTime()
+        {
+            ServerTimeDiff = Networking.GetServerTimeInSeconds() - Time.time;
+            nextUpdateTime = Time.time + (double)updateInterval;
+
+        }
+        protected virtual void TrySerialize()
+        {
+            // Try Serialize.
+            if (Time.time > nextUpdateTime)
+            {
+                if (!Networking.IsClogged)
+                {
+                    syncedPos = _position;
+                    syncedRot = _rotation;
+                    syncedKmPos = _kmPosition;
+                    RequestSerialization();
+                    nextUpdateTime = Time.time + updateInterval;
+                }
+            }
+        }
         #endregion
     }
 }

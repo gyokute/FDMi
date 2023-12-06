@@ -39,7 +39,6 @@ namespace tech.gyoku.FDMi.sync
         private bool isUserInVR;
         void Start()
         {
-
             gameObject.SetActive(false);
         }
 
@@ -62,7 +61,8 @@ namespace tech.gyoku.FDMi.sync
                 transform.position = syncManager.respawnPoint;
                 localPlayer.TeleportTo(syncManager.respawnPoint, Quaternion.identity);
                 station.PlayerMobility = VRCStation.Mobility.Mobile;
-                RequestSerialization();
+                ResetSyncTime();
+                TrySerialize();
             }
             else
             {
@@ -88,17 +88,17 @@ namespace tech.gyoku.FDMi.sync
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
             if (value < 0) return;
-            Vector3 teleportPos = prevPRP.direction * Position + prevPRP.Position - parentRefPoint.Position;
-            teleportPos += (prevPRP.direction * kmPosition + prevPRP.kmPosition - parentRefPoint.kmPosition) * 1000f;
-            teleportPos = Quaternion.Inverse(parentRefPoint.direction) * teleportPos;
-            Quaternion teleportRot = Quaternion.Inverse(parentRefPoint.direction) * prevPRP.direction * direction;
-            Vector3 playerVelocity = Quaternion.Inverse(parentRefPoint.direction) * prevPRP.direction * localPlayer.GetVelocity();
-            playerVelocity += prevPRP.Velocity - parentRefPoint.Velocity;
+            Vector3 teleportPos = prevPRP._rotation * _position + prevPRP._position - parentRefPoint._position;
+            teleportPos += (prevPRP._rotation * _kmPosition + prevPRP._kmPosition - parentRefPoint._kmPosition) * 1000f;
+            teleportPos = Quaternion.Inverse(parentRefPoint._rotation) * teleportPos;
+            Quaternion teleportRot = Quaternion.Inverse(parentRefPoint._rotation) * prevPRP._rotation * _rotation;
+            Vector3 playerVelocity = Quaternion.Inverse(parentRefPoint._rotation) * prevPRP._rotation * localPlayer.GetVelocity();
+            playerVelocity += prevPRP._velocity - parentRefPoint._velocity;
             localPlayer.TeleportTo(teleportPos, teleportRot, VRC_SceneDescriptor.SpawnOrientation.Default, false);
             localPlayer.SetVelocity(playerVelocity);
-            Position = teleportPos;
-            direction = teleportRot;
-            kmPosition = Vector3.zero;
+            _position = teleportPos;
+            _rotation = teleportRot;
+            _kmPosition = Vector3.zero;
         }
 
         #region station events
@@ -119,9 +119,9 @@ namespace tech.gyoku.FDMi.sync
             {
                 gameObject.SetActive(false);
                 ParentIndex = syncManager.index;
-                kmPosition = Vector3.zero;
+                _kmPosition = Vector3.zero;
                 transform.position = syncManager.respawnPoint;
-                Position = syncManager.respawnPoint;
+                _position = syncManager.respawnPoint;
             }
         }
         public override void OnPlayerRespawn(VRCPlayerApi player)
@@ -133,8 +133,8 @@ namespace tech.gyoku.FDMi.sync
             ParentIndex = syncManager.rootRefPoint.index;
             localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPoint, Quaternion.identity);
             inVehicle = false;
-            kmPosition = Vector3.zero;
-            Position = syncManager.rootRefPoint.respawnPoint;
+            _kmPosition = Vector3.zero;
+            _position = syncManager.rootRefPoint.respawnPoint;
             RequestSerialization();
         }
 
@@ -164,26 +164,26 @@ namespace tech.gyoku.FDMi.sync
         public override Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
-            return 1000f * kmPosition + Position;
+            return 1000f * _kmPosition + _position;
         }
 
         public override Quaternion getViewRotation()
         {
-            return direction;
+            return _rotation;
             // if (isRoot) return Quaternion.identity;
             // return Quaternion.Inverse(rootRefPoint.direction) * direction;
         }
         public override Vector3 getViewPositionInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewPosition();
-            prevPos = Vector3.Lerp(prevPos, getViewPosition(), Time.deltaTime * 10);
-            return prevPos;
+            _position = Vector3.Lerp(_position, 1000f * syncedKmPos + syncedPos, Time.deltaTime * 10);
+            return _position;
         }
         public override Quaternion getViewRotationInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewRotation();
-            prevRot = Quaternion.Slerp(prevRot, getViewRotation(), Time.deltaTime * 10);
-            return prevRot;
+            _rotation = Quaternion.Slerp(_rotation, syncedRot, Time.deltaTime * 10);
+            return _rotation;
         }
 
         public override void windupPositionAndRotation()
@@ -199,13 +199,13 @@ namespace tech.gyoku.FDMi.sync
             if (Networking.IsOwner(gameObject))
             {
                 setPosition(localPlayer.GetPosition());
-                direction = localPlayer.GetRotation();
+                _rotation = localPlayer.GetRotation();
                 // for preventing very-far jumping
                 if (localPlayer.GetPosition().magnitude > 100000f) RespawnLocalPlayer();
-                if (Vector3.Distance(prevPos, _position) > 0.05f || Quaternion.Angle(prevRot, _direction) > 0.0188f)
-                    RequestSerialization();
+                if (Vector3.Distance(prevPos, _position) > 0.005f || Quaternion.Dot(prevRot, _rotation) > 0.005f)
+                    TrySerialize();
                 prevPos = _position;
-                prevRot = _direction;
+                prevRot = _rotation;
                 return;
             }
             if (!inVehicle)

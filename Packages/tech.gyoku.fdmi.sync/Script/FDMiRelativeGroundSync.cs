@@ -12,11 +12,11 @@ namespace tech.gyoku.FDMi.sync
         void Start()
         {
             setPosition(transform.position);
-            direction = transform.rotation;
+            _rotation = transform.rotation;
         }
         public void LateUpdate()
         {
-            transform.SetPositionAndRotation(getViewPositionInterpolated(), getViewRotationInterpolated());
+            transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
     }
 }

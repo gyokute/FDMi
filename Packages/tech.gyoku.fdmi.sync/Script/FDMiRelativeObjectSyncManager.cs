@@ -16,6 +16,7 @@ namespace tech.gyoku.FDMi.sync
         {
             transform.position = Vector3.zero;
             transform.rotation = Quaternion.identity;
+            _rotation = Quaternion.identity;
             localRootRefPoint = this;
             ParentIndex = -1;
             for (int i = 0; i < refPoints.Length; i++)
@@ -27,8 +28,8 @@ namespace tech.gyoku.FDMi.sync
         public void LateUpdate()
         {
             if (!isInit) return;
-            transform.rotation = getViewRotationInterpolated();
-            transform.position = getViewPositionInterpolated();
+            transform.rotation = getViewRotation();
+            transform.position = getViewPosition();
         }
 
         public void onChangeLocalPlayerKMPosition()
