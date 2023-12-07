@@ -47,5 +47,15 @@ namespace tech.gyoku.FDMi.sync
             }
         }
 
+        public void TeleportLocalPlayer(Transform teleportPosition)
+        {
+            syncManager.changeRootRefPoint(refPoint);
+            InZone.Data = true;
+            localPlayer.TeleportTo(teleportPosition.position, teleportPosition.rotation);
+        }
+        public void ExitLocalPlayer()
+        {
+            OnPlayerTriggerExit(localPlayer);
+        }
     }
 }
