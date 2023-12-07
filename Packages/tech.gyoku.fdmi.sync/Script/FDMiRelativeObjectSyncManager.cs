@@ -72,12 +72,5 @@ namespace tech.gyoku.FDMi.sync
             // target.windupPositionAndRotation();
             // prevRoot.windupPositionAndRotation();
         }
-
-        public void TeleportLocalPlayer(FDMiReferencePoint tgtRefPoint, Transform teleportPosition)
-        {
-            changeRootRefPoint(tgtRefPoint);
-            localPlayerPosition.TeleportTo(teleportPosition);
-        }
-
     }
 }
