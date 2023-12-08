@@ -20,10 +20,15 @@ namespace tech.gyoku.FDMi.core
                 trigger();
             }
         }
-
+        bool syncedLatch = false;
         public override void set(float src)
         {
-            if (Mathf.Approximately(SyncedData, src)) return;
+            if (Mathf.Approximately(SyncedData, src))
+            {
+                if (!syncedLatch) SendCustomEventDelayedSeconds("TrySerialize", updateInterval);
+                syncedLatch = true;
+            }
+            else syncedLatch = false;
             SyncedData = src;
             if (!isPlayerJoined) return;
             if (!Networking.IsOwner(gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
