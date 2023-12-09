@@ -13,13 +13,16 @@ namespace tech.gyoku.FDMi.avionics
         public FDMiFloat APSW, _PitchMode, APOutput, PitchInputL, PitchInputR, _FDPitch, TrimCommand;
         public FDMiFloat VSCommand, AltCommand, _GS;
         public FDMiFloat Pitch, Roll, VerticalSpeed, Altitude;
+        public FDMiBool IsPilot;
         private AutoPilotSWMode apswMode = AutoPilotSWMode.OFF;
-        private float[] mode, inL, inR, pitch, roll, vs, alt, vscmd, altcmd, gs;
-        [SerializeField] float kp, kq, a = 1f, pitchLimit = 20f;
+        private float[] mode, inL, inR, pitch, roll, vs, alt, vscmd, altcmd, gs, fdPitch;
+        private bool[] isPilot;
+        [SerializeField] float kp, kq, a = 1f, pitchLimit = 20f, FDMoveSpeed = 2f;
         [SerializeField] float kpVS, kiVS, kpGS, kiGS;
         [SerializeField] float kpalt, kialt;
         [SerializeField] float autoTrimThreshold = 0.05f, autoTrimGain = 0.5f;
         float cmd, err, pErr, omega, vsLPF;
+        bool isYokeHold;
         void Start()
         {
             mode = _PitchMode.data;
@@ -32,6 +35,8 @@ namespace tech.gyoku.FDMi.avionics
             gs = _GS.data;
             vscmd = VSCommand.data;
             altcmd = AltCommand.data;
+            isPilot = IsPilot.data;
+            fdPitch = _FDPitch.data;
             APSW.subscribe(this, "OnChangeAPSW");
             VSCommand.subscribe(this, "OnChangeVSCommand");
             _PitchMode.subscribe(this, "OnChange_PitchMode");
@@ -58,7 +63,7 @@ namespace tech.gyoku.FDMi.avionics
         }
         public void OnChangeVSCommand()
         {
-            if (!isOwner) return;
+            if (!isPilot[0]) return;
             if (Mathf.Approximately(vscmd[0], 0f))
             {
                 if (_PitchMode.Data != (int)PitchAutoPilotMode.ALTHOLD) _PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
@@ -92,16 +97,11 @@ namespace tech.gyoku.FDMi.avionics
             }
         }
 
-        float pitchInput, holdPitch, holdAlt;
+        float holdPitch, holdAlt;
         float altErr, pAltErr, ret, vsErr, pVSErr, gsErr, pGSErr;
         float pitchCommand()
         {
-            if (apswMode == AutoPilotSWMode.CWS)
-            {
-                holdPitch = Mathf.Lerp(holdPitch, pitch[0], pitchInput);
-                return PControl(holdPitch - pitch[0], kp);
-            }
-            if (isOwner)
+            if (isPilot[0])
             {
                 switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
                 {
@@ -122,7 +122,11 @@ namespace tech.gyoku.FDMi.avionics
             switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
             {
                 case PitchAutoPilotMode.CWS:
-                    holdPitch = Mathf.Lerp(holdPitch, pitch[0], pitchInput);
+                    if (isYokeHold)
+                    {
+                        holdPitch = pitch[0];
+                        return pitchRate;
+                    }
                     return PControl(holdPitch - pitch[0], kp);
                 case PitchAutoPilotMode.GSTRK:
                     vsErr = PIControl(gs[0], pGSErr, vsErr, kpGS, kiGS);
@@ -155,7 +159,7 @@ namespace tech.gyoku.FDMi.avionics
 
         void FixedUpdate()
         {
-            pitchInput = Mathf.Clamp01(Mathf.Abs(inL[0] + inR[0]) * 10f);
+            isYokeHold = Mathf.Abs(inL[0] + inR[0]) > 0.05f;
             vsLPF = LPF(vs[0], vsLPF, omega);
             if (Mathf.RoundToInt(mode[0]) < (int)PitchAutoPilotMode.VS || Mathf.RoundToInt(mode[0]) > (int)PitchAutoPilotMode.ALTHOLD)
             {
@@ -166,11 +170,27 @@ namespace tech.gyoku.FDMi.avionics
             prevPitch = pitch[0];
 
             pitchErr = pitchCommand();
-            output = Mathf.Lerp(Mathf.Clamp(PControl(pitchErr - pitchRate, kq), -1f, 1f), inL[0] + inR[0], pitchInput);
+            output = Mathf.Clamp(PControl(pitchErr - pitchRate, kq), -1f, 1f);
+            output = Mathf.MoveTowards(fdPitch[0], output, Time.fixedDeltaTime * FDMoveSpeed);
             _FDPitch.Data = output;
             if (apswMode == AutoPilotSWMode.OFF) return;
-            APOutput.Data = Mathf.Clamp(output, -1f, 1f);
-            if (isOwner)
+            if (apswMode == AutoPilotSWMode.CMD) APOutput.Data = output;
+            if (apswMode == AutoPilotSWMode.CWS)
+            {
+                if (isYokeHold)
+                {
+                    holdPitch = pitch[0];
+                    output = 0f;
+                }
+                else
+                {
+                    pitchErr = PControl(holdPitch - pitch[0], kp);
+                    output = Mathf.Clamp(PControl(pitchErr - pitchRate, kq), -1f, 1f);
+                }
+                APOutput.Data = Mathf.MoveTowards(APOutput.Data, output, Time.fixedDeltaTime * FDMoveSpeed);
+            }
+
+            if (isPilot[0])
             {
                 // autotrim
                 if (Mathf.Abs(output) > autoTrimThreshold) TrimCommand.Data += APOutput.Data * autoTrimGain * Time.fixedDeltaTime;
