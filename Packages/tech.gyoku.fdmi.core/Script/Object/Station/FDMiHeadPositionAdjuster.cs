@@ -23,12 +23,12 @@ namespace tech.gyoku.FDMi.core
         public void AdjustSeat()
         {
             Vector3 HeadFromSeat = headPosition.position - seatEnterPosition.position;
-            // Vector3 headData = Networking.LocalPlayer.GetBonePosition(HumanBodyBones.LeftEye);
-            VRCPlayerApi.TrackingData td = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
-            Vector3 headData = td.position;
-            // headData = Vector3.Lerp(headData, Networking.LocalPlayer.GetBonePosition(HumanBodyBones.RightEye), 0.5f);
+            // VRCPlayerApi.TrackingData td = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+            // Vector3 headData = td.position;
+            Vector3 headData = Networking.LocalPlayer.GetBonePosition(HumanBodyBones.LeftEye);
+            headData = Vector3.Lerp(headData, Networking.LocalPlayer.GetBonePosition(HumanBodyBones.RightEye), 0.5f);
             Vector3 posDiff = headData - headPosition.position;
-            SeatOffset.Data = posDiff;
+            SeatOffset.Data = -posDiff;
         }
     }
 }

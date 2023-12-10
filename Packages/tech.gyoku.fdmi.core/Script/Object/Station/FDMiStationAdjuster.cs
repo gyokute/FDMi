@@ -20,6 +20,11 @@ namespace tech.gyoku.FDMi.core
         {
             SeatPosition.localPosition = initialSeatPos + SeatOffset.data[0];
         }
+        public void FDMiOnSeatExit()
+        {
+            SeatPosition.localPosition = initialSeatPos;
+            SeatOffset.Data = Vector3.zero;
+        }
 
     }
 }
