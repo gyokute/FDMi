@@ -28,7 +28,6 @@ namespace tech.gyoku.FDMi.input
             if (handType == VRCPlayerApi.TrackingDataType.Head) return;
             if (handType == VRCPlayerApi.TrackingDataType.LeftHand) getLeftHandStatus();
             if (handType == VRCPlayerApi.TrackingDataType.RightHand) getRightHandStatus();
-            Debug.Log(input[(int)SelectInputType] + "," + Mathf.Approximately(input[(int)SelectInputType], 0f) + "," + isActive);
             if (Mathf.Approximately(input[(int)SelectInputType], 0f)) OnReleased();
             track = Networking.LocalPlayer.GetTrackingData(handType);
             handPos = transform.InverseTransformPoint(track.position);
@@ -60,7 +59,6 @@ namespace tech.gyoku.FDMi.input
 
         public virtual void OnCalled(VRCPlayerApi.TrackingDataType trackType)
         {
-            Debug.Log(transform.parent.name + " ONCALLED");
             isActive = true;
             handType = trackType;
             if (trackType == VRCPlayerApi.TrackingDataType.LeftHand) getLeftHandStatus();
@@ -72,7 +70,6 @@ namespace tech.gyoku.FDMi.input
         }
         public virtual void OnReleased()
         {
-            Debug.Log(transform.parent.name + " ONRELEASED");
             isActive = false;
             gameObject.SetActive(false);
         }
