@@ -12,7 +12,7 @@ namespace tech.gyoku.FDMi.input
     public class FDMiAxisInput : FDMiInputAddon
     {
         [SerializeField] FDMiFloat Output;
-        [SerializeField] InputAxis inputAxisType;
+        [SerializeField] InputButton inputAxisType;
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] float multiply = 1f, min = 0f, max = 1f;
         [SerializeField] float threshold = 0.5f;
@@ -22,15 +22,15 @@ namespace tech.gyoku.FDMi.input
         {
             base.Update();
             if (behaviourType == AxisBehaviourType.momentum)
-                Output.set(Mathf.Clamp(multiply * inputAxis[(int)inputAxisType], min, max));
+                Output.set(Mathf.Clamp(multiply * input[(int)inputAxisType], min, max));
             if (behaviourType == AxisBehaviourType.force)
             {
-                if (inputAxis[(int)inputAxisType] * multiply > threshold)
+                if (input[(int)inputAxisType] * multiply > threshold)
                     Output.set(max);
             }
             if (behaviourType == AxisBehaviourType.alternate)
             {
-                if (inputAxis[(int)inputAxisType] * multiply > threshold)
+                if (input[(int)inputAxisType] * multiply > threshold)
                 {
                     if (!alternateLatch)
                     {

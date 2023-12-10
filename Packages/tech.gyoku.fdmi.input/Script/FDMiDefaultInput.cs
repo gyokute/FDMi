@@ -10,8 +10,9 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] FDMiFingerTrackerType fingerTrackerType;
         void Start()
         {
-            fingerInZone = true;
-            holdingHandType = fingerTrackerType;
+            fingerInZone[0] = true;
+            fingerInZone[1] = true;
+            // holdingHandType = fingerTrackerType;
         }
         // void Update()
         // {
@@ -30,23 +31,24 @@ namespace tech.gyoku.FDMi.input
 
         public void FDMiOnSeatExit()
         {
-            base.OnDisable();
-            fingerInZone = false;
+            // base.OnDisable();
+            fingerInZone[0] = false;
+            fingerInZone[1] = false;
             if (inputManager.defaultGrabObject[(int)fingerTrackerType] == this)
                 inputManager.defaultGrabObject[(int)fingerTrackerType] = null;
-            if(inputManager.fingerTrackers[(int)fingerTrackerType].targetInput == this)
-            inputManager.fingerTrackers[(int)fingerTrackerType].targetInput = null;
+            if (inputManager.fingerTrackers[(int)fingerTrackerType].targetInput == this)
+                inputManager.fingerTrackers[(int)fingerTrackerType].targetInput = null;
         }
         #region Finger Input
         public override void OnFingerEnter(FDMiFingerTracker finger)
         {
-            fingerInZone = true;
+            fingerInZone[(int)finger.fingerType] = true;
             finger.targetInput = this;
             gameObject.SetActive(true);
         }
         public override void OnFingerLeave(FDMiFingerTracker finger)
         {
-            fingerInZone = false;
+            fingerInZone[(int)finger.fingerType] = true;
             gameObject.SetActive(false);
         }
         #endregion

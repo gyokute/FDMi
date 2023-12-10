@@ -16,9 +16,9 @@ namespace tech.gyoku.FDMi.input
             base.Update();
             if (behaviourType == AxisBehaviourType.momentum) Output.set(true);
         }
-        public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
+        public override void OnCalled(VRCPlayerApi.TrackingDataType trackType)
         {
-            base.OnCalled(callKey, trackType);
+            base.OnCalled(trackType);
             if (behaviourType == AxisBehaviourType.alternate)
             {
                 Output.set(!Output.Data);

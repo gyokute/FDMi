@@ -26,8 +26,8 @@ namespace tech.gyoku.FDMi.input
         {
             base.Update();
 
-            dfuncAxis[0] = inputAxis[(int)InputAxis.PadH];
-            dfuncAxis[1] = inputAxis[(int)InputAxis.PadV];
+            dfuncAxis[0] = input[(int)InputButton.PadH];
+            dfuncAxis[1] = input[(int)InputButton.PadV];
             dfuncMagnitude = dfuncAxis.magnitude;
             // Select inputAddon
             if (dfuncMagnitude > enterThreshold)
@@ -37,11 +37,11 @@ namespace tech.gyoku.FDMi.input
                 selectedIndex %= inputAddons.Length;
             }
             if (inputAddons[selectedIndex] && Input.GetKeyDown(childTriggerKey))
-                inputAddons[selectedIndex].OnCalled(childTriggerKey, handType);
+                inputAddons[selectedIndex].OnCalled(handType);
         }
-        public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
+        public override void OnCalled(VRCPlayerApi.TrackingDataType trackType)
         {
-            base.OnCalled(callKey, trackType);
+            base.OnCalled(trackType);
             if (handType == VRCPlayerApi.TrackingDataType.LeftHand) childTriggerKey = KeyCode.JoystickButton14;
             if (handType == VRCPlayerApi.TrackingDataType.RightHand) childTriggerKey = KeyCode.JoystickButton15;
         }

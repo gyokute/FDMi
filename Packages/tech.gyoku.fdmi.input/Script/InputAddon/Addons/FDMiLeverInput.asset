@@ -332,13 +332,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: inputAxis
+      Data: input
     - Name: $v
       Entry: 7
       Data: 19|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: inputAxis
+      Data: input
     - Name: <UserType>k__BackingField
       Entry: 7
       Data: 20|System.RuntimeType, mscorlib

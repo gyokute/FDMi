@@ -14,9 +14,9 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] bool reg = true;
 
-        public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
+        public override void OnCalled(VRCPlayerApi.TrackingDataType trackType)
         {
-            base.OnCalled(callKey, trackType);
+            base.OnCalled(trackType);
             if (behaviourType == AxisBehaviourType.alternate)
             {
                 Output.set(!Output.Data);

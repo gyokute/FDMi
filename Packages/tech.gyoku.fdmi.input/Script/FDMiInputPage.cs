@@ -7,66 +7,117 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum InputButton { Grab, Trigger, Jump, PadTouch, PadPush, Length }
+    public enum InputButton { Grab, Trigger, PadV, PadH, Jump, Menu, PadTouch, PadPush, Length }
+    public enum InputAxis { Grab, Trigger, PadV, PadH, Length }
     public class FDMiInputPage : UdonSharpBehaviour
     {
         public bool enable = true;
         public FDMiInputManager inputManager;
         public FDMiInputAddon[] InputAddons = new FDMiInputAddon[(int)InputButton.Length];
+        // public ButtonInput EneringInputType = InputButton.Grab;
+        public float inputThreshold = 0.25f;
         VRCPlayerApi.TrackingData track;
-        [System.NonSerializedAttribute] public FDMiFingerTrackerType holdingHandType;
-        VRCPlayerApi.TrackingDataType handType;
-        int[] handKeyCode = { (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None, (int)KeyCode.None };
-        int[] handKeyCodeL = { (int)KeyCode.JoystickButton4, (int)KeyCode.JoystickButton14, (int)KeyCode.JoystickButton3, (int)KeyCode.JoystickButton16, (int)KeyCode.JoystickButton8 };
-        int[] handKeyCodeR = { (int)KeyCode.JoystickButton5, (int)KeyCode.JoystickButton15, (int)KeyCode.JoystickButton1, (int)KeyCode.JoystickButton17, (int)KeyCode.JoystickButton9 };
-        protected bool fingerInZone = false;
+        // [System.NonSerializedAttribute] public FDMiFingerTrackerType holdingHandType;
+        // VRCPlayerApi.TrackingDataType handType;
+        protected bool[] fingerInZone = { false, false, false };
+        // protected bool[] fingerHolding = { false, false, false };
 
 
-        public virtual void OnDisable()
-        {
-            fingerInZone = false;
-            holdingHandType = FDMiFingerTrackerType.None;
-        }
+        // public virtual void OnDisable()
+        // {
+        // }
         void LateUpdate()
         {
-            if (!fingerInZone) gameObject.SetActive(false);
+            if (!fingerInZone[0] && !fingerInZone[1]) gameObject.SetActive(false);
             if (!enable) return;
-            if (holdingHandType == FDMiFingerTrackerType.L) getLeftHandStatus();
-            if (holdingHandType == FDMiFingerTrackerType.R) getRightHandStatus();
+
+            // if (fingerInZone[(int)FDMiFingerTrackerType.L]) getLeftHandStatus();
+            // if (fingerInZone[(int)FDMiFingerTrackerType.R]) getRightHandStatus();
 
             for (int i = 0; i < InputAddons.Length; i++)
             {
                 if (!InputAddons[i]) continue;
-                if (Input.GetKey((KeyCode)handKeyCode[(int)InputAddons[i].SelectInputType]) && !InputAddons[i].isActive)
-                    InputAddons[i].OnCalled((KeyCode)handKeyCode[(int)InputAddons[i].SelectInputType], handType);
+                if (!InputAddons[i].isActive)
+                {
+                    if (getLeftHandButton(InputAddons[i].SelectInputType))
+                        InputAddons[i].OnCalled(VRCPlayerApi.TrackingDataType.LeftHand);
+                    if (getRightHandButton(InputAddons[i].SelectInputType))
+                        InputAddons[i].OnCalled(VRCPlayerApi.TrackingDataType.RightHand);
+                }
             }
         }
-        void getLeftHandStatus()
+        // void getLeftHandStatus()
+        // {
+        //     handKeyCode = handKeyCodeL;
+        //     handType = VRCPlayerApi.TrackingDataType.LeftHand;
+        // }
+        // void getRightHandStatus()
+        // {
+        //     handKeyCode = handKeyCodeR;
+        //     handType = VRCPlayerApi.TrackingDataType.RightHand;
+        // }
+        bool getLeftHandButton(InputButton i)
         {
-            handKeyCode = handKeyCodeL;
-            handType = VRCPlayerApi.TrackingDataType.LeftHand;
+            if (!fingerInZone[(int)FDMiFingerTrackerType.L]) return false;
+            switch (i)
+            {
+                case InputButton.Grab:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryHandTrigger") > inputThreshold;
+                case InputButton.Trigger:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryIndexTrigger") > inputThreshold;
+                case InputButton.PadH:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickHorizontal") > inputThreshold;
+                case InputButton.PadV:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickVertical") > inputThreshold;
+                case InputButton.Jump:
+                    return Input.GetKey(KeyCode.JoystickButton3);
+                case InputButton.Menu:
+                    return Input.GetKey(KeyCode.JoystickButton2);
+                case InputButton.PadPush:
+                    return Input.GetKey(KeyCode.JoystickButton8);
+                case InputButton.PadTouch:
+                    return Input.GetKey(KeyCode.JoystickButton16);
+            }
+            return false;
         }
-        void getRightHandStatus()
+        bool getRightHandButton(InputButton i)
         {
-            handKeyCode = handKeyCodeR;
-            handType = VRCPlayerApi.TrackingDataType.RightHand;
+            if (!fingerInZone[(int)FDMiFingerTrackerType.R]) return false;
+            switch (i)
+            {
+                case InputButton.Grab:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryHandTrigger") > inputThreshold;
+                case InputButton.Trigger:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryIndexTrigger") > inputThreshold;
+                case InputButton.PadH:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickHorizontal") > inputThreshold;
+                case InputButton.PadV:
+                    return Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickVertical") > inputThreshold;
+                case InputButton.Jump:
+                    return Input.GetKey(KeyCode.JoystickButton1);
+                case InputButton.Menu:
+                    return Input.GetKey(KeyCode.JoystickButton0);
+                case InputButton.PadPush:
+                    return Input.GetKey(KeyCode.JoystickButton9);
+                case InputButton.PadTouch:
+                    return Input.GetKey(KeyCode.JoystickButton17);
+            }
+            return false;
         }
 
         #region Finger Input
         public virtual void OnFingerEnter(FDMiFingerTracker finger)
         {
             finger.targetInput = this;
-            fingerInZone = true;
-            holdingHandType = finger.fingerType;
+            fingerInZone[(int)finger.fingerType] = true;
             inputManager.OnFingerEnter(finger.fingerType);
             gameObject.SetActive(true);
         }
         public virtual void OnFingerLeave(FDMiFingerTracker finger)
         {
             if (finger.targetInput == this) finger.targetInput = null;
-            if (holdingHandType != finger.fingerType) return;
-            fingerInZone = false;
-            holdingHandType = FDMiFingerTrackerType.None;
+            fingerInZone[(int)finger.fingerType] = false;
+            // holdingHandType = FDMiFingerTrackerType.None;
             inputManager.OnFingerLeave(finger.fingerType);
         }
         #endregion

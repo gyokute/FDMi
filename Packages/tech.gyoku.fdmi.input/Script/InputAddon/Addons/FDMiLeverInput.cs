@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] bool doRepeat, doRound, preventSetWhileHold;
         public float[] detents;
         float[] mul = { 0f };
-        float initial,rawInput, ret, rotateAcc;
+        float initial, rawInput, ret, rotateAcc;
         Vector3 prevPos;
         Quaternion prevAxis;
 
@@ -29,9 +29,9 @@ namespace tech.gyoku.FDMi.input
             if (Multiplier) mul = Multiplier.data;
 
         }
-        public override void OnCalled(KeyCode callKey, VRCPlayerApi.TrackingDataType trackType)
+        public override void OnCalled(VRCPlayerApi.TrackingDataType trackType)
         {
-            base.OnCalled(callKey, trackType);
+            base.OnCalled(trackType);
             if (!isActive) return;
             prevPos = handStartPos;
             prevAxis = handStartAxis;
@@ -81,7 +81,7 @@ namespace tech.gyoku.FDMi.input
             if (doRepeat) ret = Mathf.Repeat(ret, max);
             if (doRound) ret = Mathf.Round(ret);
             if (!preventSetWhileHold) LeverOutput.set(Mathf.Clamp(ret, min, max));
-            if (!Input.GetKey(triggeredKey)) OnReleased();
+            // if (!Input.GetKey(triggeredKey)) OnReleased();
             prevPos = handPos;
             prevAxis = handAxis;
         }
