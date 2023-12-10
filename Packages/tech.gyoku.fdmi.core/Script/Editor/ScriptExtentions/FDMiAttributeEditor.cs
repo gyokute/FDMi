@@ -17,12 +17,17 @@ namespace tech.gyoku.FDMi.core.editor
         {
             base.SetPropertyOption(tgt, property, forceSetup);
             if (property.name == nameof(FDMiAttribute.objectManager) && (FDMiEditorUI.Button(forceSetup, "Find") || forceSetup))
-                property.objectReferenceValue = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
+            {
+                FDMiObjectManager man = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
+                if (man) property.objectReferenceValue = man;
+            }
 
             if (property.name == nameof(FDMiAttribute.body) && (FDMiEditorUI.Button(forceSetup, "Find") || forceSetup))
             {
                 FDMiObjectManager man = FDMiEditorUI.FindParentComponent<FDMiObjectManager>(tgt);
-                property.objectReferenceValue = man.GetComponentInChildren<Rigidbody>();
+                if(!man) return;
+                Rigidbody b = man.GetComponentInChildren<Rigidbody>();
+                if (b) property.objectReferenceValue = b;
             }
         }
     }
