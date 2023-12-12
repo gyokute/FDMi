@@ -11,6 +11,7 @@ namespace tech.gyoku.FDMi.sync
     {
         public FDMiRelativeObjectSyncManager syncManager;
         public FDMiReferencePoint refPoint;
+        public bool isChangeRootRefPoint = true;
         public override void OnStationEntered(VRCPlayerApi player)
         {
             base.OnStationEntered(player);
@@ -20,7 +21,7 @@ namespace tech.gyoku.FDMi.sync
                 lpp.inVehicle = true;
                 lpp.transform.localPosition = transform.localPosition;
                 lpp.transform.localRotation = transform.localRotation;
-                if (!refPoint.isRoot) syncManager.changeRootRefPoint(refPoint);
+                if (!refPoint.isRoot && isChangeRootRefPoint) syncManager.changeRootRefPoint(refPoint);
             }
         }
 
@@ -31,7 +32,7 @@ namespace tech.gyoku.FDMi.sync
             {
                 FDMiPlayerPosition lpp = syncManager.localPlayerPosition;
                 lpp.inVehicle = false;
-                if (!refPoint.isRoot) syncManager.changeRootRefPoint(refPoint);
+                if (!refPoint.isRoot && isChangeRootRefPoint) syncManager.changeRootRefPoint(refPoint);
             }
         }
 
