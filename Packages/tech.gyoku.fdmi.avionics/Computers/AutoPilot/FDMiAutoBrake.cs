@@ -12,13 +12,13 @@ namespace tech.gyoku.FDMi.avionics
     {
         [SerializeField] FDMiFloat BrakeInputL, BrakeInputR;
 
-        [SerializeField] FDMiFloat AutoBrakeMode, Throttle, GroundSpeed, BrakeInput;
+        [SerializeField] FDMiFloat AutoBrakeMode, Throttle, BrakeInput;
         [SerializeField] FDMiBool AnyIsGround;
 
         [SerializeField] float ki, brakeAcc = -2.19456f, lpf = 1f;
-        float[] bl, br, absMode, throttle, gs, brake;
+        float[] bl, br, absMode, throttle, brake;
         bool[] isground;
-        public float tau, acc, prevGS, err, tgtAcc;
+        public float tau, acc, GS, prevGS, err, tgtAcc;
         private bool throttleLatch;
 
         void Start()
@@ -27,7 +27,6 @@ namespace tech.gyoku.FDMi.avionics
             br = BrakeInputR.data;
             absMode = AutoBrakeMode.data;
             throttle = Throttle.data;
-            gs = GroundSpeed.data;
             brake = BrakeInput.data;
             isground = AnyIsGround.data;
             tau = LPFTau(lpf);
@@ -66,7 +65,7 @@ namespace tech.gyoku.FDMi.avionics
             }
         }
 
-        void Update()
+        void FixedUpdate()
         {
             if (!isground[0])
             {
@@ -78,9 +77,9 @@ namespace tech.gyoku.FDMi.avionics
                 if (throttle[0] > 0.5f) throttleLatch = true;
                 if (throttle[0] < 0.02f && throttleLatch) tgtAcc = -4.2672f; // 14ft/sec
             }
-
-            acc = LPF((gs[0] - prevGS) / Time.deltaTime, acc, tau);
-            prevGS = gs[0];
+            GS = body.velocity.z;
+            acc = LPF((GS - prevGS) / Time.fixedDeltaTime, acc, tau);
+            prevGS = GS;
             err = Mathf.Min(tgtAcc, brakeAcc * Mathf.Clamp01(bl[0] + br[0]));
             if (Mathf.Approximately(err, 0f)) { brake[0] = 0f; return; }
             err -= acc;
