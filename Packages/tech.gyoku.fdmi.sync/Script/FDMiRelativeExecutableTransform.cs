@@ -10,11 +10,11 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeExecutableTransform : FDMiReferencePoint
     {
-        public Transform targetTransform;
-        void Start()
+        public override void initReferencePoint()
         {
-            setPosition(targetTransform.localPosition);
-            _rotation = targetTransform.localRotation;
+            base.initReferencePoint();
+            setPosition(parentRefPoint.transform.InverseTransformPoint(transform.position));
+            _rotation = Quaternion.Inverse(parentRefPoint.transform.rotation) * transform.rotation;
         }
         public override Vector3 getViewPosition()
         {
@@ -55,12 +55,16 @@ namespace tech.gyoku.FDMi.sync
             if (!isInit) return;
             if (Networking.IsOwner(gameObject))
             {
-                setPosition(targetTransform.localPosition);
-                _rotation = targetTransform.localRotation;
+                setPosition(transform.localPosition);
+                _rotation = transform.localRotation;
+                if (Vector3.Distance(prevPos, _position) > 0.005f || Quaternion.Dot(prevRot, _rotation) > 0.005f)
+                    TrySerialize();
+                prevPos = _position;
+                prevRot = _rotation;
                 return;
             }
-            targetTransform.localPosition = getViewPositionInterpolated();
-            targetTransform.localRotation = getViewRotationInterpolated();
+            transform.localPosition = getViewPositionInterpolated();
+            transform.localRotation = getViewRotationInterpolated();
         }
     }
 }
