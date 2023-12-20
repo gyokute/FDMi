@@ -33,6 +33,13 @@ namespace tech.gyoku.FDMi.core.editor
                     property.objectReferenceValue = obj ? obj : property.objectReferenceValue;
                 }
             }
+            if (property.name == nameof(FDMiStation.stationManager))
+            {
+                if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
+                {
+                    property.objectReferenceValue = tgt.GetComponentInParent<FDMiStationManager>();
+                }
+            }
         }
 
     }

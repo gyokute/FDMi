@@ -18,9 +18,9 @@ namespace tech.gyoku.FDMi.core.editor
             base.SetPropertyOption(tgt, property, forceSetup);
             if (property.name == nameof(FDMiStationManager.stations))
             {
-                if ((FDMiEditorUI.Button(forceSetup, "Find")|| forceSetup))
+                if ((FDMiEditorUI.Button(forceSetup, "Find") || forceSetup))
                 {
-                    FDMiStation[] stations = FDMiEditorUI.FindChildrenComponents<FDMiStation>(tgt).OrderBy(s => s.pilotPriority).ToArray();
+                    FDMiStation[] stations = FDMiEditorUI.FindChildrenComponents<FDMiStation>(tgt).Where(s => s.pilotPriority < 1).OrderBy(s => s.pilotPriority).ToArray();
                     FDMiEditorUI.SetObjectArrayProperty<FDMiStation>(property, stations);
 
                 }

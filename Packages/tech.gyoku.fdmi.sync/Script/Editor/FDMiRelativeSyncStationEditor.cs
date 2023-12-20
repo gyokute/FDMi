@@ -19,14 +19,11 @@ namespace tech.gyoku.FDMi.sync.editor
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
             base.SetPropertyOption(tgt, property, forceSetup);
-            if (property.name == nameof(FDMiRelativeSyncStation.syncManager))
+            if (property.name == nameof(FDMiRelativeSyncStation.rStationMan))
             {
                 if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 {
-                    // find through scene... and it's maybe heavy!
-                    var objs = FindObjectsOfType<FDMiRelativeObjectSyncManager>();
-                    var ret = objs.FirstOrDefault(o => o);
-                    property.objectReferenceValue = ret;
+                    property.objectReferenceValue = tgt.GetComponentInParent<FDMiRelativeSyncStationManager>();
                 }
             }
 
