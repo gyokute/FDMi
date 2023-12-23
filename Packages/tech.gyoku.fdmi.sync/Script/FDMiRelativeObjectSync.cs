@@ -27,7 +27,11 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
-            if (player.isLocal) ResetSyncTime();
+            if (player.isLocal)
+            {
+                ResetSyncTime();
+                whenSynced();
+            }
         }
         public override void windupPositionAndRotation()
         {
