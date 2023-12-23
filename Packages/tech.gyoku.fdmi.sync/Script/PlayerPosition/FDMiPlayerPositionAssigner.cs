@@ -10,6 +10,7 @@ namespace tech.gyoku.FDMi.sync
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiPlayerPositionAssigner : UdonSharpBehaviour
     {
+        public FDMiPlayerSyncManager playerSyncMan;
         public FDMiPlayerPosition playerPosition;
         [UdonSynced, FieldChangeCallback(nameof(playerId)), OdinSerialize] private int _playerId = -1;
         public int playerId
@@ -72,6 +73,7 @@ namespace tech.gyoku.FDMi.sync
             }
             assignedPlayer = VRCPlayerApi.GetPlayerById(pId);
             playerPosition.attachPlayer(assignedPlayer);
+            TestPlayerIntegrity();
         }
 
         #region integrity
@@ -79,6 +81,26 @@ namespace tech.gyoku.FDMi.sync
         {
             if (playerId == -1) return true;
             return VRCPlayerApi.GetPlayerById(playerId) != null;
+        }
+
+        public void TestPlayerIntegrity()
+        {
+            if (playerId != Networking.LocalPlayer.playerId) return;
+            // if playerId is confused, check all player assign. maybe less-occur accident.
+            if (!playerPosition.Player.isLocal)
+            {
+                playerSyncMan.SendCustomNetworkEvent(VRC.Udon.Common.Interfaces.NetworkEventTarget.All, "checkPlayerAssign");
+                return;
+            }
+            // If playerPosition Owner is confused, fix automatically.
+            if (!Networking.IsOwner(playerPosition.gameObject))
+            {
+                Debug.Log("FDMi>sync>player: autofix object owner.");
+                Networking.SetOwner(Networking.LocalPlayer, playerPosition.gameObject);
+            }
+            // if player is not sit in any station, sit down.
+            playerPosition.OnStationExited(Networking.LocalPlayer);
+            SendCustomEventDelayedSeconds(nameof(TestPlayerIntegrity), 5f);
         }
         #endregion
 
