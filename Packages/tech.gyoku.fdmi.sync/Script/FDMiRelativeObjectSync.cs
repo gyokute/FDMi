@@ -220,8 +220,6 @@ namespace tech.gyoku.FDMi.sync
             _rotation = FrameRotExtrap_Smooth * _rotation;
             //correct rotational desync
             _rotation = RealSlerp(_rotation, RotExtrapolation_Raw, CorrectionTime_Rotation * deltatime);
-            Debug.Log(RotExtrapolation_Raw + "," + _rotation + "," + FrameRotExtrap_Smooth);
-
         }
 
         private double O_LastUpdateTime, lastUpdateTime, L_UpdateTime;
