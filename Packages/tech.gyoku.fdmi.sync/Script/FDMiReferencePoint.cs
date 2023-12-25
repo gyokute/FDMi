@@ -213,14 +213,14 @@ namespace tech.gyoku.FDMi.sync
             // Try Serialize.
             if (Time.time > nextUpdateTime)
             {
-                if (!Networking.IsClogged)
-                {
+                // if (!Networking.IsClogged)
+                // {
                     syncedPos = _position;
                     syncedRot = _rotation;
                     syncedKmPos = _kmPosition;
                     RequestSerialization();
                     nextUpdateTime = Time.time + updateInterval;
-                }
+                // }
             }
         }
         #endregion

@@ -208,7 +208,7 @@ namespace tech.gyoku.FDMi.sync
                 _rotation = localPlayer.GetRotation();
                 // for preventing very-far jumping
                 if (localPlayer.GetPosition().magnitude > 100000f) RespawnLocalPlayer();
-                if (Vector3.Distance(prevPos, _position) > 0.005f || Quaternion.Dot(prevRot, _rotation) > 0.005f)
+                if (Vector3.Distance(prevPos, _position) > 0.02f || Quaternion.Angle(prevRot, _rotation) > 2.5f)
                     TrySerialize();
                 prevPos = _position;
                 prevRot = _rotation;
