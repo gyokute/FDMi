@@ -22,7 +22,7 @@ namespace tech.gyoku.FDMi.sync
         }
 
         [UdonSynced] public Vector3 syncedPos;
-        [UdonSynced] public Quaternion syncedRot;
+        [UdonSynced] public Quaternion syncedRot = Quaternion.identity;
         [UdonSynced, FieldChangeCallback(nameof(SyncedKmPos))] public Vector3 syncedKmPos;
         public Vector3 SyncedKmPos
         {
@@ -34,7 +34,7 @@ namespace tech.gyoku.FDMi.sync
             }
         }
         public Vector3 _position, _velocity, _kmPosition;
-        public Quaternion _rotation;
+        public Quaternion _rotation = Quaternion.identity;
 
 
 
