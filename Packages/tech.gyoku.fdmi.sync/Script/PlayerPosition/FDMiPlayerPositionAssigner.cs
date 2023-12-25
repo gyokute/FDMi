@@ -99,7 +99,8 @@ namespace tech.gyoku.FDMi.sync
                 Networking.SetOwner(Networking.LocalPlayer, playerPosition.gameObject);
             }
             // if player is not sit in any station, sit down.
-            playerPosition.OnStationExited(Networking.LocalPlayer);
+            // playerPosition.OnStationExited(Networking.LocalPlayer);
+            playerPosition.gameObject.SetActive(true);
             SendCustomEventDelayedSeconds(nameof(TestPlayerIntegrity), 5f);
         }
         #endregion
