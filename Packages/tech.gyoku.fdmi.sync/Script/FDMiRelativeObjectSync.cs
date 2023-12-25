@@ -206,20 +206,21 @@ namespace tech.gyoku.FDMi.sync
             ExtrapDirection_Smooth = Vector3.Lerp(ExtrapDirection_Smooth, VelEstimate + Correction + Deriv, SpeedLerpTime * deltatime);
 
             //rotate using similar method to movement (no deriv, correction is done with a simple slerp after)
-            Quaternion FrameRotAccel = Quaternion.Slerp(Quaternion.identity, CurAngMomAcceleration, TimeSinceUpdate);
+            Quaternion FrameRotAccel = RealSlerp(Quaternion.identity, CurAngMomAcceleration, TimeSinceUpdate);
             Quaternion AngMomEstimate = FrameRotAccel * CurAngMom;
-            RotExtrapDirection_Smooth = Quaternion.Slerp(RotExtrapDirection_Smooth, AngMomEstimate, RotationSpeedLerpTime * deltatime);
+            RotExtrapDirection_Smooth = RealSlerp(RotExtrapDirection_Smooth, AngMomEstimate, RotationSpeedLerpTime * deltatime);
 
             //apply positional update
             Extrapolation_Raw += ExtrapolationDirection * deltatime;
             _position += ExtrapDirection_Smooth * deltatime;
             //apply rotational update
-            Quaternion FrameRotExtrap = Quaternion.Slerp(Quaternion.identity, RotationExtrapolationDirection, deltatime);
+            Quaternion FrameRotExtrap = RealSlerp(Quaternion.identity, RotationExtrapolationDirection, deltatime);
             RotExtrapolation_Raw = FrameRotExtrap * RotExtrapolation_Raw;
-            Quaternion FrameRotExtrap_Smooth = Quaternion.Slerp(Quaternion.identity, RotExtrapDirection_Smooth, deltatime);
+            Quaternion FrameRotExtrap_Smooth = RealSlerp(Quaternion.identity, RotExtrapDirection_Smooth, deltatime);
             _rotation = FrameRotExtrap_Smooth * _rotation;
             //correct rotational desync
-            _rotation = Quaternion.Slerp(_rotation, RotExtrapolation_Raw, CorrectionTime_Rotation * deltatime);
+            _rotation = RealSlerp(_rotation, RotExtrapolation_Raw, CorrectionTime_Rotation * deltatime);
+            Debug.Log(RotExtrapolation_Raw + "," + _rotation + "," + FrameRotExtrap_Smooth);
 
         }
 
@@ -274,7 +275,7 @@ namespace tech.gyoku.FDMi.sync
             Acceleration += Acceleration * (Ping / updateInterval);
 
             //current angular momentum as a quaternion
-            CurAngMom = Quaternion.Slerp(Quaternion.identity, PlaneRotDif, speednormalizer);
+            CurAngMom = RealSlerp(Quaternion.identity, PlaneRotDif, speednormalizer);
             CurAngMomAcceleration = CurAngMom * Quaternion.Inverse(LastCurAngMom);
 
             //if direction of acceleration changed by more than 90 degrees, just set zero to prevent bounce effect, the vehicle likely just crashed into a wall.
@@ -283,9 +284,9 @@ namespace tech.gyoku.FDMi.sync
             { Acceleration = Vector3.zero; CurAngMomAcceleration = Quaternion.identity; }
 
             RotationExtrapolationDirection = CurAngMomAcceleration * CurAngMom;
-            Quaternion PingRotExtrap = Quaternion.Slerp(Quaternion.identity, RotationExtrapolationDirection, Ping);
+            Quaternion PingRotExtrap = RealSlerp(Quaternion.identity, RotationExtrapolationDirection, Ping);
             L_PingAdjustedRotation = PingRotExtrap * syncedRot;
-            Quaternion FrameRotExtrap = Quaternion.Slerp(Quaternion.identity, RotationExtrapolationDirection, -Time.deltaTime);
+            Quaternion FrameRotExtrap = RealSlerp(Quaternion.identity, RotationExtrapolationDirection, -Time.deltaTime);
             RotExtrapolation_Raw = FrameRotExtrap * L_PingAdjustedRotation;//undo 1 frame worth of movement because its done again in update()
 
             ExtrapolationDirection = _velocity + Acceleration;
@@ -306,6 +307,17 @@ namespace tech.gyoku.FDMi.sync
             lastSyncedPos = syncedPos;
             lastVelocity = _velocity;
             lastSyncedKmPos = syncedKmPos;
+        }
+        public Quaternion RealSlerp(Quaternion p, Quaternion q, float t)
+        {
+            if (Quaternion.Dot(p, q) < 0)
+            {
+                float angle = Quaternion.Angle(p, q); //quaternion.angle also checks shortest route
+                if (angle == 0f) { return p; }
+                float newvalue = (360f - angle) / angle;
+                return Quaternion.SlerpUnclamped(p, q, -t * newvalue);
+            }
+            else return Quaternion.SlerpUnclamped(p, q, t);
         }
         #endregion
     }
