@@ -201,6 +201,11 @@ namespace tech.gyoku.FDMi.sync
         #endregion
         #region Serialize
         [SerializeField] protected float updateInterval = 0.25f;
+        [Tooltip("If vehicle moves less than this distance since it's last update, it'll be considered to be idle, may need to be increased for vehicles that want to be idle on water. If the vehicle floats away sometimes, this value is probably too big")]
+        public float IdleMovementRange = .35f;
+
+        [Tooltip("If vehicle rotates less than this many degrees since it's last update, it'll be considered to be idle")]
+        public float IdleRotationRange = 5f;
         protected double nextUpdateTime, ServerTimeDiff;
         protected void ResetSyncTime()
         {
@@ -211,16 +216,13 @@ namespace tech.gyoku.FDMi.sync
         protected virtual void TrySerialize()
         {
             // Try Serialize.
-            if (Time.time > nextUpdateTime)
+            if (Time.time > nextUpdateTime && !Networking.IsClogged)
             {
-                // if (!Networking.IsClogged)
-                // {
-                    syncedPos = _position;
-                    syncedRot = _rotation;
-                    syncedKmPos = _kmPosition;
-                    RequestSerialization();
-                    nextUpdateTime = Time.time + updateInterval;
-                // }
+                syncedPos = _position;
+                syncedRot = _rotation;
+                syncedKmPos = _kmPosition;
+                RequestSerialization();
+                nextUpdateTime = Time.time + updateInterval;
             }
         }
         #endregion
