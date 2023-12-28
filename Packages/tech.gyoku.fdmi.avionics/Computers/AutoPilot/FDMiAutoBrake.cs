@@ -12,14 +12,24 @@ namespace tech.gyoku.FDMi.avionics
     {
         [SerializeField] FDMiFloat BrakeInputL, BrakeInputR;
 
-        [SerializeField] FDMiFloat AutoBrakeMode, Throttle, BrakeInput;
+        [SerializeField] FDMiFloat AutoBrakeMode, Throttle, BrakeInput, GroundSpeed;
         [SerializeField] FDMiBool AnyIsGround;
 
-        [SerializeField] float ki, brakeAcc = -2.19456f, lpf = 1f;
-        float[] bl, br, absMode, throttle, brake;
+        [SerializeField] float ki, brakeAcc = -2.19456f;
+        float[] bl, br, absMode, throttle, brake, gs;
         bool[] isground;
-        public float tau, acc, GS, prevGS, err, tgtAcc;
+        public float acc, err, tgtAcc;
         private bool throttleLatch;
+        private float[] accQueue = new float[5];
+        private float prevGS, accSum = 0f;
+        private int currentAccFilterIndex = 0, maxAccQueueIndex = 5;
+        float AccFilter(float input)
+        {
+            accSum += input - accQueue[currentAccFilterIndex];
+            accQueue[currentAccFilterIndex] = input;
+            currentAccFilterIndex = (currentAccFilterIndex + 1) % maxAccQueueIndex;
+            return accSum / maxAccQueueIndex;
+        }
 
         void Start()
         {
@@ -29,7 +39,7 @@ namespace tech.gyoku.FDMi.avionics
             throttle = Throttle.data;
             brake = BrakeInput.data;
             isground = AnyIsGround.data;
-            tau = LPFTau(lpf);
+            gs = GroundSpeed.data;
             AutoBrakeMode.subscribe(this, nameof(OnChangeAutoBrakeMode));
         }
 
@@ -65,7 +75,7 @@ namespace tech.gyoku.FDMi.avionics
             }
         }
 
-        void FixedUpdate()
+        void Update()
         {
             if (!isground[0])
             {
@@ -77,13 +87,13 @@ namespace tech.gyoku.FDMi.avionics
                 if (throttle[0] > 0.5f) throttleLatch = true;
                 if (throttle[0] < 0.02f && throttleLatch) tgtAcc = -4.2672f; // 14ft/sec
             }
-            GS = body.velocity.z;
-            acc = LPF((GS - prevGS) / Time.fixedDeltaTime, acc, tau);
-            prevGS = GS;
+            acc = AccFilter((gs[0] - prevGS) / Time.deltaTime);
+            prevGS = gs[0];
             err = Mathf.Min(tgtAcc, brakeAcc * Mathf.Clamp01(bl[0] + br[0]));
             if (Mathf.Approximately(err, 0f)) { brake[0] = 0f; return; }
             err -= acc;
             brake[0] = Mathf.Clamp01(IControl(err, brake[0], ki));
+            // Debug.Log(acc + "," + brake[0]);
         }
     }
 }

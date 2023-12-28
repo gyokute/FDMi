@@ -25,8 +25,8 @@ namespace tech.gyoku.FDMi.avionics
         Vector3 v;
         void Update()
         {
-            v = Quaternion.Inverse(rot[0]) * (vel[0]);
-            gs[0] = v.z * 1.94384f;
+            v = Quaternion.Inverse(rot[0]) * Vector3.ProjectOnPlane(vel[0], Vector3.up);
+            gs[0] = v.z;
         }
     }
 }

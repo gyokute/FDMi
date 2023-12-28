@@ -13,7 +13,7 @@ namespace tech.gyoku.FDMi.dynamics
         public FDMiFloat TillerInput, BrakeInput, ParkBrakeInput, Retract;
         public FDMiFloat SuspensionMove, WheelRotate;
         public FDMiBool IsGround;
-        public float brakePressure = 3000f, parkBrakePressure = 3000f;
+        public float brakePressure = 3000f, parkBrakePressure = 3000f, absKi = 0.05f, absTgt=0.35f;
         [SerializeField] LayerMask groundLayer;
         [SerializeField] private float preLoadTorque = 0.0001f;
         [SerializeField] private float rpm;
@@ -51,6 +51,7 @@ namespace tech.gyoku.FDMi.dynamics
         }
         RaycastHit[] results = new RaycastHit[1];
         int resultLen;
+        float slipRate, absBrakePress;
         void Update()
         {
             // Ground Detection
@@ -67,10 +68,19 @@ namespace tech.gyoku.FDMi.dynamics
             }
             if (isOwner)
             {
-                IsGround.Data = (resultLen > 0);
-                wheel.brakeTorque = brake[0] * brakePressure + parkbrake[0] * parkBrakePressure;
+                // IsGround.Data = (resultLen > 0);
+                IsGround.Data = wheel.isGrounded;
                 wheel.motorTorque = Mathf.Clamp01(1f - parkbrake[0] - parkbrake[0]) * preLoadTorque;
                 wheel.steerAngle = tiller[0] * rotateAngle;
+                slipRate = Mathf.Abs(body.velocity.z);
+                if (slipRate < 1) absBrakePress = 1f;
+                else
+                {
+                    slipRate = 1 - (wheel.rpm / (slipRate * wheelCircumference));
+                    absBrakePress += absKi * (absTgt - Mathf.Clamp01(wheel.rpm)) * Time.deltaTime;
+                    absBrakePress = Mathf.Clamp01(absBrakePress);
+                }
+                wheel.brakeTorque = parkbrake[0] * parkBrakePressure + absBrakePress * brake[0] * brakePressure;
             }
         }
     }
