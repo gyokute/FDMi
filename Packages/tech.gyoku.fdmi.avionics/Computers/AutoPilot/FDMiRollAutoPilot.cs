@@ -113,7 +113,7 @@ namespace tech.gyoku.FDMi.avionics
                     if (isYokeHold)
                     {
                         holdRoll = roll[0];
-                        return roll[0];
+                        return rollRate;
                     }
                     return holdRoll - roll[0];
                 case RollAutoPilotMode.HDGHOLD:
@@ -140,8 +140,8 @@ namespace tech.gyoku.FDMi.avionics
         float rollErr, pRollErr, output;
         void FixedUpdate()
         {
-            isYokeHold = Mathf.Abs(inL[0] + inR[0]) > 0.05f;
             rollInput = Mathf.Clamp01(Mathf.Abs(inL[0] + inR[0]));
+            isYokeHold = rollInput > 0.05f;
             rollRate = LPF((roll[0] - prevRoll) / Time.fixedDeltaTime, rollRate, tau);
             prevRoll = roll[0];
 

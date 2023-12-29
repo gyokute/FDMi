@@ -112,7 +112,6 @@ namespace tech.gyoku.FDMi.avionics
                         if (Mathf.Abs(pAltErr) < 0.5f) _PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
                         break;
                     case PitchAutoPilotMode.VS:
-                        if (apswMode != AutoPilotSWMode.CMD) break;
                         pAltErr = altcmd[0] - alt[0] * 3.28084f;
                         if (Mathf.Abs(pAltErr) * kpalt < Mathf.Abs(vscmd[0]) && pAltErr * vscmd[0] > 0)
                             _PitchMode.Data = (int)PitchAutoPilotMode.ALTCAP;
