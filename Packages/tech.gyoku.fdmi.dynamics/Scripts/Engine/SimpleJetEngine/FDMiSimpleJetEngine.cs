@@ -64,7 +64,7 @@ namespace tech.gyoku.FDMi.dynamics
                     N2Tgt = Mathf.Lerp(isFuelEn * Mathf.Lerp(N2min, N2max, input[0]), maxAirN2 * airsw[0], isAirEn);
                     N2.Data = Mathf.MoveTowards(n2[0], N2Tgt, Mathf.Lerp(N2dt, N2Airdt, isAirEn) * theta);
                     // N2.Data = Mathf.Max(n2[0], Mathf.MoveTowards(n2[0], maxAirN2 * airsw[0] * noise, N2FuelThreshold * theta));
-
+                    if (airsw[0] > 0.5f && n2[0] > maxAirN2) AirSW.Data = 0f;
                     thrust = Mathf.Lerp(1f, N1ReverserRatio, rev[0]) * n1[0] * n1[0] * N1StaticThrust;
                     thrust += Mathf.Lerp(1f, N2ReverserRatio, rev[0]) * n2[0] * n2[0] * N2StaticThrust;
                     thrust *= thrustMachMultiplier.Evaluate(mach[0]) * thrustPressureMultiplier.Evaluate(pressure[0]);
