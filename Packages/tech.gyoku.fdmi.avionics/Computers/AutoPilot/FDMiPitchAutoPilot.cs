@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.avionics
         private float[] mode, inL, inR, pitch, roll, vs, alt, vscmd, altcmd, gs, fdPitch;
         private bool[] isPilot;
         [SerializeField] float kp, kq, a = 1f, pitchLimit = 20f, FDMoveSpeed = 2f;
-        [SerializeField] float kpVS, kiVS, kpGS, kiGS;
+        [SerializeField] float kpVS, kiVS, kpGS, kiGS, GSbias=2.54f;
         [SerializeField] float kpalt, kialt;
         [SerializeField] float autoTrimThreshold = 0.05f, autoTrimGain = 0.5f;
         float cmd, err, pErr, omega, vsLPF;
@@ -109,10 +109,10 @@ namespace tech.gyoku.FDMi.avionics
                         if (Mathf.Abs(gs[0]) < 0.075f) _PitchMode.Data = (int)PitchAutoPilotMode.GSTRK;
                         break;
                     case PitchAutoPilotMode.ALTCAP:
-                        if (Mathf.Abs(pAltErr) < 0.5f) _PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
+                        if (Mathf.Abs(pAltErr) < 3f) _PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
                         break;
                     case PitchAutoPilotMode.VS:
-                        pAltErr = altcmd[0] - alt[0] * 3.28084f;
+                        pAltErr = altcmd[0] * 0.3048f - alt[0];
                         if (Mathf.Abs(pAltErr) * kpalt < Mathf.Abs(vscmd[0]) && pAltErr * vscmd[0] > 0)
                             _PitchMode.Data = (int)PitchAutoPilotMode.ALTCAP;
                         break;
@@ -128,8 +128,8 @@ namespace tech.gyoku.FDMi.avionics
                     }
                     return PControl(holdPitch - pitch[0], kp);
                 case PitchAutoPilotMode.GSTRK:
-                    vsErr = PIControl(gs[0], pGSErr, vsErr, kpGS, kiGS);
-                    pGSErr = gs[0];
+                    vsErr = PIControl(gs[0] - GSbias / kpGS, pGSErr, vsErr, kpGS, kiGS);
+                    pGSErr = gs[0] - GSbias / kpGS;
                     break;
                 case PitchAutoPilotMode.ALTHOLD:
                 case PitchAutoPilotMode.GSCAP:
@@ -140,7 +140,7 @@ namespace tech.gyoku.FDMi.avionics
                     pVSErr = altErr * 0.508f - vs[0];
                     break;
                 case PitchAutoPilotMode.ALTCAP:
-                    vscmd[0] = PIControl(altcmd[0] * 0.3048f - alt[0], pAltErr, vscmd[0], kpalt, kialt);
+                    vscmd[0] = PControl(altcmd[0] * 0.3048f - alt[0], kpalt);
                     pAltErr = altcmd[0] * 0.3048f - alt[0];
                     vsErr = PIControl(vscmd[0] * 0.508f - vs[0], pVSErr, vsErr, kpVS, kiVS);
                     pVSErr = vscmd[0] * 0.508f - vs[0];
