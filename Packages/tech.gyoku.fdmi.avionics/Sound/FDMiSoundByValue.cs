@@ -15,16 +15,22 @@ namespace tech.gyoku.FDMi.avionics
         void Start()
         {
             if (moveOnValueChange) Value.subscribe(this, "OnChange");
+            sound.gameObject.SetActive(false);
         }
         void Update()
         {
+            if (!sound.isPlaying)
+            {
+                if (sound.gameObject.activeSelf) sound.gameObject.SetActive(false);
+            }
             if (moveOnUpdate) OnChange();
         }
         public void OnChange()
         {
             if (turnOnCurve.Evaluate(Value.Data) > 0.5f)
             {
-                if (overridePlaying || !sound.isPlaying) sound.Play();
+                if (!sound.gameObject.activeSelf) sound.gameObject.SetActive(true);
+                if (overridePlaying) { sound.Play(); }
             }
         }
     }
