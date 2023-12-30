@@ -13,6 +13,7 @@ namespace tech.gyoku.FDMi.dynamics
         public FDMiFloat Mach, Pressure, SAT;
         public FDMiFloat FuelFlow, EGT;
         public FDMiFloat N1, N2;
+        [SerializeField] AnimationCurve N1vsN2;
         [SerializeField] private float N1StaticThrust = 120000f, N2StaticThrust = 550000f;
         [SerializeField] private float N2min = 0.6f, N2max = 1.1f, maxAirN2 = 0.4f, N2FuelThreshold = 0.1f;
         [SerializeField] private float N1ReverserRatio = -0.5f, N2ReverserRatio = 1f;
@@ -46,8 +47,8 @@ namespace tech.gyoku.FDMi.dynamics
             float theta = Mathf.Sqrt(sat[0] / 288f) * Time.fixedDeltaTime;
             float noise = 1 + Mathf.Lerp(inputNoise, -inputNoise, Mathf.PerlinNoise(Time.time, 0));
 
-            float dN1 = n2[0] * 2f - 1f - n1[0];
-            n1[0] = Mathf.MoveTowards(n1[0], n1[0] + dN1 * noise, N1dt * theta);
+            // float dN1 = n2[0] * 2f - 1f - n1[0];
+            n1[0] = Mathf.MoveTowards(n1[0], N1vsN2.Evaluate(n2[0]), N1dt * theta);
             N1.Data = Mathf.Max(n1[0], 0f);
 
             if (inZone[0])
