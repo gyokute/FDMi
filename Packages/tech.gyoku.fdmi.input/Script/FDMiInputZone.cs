@@ -13,6 +13,9 @@ namespace tech.gyoku.FDMi.input
         private FDMiFingerTracker fingerTracker;
         [SerializeField]private GameObject highlightObject;
 
+        void OnDisable(){
+            if (highlightObject) InputManager.EnableObjectHighlight(highlightObject, false);
+        }
         private void OnTriggerEnter(Collider other)
         {
             fingerTracker = other.GetComponent<FDMiFingerTracker>();
