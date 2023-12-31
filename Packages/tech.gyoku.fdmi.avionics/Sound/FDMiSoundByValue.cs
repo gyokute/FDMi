@@ -30,7 +30,7 @@ namespace tech.gyoku.FDMi.avionics
             if (turnOnCurve.Evaluate(Value.Data) > 0.5f)
             {
                 if (!sound.gameObject.activeSelf) sound.gameObject.SetActive(true);
-                if (overridePlaying) { sound.Play(); }
+                if (!sound.isPlaying || overridePlaying) { sound.Play(); }
             }
         }
     }
