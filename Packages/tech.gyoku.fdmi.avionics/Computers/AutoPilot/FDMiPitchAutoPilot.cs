@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.avionics
         private float[] mode, inL, inR, pitch, roll, vs, alt, vscmd, altcmd, gs, fdPitch;
         private bool[] isPilot;
         [SerializeField] float kp, kq, a = 1f, pitchLimit = 20f, FDMoveSpeed = 2f;
-        [SerializeField] float kpVS, kiVS, kpGS, kiGS, GSbias=2.54f;
+        [SerializeField] float kpVS, kiVS, kpGS, kiGS, GSbias = 2.54f;
         [SerializeField] float kpalt, kialt;
         [SerializeField] float autoTrimThreshold = 0.05f, autoTrimGain = 0.5f;
         float cmd, err, pErr, omega, vsLPF;
@@ -134,7 +134,9 @@ namespace tech.gyoku.FDMi.avionics
                 case PitchAutoPilotMode.ALTHOLD:
                 case PitchAutoPilotMode.GSCAP:
                     vscmd[0] = 0f;
-                    altErr = PIControl(holdAlt - alt[0], pAltErr, altErr, kpalt, kialt);
+                    // if vert speed is high, ease target altitude
+                    if (Mathf.Abs(vs[0]) > 2.54f) holdAlt = alt[0];
+                    altErr = PControl(holdAlt - alt[0], kpalt);
                     pAltErr = holdAlt - alt[0];
                     vsErr = PIControl(altErr * 0.508f - vs[0], pVSErr, vsErr, kpVS, kiVS);
                     pVSErr = altErr * 0.508f - vs[0];
