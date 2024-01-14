@@ -7,6 +7,7 @@ using VRC.Udon.Serialization.OdinSerializer;
 
 namespace tech.gyoku.FDMi.sync
 {
+    [DefaultExecutionOrder(-90)]
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiPlayerPositionAssigner : UdonSharpBehaviour
     {
