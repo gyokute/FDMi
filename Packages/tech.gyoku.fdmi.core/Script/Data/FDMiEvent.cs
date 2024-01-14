@@ -6,6 +6,7 @@ using VRC.Udon;
 
 namespace tech.gyoku.FDMi.core
 {
+    [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class FDMiEvent : UdonSharpBehaviour
     {
         public string VariableName;
