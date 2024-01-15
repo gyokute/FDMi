@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.input
 {
     public enum InputButton { Grab, Trigger, PadV, PadH, Jump, Menu, PadTouch, PadPush, Length }
     public enum InputAxis { Grab, Trigger, PadV, PadH, Length }
-    public class FDMiInputPage : UdonSharpBehaviour
+    public class FDMiInputPage : FDMiBehaviour
     {
         public bool enable = true;
         public FDMiInputManager inputManager;

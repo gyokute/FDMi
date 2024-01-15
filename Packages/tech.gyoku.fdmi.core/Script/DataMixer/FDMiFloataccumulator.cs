@@ -6,7 +6,7 @@ using VRC.Udon;
 
 namespace tech.gyoku.FDMi.core
 {
-    public class FDMiFloataccumulator : UdonSharpBehaviour
+    public class FDMiFloataccumulator : FDMiBehaviour
     {
         public FDMiFloat[] output;
         public FDMiFloat[] data;

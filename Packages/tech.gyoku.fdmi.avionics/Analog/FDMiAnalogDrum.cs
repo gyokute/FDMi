@@ -9,7 +9,7 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.avionics
 {
     public enum AnalogDrumMode { Linear, StepContinuous, StepImmediate }
-    public class FDMiAnalogDrum : UdonSharpBehaviour
+    public class FDMiAnalogDrum : FDMiBehaviour
     {
         public FDMiFloat Value;
         public Transform rotateTransform;

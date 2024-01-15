@@ -6,7 +6,7 @@ using VRC.Udon;
 
 namespace tech.gyoku.FDMi.core
 {
-    public class FDMiFloatMixer : UdonSharpBehaviour
+    public class FDMiFloatMixer : FDMiBehaviour
     {
         [SerializeField] FDMiFloat output;
         [SerializeField] FDMiFloat[] data;

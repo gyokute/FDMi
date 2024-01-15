@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.aerodynamics
 {
-    public class FDMiWingSection : UdonSharpBehaviour
+    public class FDMiWingSection : FDMiBehaviour
     {
         public float chordLength;
     }

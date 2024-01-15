@@ -8,7 +8,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.avionics
 {
-    public class FDMiAnalogRotator : UdonSharpBehaviour
+    public class FDMiAnalogRotator : FDMiBehaviour
     {
         public FDMiFloat Value;
         public Transform rotateTransform;

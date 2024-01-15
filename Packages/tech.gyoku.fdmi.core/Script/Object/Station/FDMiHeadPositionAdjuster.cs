@@ -5,7 +5,7 @@ using VRC.SDKBase;
 using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
-    public class FDMiHeadPositionAdjuster : UdonSharpBehaviour
+    public class FDMiHeadPositionAdjuster : FDMiBehaviour
     {
         [SerializeField] Transform headPosition;
         [SerializeField] Transform seatEnterPosition;

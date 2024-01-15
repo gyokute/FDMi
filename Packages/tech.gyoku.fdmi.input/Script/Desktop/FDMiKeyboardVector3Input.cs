@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public class FDMiKeyboardVector3Input : UdonSharpBehaviour
+    public class FDMiKeyboardVector3Input : FDMiBehaviour
     {
         [SerializeField] FDMiVector3 Val;
         [SerializeField] KeyCode key;

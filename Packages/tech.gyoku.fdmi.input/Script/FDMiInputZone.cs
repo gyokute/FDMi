@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public class FDMiInputZone : UdonSharpBehaviour
+    public class FDMiInputZone : FDMiBehaviour
     {
         public FDMiInputPage input;
         private FDMiFingerTracker fingerTracker;

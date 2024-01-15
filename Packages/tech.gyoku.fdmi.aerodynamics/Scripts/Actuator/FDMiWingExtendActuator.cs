@@ -6,7 +6,7 @@ using VRC.Udon;
 using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.aerodynamics
 {
-    public class FDMiWingExtendActuator : UdonSharpBehaviour
+    public class FDMiWingExtendActuator : FDMiBehaviour
     {
         public FDMiFloat Angle;
         public FDMiWing wing;

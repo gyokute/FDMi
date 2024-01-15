@@ -6,7 +6,7 @@ using VRC.SDKBase;
 using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
-    public class FDMiStationAdjuster : UdonSharpBehaviour
+    public class FDMiStationAdjuster : FDMiBehaviour
     {
         [SerializeField] FDMiVector3 SeatOffset;
         [SerializeField] Transform SeatPosition;

@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public class FDMiInputManager : UdonSharpBehaviour
+    public class FDMiInputManager : FDMiBehaviour
     {
         public FDMiFingerTracker[] fingerTrackers = new FDMiFingerTracker[(int)FDMiFingerTrackerType.None];
         [HideInInspector] public FDMiInputPage[] defaultGrabObject = new FDMiInputPage[(int)FDMiFingerTrackerType.None];

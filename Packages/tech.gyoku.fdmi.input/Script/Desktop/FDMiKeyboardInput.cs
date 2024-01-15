@@ -8,7 +8,7 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.input
 {
     public enum FDMiKeyboardInputType { momentum, alternate, detent, addition, stepAddition, smoothMomental }
-    public class FDMiKeyboardInput : UdonSharpBehaviour
+    public class FDMiKeyboardInput : FDMiBehaviour
     {
         [SerializeField] FDMiFloat floatVal;
         [SerializeField] KeyCode key;

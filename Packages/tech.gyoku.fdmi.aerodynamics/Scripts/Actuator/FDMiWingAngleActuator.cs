@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.aerodynamics
 {
-    public class FDMiWingAngleActuator : UdonSharpBehaviour
+    public class FDMiWingAngleActuator : FDMiBehaviour
     {
         [SerializeField] FDMiFloat InputValue;
         [SerializeField] FDMiWing wing;

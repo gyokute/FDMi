@@ -5,8 +5,7 @@ using VRC.SDKBase;
 using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
-    [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-    public class FDMiTransformDriver : UdonSharpBehaviour
+    public class FDMiTransformDriver : FDMiBehaviour
     {
         [SerializeField] private FDMiFloat Input;
         private float[] input = new float[1];

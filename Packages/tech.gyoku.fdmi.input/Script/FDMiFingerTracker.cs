@@ -9,7 +9,7 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.input
 {
     public enum FDMiFingerTrackerType { L, R, None }
-    public class FDMiFingerTracker : UdonSharpBehaviour
+    public class FDMiFingerTracker : FDMiBehaviour
     {
         public FDMiFingerTrackerType fingerType;
         [SerializeField] private Rigidbody body;
