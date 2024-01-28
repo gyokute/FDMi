@@ -7,6 +7,8 @@ using UdonSharp;
 using UdonSharpEditor;
 using UnityEditor;
 using UnityEngine;
+using VRC.SDKBase;
+using VRC.Udon;
 using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.core.editor
@@ -38,6 +40,13 @@ namespace tech.gyoku.FDMi.core.editor
                 if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 {
                     property.objectReferenceValue = tgt.GetComponentInParent<FDMiStationManager>();
+                }
+            }
+            if (property.name == nameof(FDMiStation.station))
+            {
+                if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
+                {
+                    property.objectReferenceValue = tgt.GetComponent<VRCStation>();
                 }
             }
         }
