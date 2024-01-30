@@ -44,7 +44,11 @@ namespace tech.gyoku.FDMi.sync
         public void changeRootRefPoint(FDMiReferencePoint target)
         {
             if (localRootRefPoint.index != index && target.index != index)
+            {
                 changeRootRefPoint(syncManager);
+                changeRootRefPoint(target);
+                return;
+            }
             FDMiReferencePoint prevRoot = localRootRefPoint;
             Transform tgtTransform = target.transform;
             Transform prevTransform = prevRoot.transform;

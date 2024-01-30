@@ -89,7 +89,8 @@ namespace tech.gyoku.FDMi.sync
             transform.localRotation = Quaternion.identity;
             if (value < 0) return;
             Vector3 teleportPos = prevPRP._rotation * _position + prevPRP._position - parentRefPoint._position;
-            teleportPos += (prevPRP._rotation * _kmPosition + prevPRP._kmPosition - parentRefPoint._kmPosition) * 1000f;
+            Vector3 teleportKmPos = (prevPRP._rotation * _kmPosition + prevPRP._kmPosition - parentRefPoint._kmPosition);
+            // teleportPos += (prevPRP._rotation * _kmPosition + prevPRP._kmPosition - parentRefPoint._kmPosition) * 1000f;
             teleportPos = Quaternion.Inverse(parentRefPoint._rotation) * teleportPos;
             Quaternion teleportRot = Quaternion.Inverse(parentRefPoint._rotation) * prevPRP._rotation * _rotation;
             Vector3 playerVelocity = Quaternion.Inverse(parentRefPoint._rotation) * prevPRP._rotation * localPlayer.GetVelocity();
@@ -98,7 +99,7 @@ namespace tech.gyoku.FDMi.sync
             localPlayer.SetVelocity(playerVelocity);
             _position = teleportPos;
             _rotation = teleportRot;
-            _kmPosition = Vector3.zero;
+            _kmPosition = teleportKmPos;
         }
 
         #region station events
@@ -135,6 +136,7 @@ namespace tech.gyoku.FDMi.sync
             inVehicle = false;
             _kmPosition = Vector3.zero;
             _position = syncManager.rootRefPoint.respawnPoint;
+            syncManager.onChangeLocalPlayerKMPosition();
             RequestSerialization();
         }
 
@@ -156,11 +158,17 @@ namespace tech.gyoku.FDMi.sync
         #endregion
 
         #region RelativePosition
-        // public override bool setPosition(Vector3 pos)
-        // {
-        //     Position = pos;
-        //     return false;
-        // }
+        public override bool setPosition(Vector3 pos)
+        {
+            Vector3 pKmPos = _kmPosition;
+            if (base.setPosition(pos))
+            {
+                localPlayer.TeleportTo(pos - 1000f * (_kmPosition - pKmPos), localPlayer.GetRotation());
+                syncManager.onChangeLocalPlayerKMPosition();
+                return true;
+            }
+            return false;
+        }
         public override Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;
@@ -170,6 +178,7 @@ namespace tech.gyoku.FDMi.sync
                 _position = syncedPos;
             }
             return 1000f * _kmPosition + _position;
+            // return 1000f * (_kmPosition - syncManager.localPlayerPosition._kmPosition) + _position;
         }
 
         public override Quaternion getViewRotation()
@@ -199,9 +208,9 @@ namespace tech.gyoku.FDMi.sync
         }
         #endregion
 
-        public void Update()
+        public void LateUpdate()
         {
-            if (!isInit || !isPlayerJoined) return;
+            if (!isInit || !isPlayerJoined || localPlayer == null) return;
             if (Networking.IsOwner(gameObject))
             {
                 setPosition(localPlayer.GetPosition());

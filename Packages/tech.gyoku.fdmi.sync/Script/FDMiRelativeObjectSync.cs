@@ -93,7 +93,7 @@ namespace tech.gyoku.FDMi.sync
             if (Networking.IsOwner(gameObject) && !body.isKinematic)
             {
                 Quaternion btr = body.transform.rotation;
-                Vector3 btp = body.transform.position;
+                Vector3 btp = body.transform.position + (syncManager.localPlayerPosition ? 1000f * syncManager.localPlayerPosition._kmPosition : Vector3.zero);
                 if (isRoot)
                 {
                     // setRotation((btr * _rotation).normalized);

@@ -132,7 +132,7 @@ namespace tech.gyoku.FDMi.sync
 
         public virtual Vector3 getViewPosition()
         {
-            if (isRoot) return Vector3.zero;
+            if (isRoot) return (syncManager.localPlayerPosition ? -1000f * syncManager.localPlayerPosition._kmPosition : Vector3.zero);
             Vector3 kmDiff = _kmPosition;
             Vector3 diff = _position;
             Quaternion dir = Quaternion.identity;
@@ -142,8 +142,8 @@ namespace tech.gyoku.FDMi.sync
                 diff -= rootRefPoint._position;
                 dir = Quaternion.Inverse(rootRefPoint._rotation);
             }
-            // diff += 1000f * (kmDiff - syncManager.localPlayerPosition.kmPosition);
-            diff += 1000f * kmDiff;
+            diff += 1000f * (kmDiff - (syncManager.localPlayerPosition ? syncManager.localPlayerPosition._kmPosition : Vector3.zero));
+            // diff += 1000f * kmDiff;
             return dir * diff;
         }
         public virtual Vector3 getViewPositionInterpolated()
