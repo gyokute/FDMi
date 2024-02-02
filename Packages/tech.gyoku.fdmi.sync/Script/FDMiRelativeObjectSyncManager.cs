@@ -65,6 +65,8 @@ namespace tech.gyoku.FDMi.sync
             {
                 tgtTransform.SetParent(null);
             }
+            target.windupPositionAndRotation();
+            prevRoot.windupPositionAndRotation();
             localRootRefPoint = target;
             localPlayerPosition.transform.SetParent(target.transform);
             localPlayerPosition.ParentIndex = target.index;
@@ -73,8 +75,6 @@ namespace tech.gyoku.FDMi.sync
             {
                 refPoints[i].onChangeRootRefPoint(target);
             }
-            // target.windupPositionAndRotation();
-            // prevRoot.windupPositionAndRotation();
         }
     }
 }

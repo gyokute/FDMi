@@ -49,6 +49,8 @@ namespace tech.gyoku.FDMi.sync
 
         public void TeleportLocalPlayer(Transform teleportPosition)
         {
+            syncManager.localPlayerPosition._position = teleportPosition.position;
+            syncManager.localPlayerPosition._kmPosition = refPoint._kmPosition;
             syncManager.changeRootRefPoint(refPoint);
             InZone.Data = true;
             localPlayer.TeleportTo(teleportPosition.position, teleportPosition.rotation);

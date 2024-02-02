@@ -84,16 +84,18 @@ namespace tech.gyoku.FDMi.sync
         {
             FDMiReferencePoint prevPRP = parentRefPoint;
             base.handleParentIndex(value);
-            if (!gameObject.activeSelf || !isMine) return;
-            transform.localPosition = Vector3.zero;
-            transform.localRotation = Quaternion.identity;
+            if (!gameObject.activeSelf || !isMine)
+            {
+                SendCustomEventDelayedFrames("windupPositionAndRotation", 2);
+                return;
+            }
             if (value < 0) return;
             Vector3 teleportPos = prevPRP._rotation * _position + prevPRP._position - parentRefPoint._position;
             Vector3 teleportKmPos = (prevPRP._rotation * _kmPosition + prevPRP._kmPosition - parentRefPoint._kmPosition);
             // teleportPos += (prevPRP._rotation * _kmPosition + prevPRP._kmPosition - parentRefPoint._kmPosition) * 1000f;
             teleportPos = Quaternion.Inverse(parentRefPoint._rotation) * teleportPos;
             Quaternion teleportRot = Quaternion.Inverse(parentRefPoint._rotation) * prevPRP._rotation * _rotation;
-            Vector3 playerVelocity = Quaternion.Inverse(parentRefPoint._rotation) * prevPRP._rotation * localPlayer.GetVelocity();
+            Vector3 playerVelocity = prevPRP._velocity + Quaternion.Inverse(parentRefPoint._rotation) * prevPRP._rotation * localPlayer.GetVelocity();
             playerVelocity += prevPRP._velocity - parentRefPoint._velocity;
             localPlayer.TeleportTo(teleportPos, teleportRot, VRC_SceneDescriptor.SpawnOrientation.Default, false);
             localPlayer.SetVelocity(playerVelocity);
@@ -190,9 +192,11 @@ namespace tech.gyoku.FDMi.sync
         }
         public override Vector3 getViewPositionInterpolated()
         {
-            if (Networking.IsOwner(gameObject)) return getViewPosition();
-            _position = Vector3.Lerp(_position, 1000f * syncedKmPos + syncedPos, Time.deltaTime * 10);
-            return _position;
+            if (Networking.IsOwner(gameObject) || _kmPosition != syncedKmPos) return getViewPosition();
+            // _kmPosition = syncedKmPos;
+            _position = Vector3.Lerp(_position, syncedPos, Time.deltaTime * 10);
+            // _position = Vector3.Lerp(_position, 1000f * syncedKmPos + syncedPos, Time.deltaTime * 10);
+            return 1000f * _kmPosition + _position;
         }
         public override Quaternion getViewRotationInterpolated()
         {
@@ -203,8 +207,10 @@ namespace tech.gyoku.FDMi.sync
 
         public override void windupPositionAndRotation()
         {
-            prevPos = getViewPosition();
-            prevRot = getViewRotation();
+            // prevPos = getViewPosition();
+            // prevRot = getViewRotation();
+            transform.localPosition = getViewPosition();
+            transform.localRotation = getViewRotation();
         }
         #endregion
 
@@ -217,10 +223,10 @@ namespace tech.gyoku.FDMi.sync
                 _rotation = localPlayer.GetRotation();
                 // for preventing very-far jumping
                 if (localPlayer.GetPosition().magnitude > 100000f) RespawnLocalPlayer();
-                if (Vector3.Distance(prevPos, _position) > 0.01f || Quaternion.Angle(prevRot, _rotation) > 0.75f)
+                if (Vector3.Distance(syncedPos, _position) > 0.01f || Quaternion.Angle(syncedRot, _rotation) > 0.75f)
                     TrySerialize();
-                prevPos = _position;
-                prevRot = _rotation;
+                // prevPos = _position;
+                // prevRot = _rotation;
                 return;
             }
             if (!inVehicle)

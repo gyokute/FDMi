@@ -118,8 +118,8 @@ namespace tech.gyoku.FDMi.sync
             if (stopUpdate || isRoot) return;
             transform.rotation = getViewRotation();
             transform.position = getViewPosition();
-            body.transform.position = transform.position;
-            body.transform.rotation = transform.rotation;
+            body.position = transform.position;
+            body.rotation = transform.rotation;
         }
 
         #region Interpolated
