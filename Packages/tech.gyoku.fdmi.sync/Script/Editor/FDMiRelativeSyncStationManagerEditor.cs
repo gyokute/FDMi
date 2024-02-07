@@ -14,7 +14,7 @@ using tech.gyoku.FDMi.sync;
 namespace tech.gyoku.FDMi.sync.editor
 {
     [CustomEditor(typeof(FDMiRelativeSyncStationManager), true)]
-    public class FDMiRelativeSyncStationManagerEditor : FDMiStationEditor
+    public class FDMiRelativeSyncStationManagerEditor : FDMiStationManagerEditor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {

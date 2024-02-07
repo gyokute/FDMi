@@ -20,7 +20,7 @@ namespace tech.gyoku.FDMi.core.editor
             {
                 if ((FDMiEditorUI.Button(forceSetup, "Find") || forceSetup))
                 {
-                    FDMiStation[] stations = FDMiEditorUI.FindChildrenComponents<FDMiStation>(tgt).Where(s => s.pilotPriority < 1).OrderBy(s => s.pilotPriority).ToArray();
+                    FDMiStation[] stations = FDMiEditorUI.FindChildrenComponents<FDMiStation>(tgt)/*.Where(s => s.pilotPriority < 1)*/.OrderBy(s => s.pilotPriority).ToArray();
                     FDMiEditorUI.SetObjectArrayProperty<FDMiStation>(property, stations);
 
                 }
