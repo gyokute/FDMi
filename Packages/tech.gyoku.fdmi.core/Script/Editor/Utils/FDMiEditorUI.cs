@@ -16,7 +16,7 @@ namespace tech.gyoku.FDMi.core.editor
         }
         public static bool BigButton(string label)
         {
-            return GUILayout.Button(label, new[] { GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(true) });
+            return GUILayout.Button(label, new[] { GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true) });
         }
         public static void PropertyField(SerializedObject so, string str)
         {
