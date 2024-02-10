@@ -92,7 +92,11 @@ namespace tech.gyoku.FDMi.core.editor
         private void RemoveParamator(int i)
         {
             foreach (SerializedProperty sp in new SerializedProperty[] { Input, paramator, outputValue })
+            {
+                if (sp.GetArrayElementAtIndex(i).objectReferenceValue != null)
+                    sp.DeleteArrayElementAtIndex(i);
                 sp.DeleteArrayElementAtIndex(i);
+            }
             serializedObject.ApplyModifiedProperties();
             serializedObject.Update();
         }

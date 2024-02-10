@@ -13,20 +13,21 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.core.editor
 {
-    [CustomEditor(typeof(FDMiTransformRotationDriverArray), true)]
-    public class FDMiTransformRotationDriverArrayEditor : UnityEditor.Editor
+    [CustomEditor(typeof(FDMiTransformDriverArray), true)]
+    public class FDMiTransformDriverArrayEditor : UnityEditor.Editor
     {
         private bool foldOut = true, debugFoldOut = false;
-        private SerializedProperty Input, multiplier, rotateTransform, rotateAxis, repeatValue;
+        private SerializedProperty Input, multiplier, targetTransform, onePosition, zeroPosition;
 
         public override void OnInspectorGUI()
         {
             if (UdonSharpGUI.DrawDefaultUdonSharpBehaviourHeader(target)) return;
+            var animDriver = target as FDMiTransformDriverArray;
             Input = serializedObject.FindProperty("Input");
             multiplier = serializedObject.FindProperty("multiplier");
-            rotateTransform = serializedObject.FindProperty("rotateTransform");
-            rotateAxis = serializedObject.FindProperty("rotateAxis");
-            repeatValue = serializedObject.FindProperty("repeatValue");
+            targetTransform = serializedObject.FindProperty("targetTransform");
+            onePosition = serializedObject.FindProperty("onePosition");
+            zeroPosition = serializedObject.FindProperty("zeroPosition");
             serializedObject.Update();
             debugFoldOut = EditorGUILayout.Foldout(debugFoldOut, "入力後データ");
             if (debugFoldOut) base.OnInspectorGUI();
@@ -37,12 +38,12 @@ namespace tech.gyoku.FDMi.core.editor
                 foldOut = EditorGUILayout.Foldout(foldOut, "Manupulate Transform / 回転させるTransform");
                 if (FDMiEditorUI.Button(false, "Add Transform")) Addmultiplier();
             }
-            if (foldOut) for (int i = 0; i < multiplier.arraySize; i++) animatorSetup(i);
+            if (foldOut) for (int i = 0; i < multiplier.arraySize; i++) animatorSetup(i, animDriver);
 
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void animatorSetup(int i)
+        private void animatorSetup(int i, FDMiTransformDriverArray target)
         {
             var defaultColor = GUI.backgroundColor;
             GUI.backgroundColor = Color.green;
@@ -60,7 +61,7 @@ namespace tech.gyoku.FDMi.core.editor
                     using (new EditorGUILayout.VerticalScope())
                     {
                         EditorGUILayout.LabelField("Transform", GUILayout.Width(70));
-                        EditorGUILayout.PropertyField(rotateTransform.GetArrayElementAtIndex(i), GUIContent.none, true);
+                        EditorGUILayout.PropertyField(targetTransform.GetArrayElementAtIndex(i), GUIContent.none, true);
                     }
                     EditorGUILayout.LabelField("=", GUILayout.Width(10));
                     using (new EditorGUILayout.VerticalScope())
@@ -80,16 +81,19 @@ namespace tech.gyoku.FDMi.core.editor
                 {
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        using (new EditorGUILayout.VerticalScope())
-                        {
-                            EditorGUILayout.LabelField("axis", GUILayout.Width(70));
-                            EditorGUILayout.PropertyField(rotateAxis.GetArrayElementAtIndex(i), GUIContent.none, true);
-                        }
-                        using (new EditorGUILayout.VerticalScope())
-                        {
-                            EditorGUILayout.LabelField("repeat Value", GUILayout.Width(70));
-                            EditorGUILayout.PropertyField(repeatValue.GetArrayElementAtIndex(i), GUIContent.none, true);
-                        }
+                        EditorGUILayout.LabelField("zero position", GUILayout.Width(70));
+                        EditorGUILayout.PropertyField(zeroPosition.GetArrayElementAtIndex(i), GUIContent.none, true);
+                        if (FDMiEditorUI.Button(false, "set"))
+                            zeroPosition.GetArrayElementAtIndex(i).vector3Value = target.targetTransform[i].localPosition;
+
+                    }
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUILayout.LabelField("one position", GUILayout.Width(70));
+                        EditorGUILayout.PropertyField(onePosition.GetArrayElementAtIndex(i), GUIContent.none, true);
+                        if (FDMiEditorUI.Button(false, "set"))
+                            onePosition.GetArrayElementAtIndex(i).vector3Value = target.targetTransform[i].localPosition;
+
                     }
                 }
             }
@@ -99,14 +103,14 @@ namespace tech.gyoku.FDMi.core.editor
         private void Addmultiplier()
         {
             int newArrSize = multiplier.arraySize + 1;
-            foreach (SerializedProperty sp in new SerializedProperty[] { Input, multiplier, rotateTransform, rotateAxis, repeatValue })
+            foreach (SerializedProperty sp in new SerializedProperty[] { Input, multiplier, targetTransform, onePosition, zeroPosition })
                 sp.arraySize = newArrSize;
             serializedObject.ApplyModifiedProperties();
             serializedObject.Update();
         }
         private void Removemultiplier(int i)
         {
-            foreach (SerializedProperty sp in new SerializedProperty[] { Input, multiplier, rotateTransform, rotateAxis, repeatValue })
+            foreach (SerializedProperty sp in new SerializedProperty[] { Input, multiplier, targetTransform, onePosition, zeroPosition })
             {
                 if (sp.GetArrayElementAtIndex(i).objectReferenceValue != null)
                     sp.DeleteArrayElementAtIndex(i);
