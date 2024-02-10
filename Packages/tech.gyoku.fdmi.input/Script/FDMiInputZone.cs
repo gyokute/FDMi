@@ -11,9 +11,16 @@ namespace tech.gyoku.FDMi.input
     {
         public FDMiInputPage input;
         private FDMiFingerTracker fingerTracker;
-        [SerializeField]private GameObject highlightObject;
+        [SerializeField] private GameObject highlightObject;
 
-        void OnDisable(){
+        void Start()
+        {
+            Collider[] colliders = GetComponents<Collider>();
+            for (int i = 0; i < colliders.Length; i++) colliders[i].isTrigger = true;
+        }
+
+        void OnDisable()
+        {
             if (highlightObject) InputManager.EnableObjectHighlight(highlightObject, false);
         }
         private void OnTriggerEnter(Collider other)
