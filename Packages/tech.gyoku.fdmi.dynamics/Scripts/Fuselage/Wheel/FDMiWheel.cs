@@ -77,7 +77,7 @@ namespace tech.gyoku.FDMi.dynamics
                 else
                 {
                     slipRate = 1 - (wheel.rpm / (slipRate * wheelCircumference));
-                    absBrakePress += absKi * (absTgt - Mathf.Clamp01(wheel.rpm)) * Time.deltaTime;
+                    absBrakePress += absKi * (absTgt - slipRate) * Time.deltaTime;
                     absBrakePress = Mathf.Clamp01(absBrakePress);
                 }
                 wheel.brakeTorque = parkbrake[0] * parkBrakePressure + absBrakePress * brake[0] * brakePressure;
