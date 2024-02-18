@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.input
 {
-    public enum AxisBehaviourType { momentum, alternate, force }
+    public enum AxisBehaviourType { momentum, alternate, force, addition }
 
     public class FDMiAxisInput : FDMiInputAddon
     {
@@ -42,6 +42,10 @@ namespace tech.gyoku.FDMi.input
                 {
                     alternateLatch = false;
                 }
+            }
+            if (behaviourType == AxisBehaviourType.addition)
+            {
+                Output.set(Mathf.Clamp(Output.Data + input[(int)inputAxisType] * multiply * Time.deltaTime, min, max));
             }
         }
 
