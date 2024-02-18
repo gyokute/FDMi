@@ -13,24 +13,25 @@ namespace tech.gyoku.FDMi.input
         public YokeControlType pitchType, rollType, yawType;
         public LeverAxis pitchAxis, rollAxis, yawAxis;
 
-        public FDMiSyncedFloat Pitch, Roll, Yaw;
+        public FDMiSyncedFloat PitchInput, RollInput, YawInput;
         [SerializeField] private float pitchMul, rollMul, yawMul;
 
 
         protected override void Update()
         {
             base.Update();
-            Pitch.set(yokeMove(pitchType, pitchMul, (int)pitchAxis));
-            Roll.set(yokeMove(rollType, rollMul, (int)rollAxis));
-            Yaw.set(yokeMove(yawType, yawMul, (int)yawAxis));
-            if (!Input.GetKey(triggeredKey)) OnReleased();
+            if (!isActive) return;
+            PitchInput.set(yokeMove(pitchType, pitchMul, (int)pitchAxis));
+            RollInput.set(yokeMove(rollType, rollMul, (int)rollAxis));
+            YawInput.set(yokeMove(yawType, yawMul, (int)yawAxis));
         }
+        // TODO: fix when Released
         public override void OnReleased()
         {
             base.OnReleased();
-            Pitch.set(0f);
-            Roll.set(0f);
-            Yaw.set(0f);
+            PitchInput.set(0f);
+            RollInput.set(0f);
+            YawInput.set(0f);
         }
 
         private float yokeMove(YokeControlType control, float inputMul, int axis)
