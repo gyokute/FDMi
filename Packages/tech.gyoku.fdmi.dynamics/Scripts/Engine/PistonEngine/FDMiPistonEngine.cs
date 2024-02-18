@@ -48,6 +48,7 @@ namespace tech.gyoku.FDMi.dynamics
         }
         [SerializeField] float engineTorque, pureEngineTorque;
         float currentThrottle, throatAirSpeed;
+        // TODO: Fix manifold pressure and fuel flow.
         void FixedUpdate()
         {
             currentThrottle = Mathf.Lerp(idleThrottle, 1f, throttle[0]);
