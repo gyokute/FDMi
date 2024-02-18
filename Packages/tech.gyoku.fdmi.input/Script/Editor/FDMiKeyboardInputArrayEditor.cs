@@ -86,6 +86,7 @@ namespace tech.gyoku.FDMi.input.editor
                     }
                     // EditorGUILayout.LabelField("+", GUILayout.Width(10));
                 }
+                EditorGUILayout.PropertyField(initial.GetArrayElementAtIndex(i), new GUIContent("initial"), true);
                 EditorGUILayout.PropertyField(min.GetArrayElementAtIndex(i), new GUIContent("min"), true);
                 EditorGUILayout.PropertyField(max.GetArrayElementAtIndex(i), new GUIContent("max"), true);
 
