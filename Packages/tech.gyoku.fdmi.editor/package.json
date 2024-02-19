@@ -1,6 +1,6 @@
 {
-	"name": "tech.gyoku.fdmi.core",
-	"displayName": "Saccflight-FDMi - Core",
+	"name": "tech.gyoku.fdmi.editor",
+	"displayName": "Saccflight-FDMi - Editor Extension",
 	"version": "2.0.0",
 	"unity": "2019.4",	
 	"description": "Flight dynamics add-on modules for Saccflight",
