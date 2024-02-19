@@ -1,0 +1,3 @@
+#ignore Script/*.asset
+/[Ss]cripts/**/*.asset
+/[Ss]cript/**/*.asset
