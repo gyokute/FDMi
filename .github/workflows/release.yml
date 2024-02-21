@@ -59,7 +59,7 @@ jobs:
           find . -name '*.zip'|xargs -L 1 basename|xargs -i echo "${{ env.packagePath }}/{}" |tr '\n' ','| jq -c -R 'split(",")'|xargs -i echo files={} >> $GITHUB_OUTPUT
       
       - name: Check Package Zip
-        run:  echo ${{steps.make_zip.outputs.files}} >> $GITHUB_OUTPUT
+        run:  echo ${{steps.make_zip.outputs.files}}
       # Build a list of .meta files for future use
       # - name: Track Package Meta Files
       # run: find "${{ env.packagePath }}/" -name \*.meta >> metaList
@@ -82,5 +82,5 @@ jobs:
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
         with:
-          files: (${{fromJson(steps.make_zip.outputs)}})
+          files: ${{fromJSON(steps.make_zip.outputs)}}
           tag_name: ${{ env.version }}
