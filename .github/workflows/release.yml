@@ -19,7 +19,6 @@ jobs:
           else
             echo "configPackage=false" >> $GITHUB_OUTPUT;
           fi
-
   # Build and release the Package
   # If the repository is not configured properly, this job will be skipped
   build:
@@ -49,11 +48,9 @@ jobs:
           echo "zipFile=${{ vars.PACKAGE_NAME }}-${{ steps.version.outputs.value }}".zip >> $GITHUB_ENV
           echo "unityPackage=${{ vars.PACKAGE_NAME }}-${{ steps.version.outputs.value }}.unitypackage" >> $GITHUB_ENV
           echo "version=${{ steps.version.outputs.value }}" >> $GITHUB_ENV
-
       # Zip the Package for release
       - name: Create Package Zip
         id: make_zip
-        working-directory: "${{ env.packagePath }}"
         run: |
           find ${{ github.workspace }}/Packages -name 'package.json'|xargs dirname|awk -F "/" '{ printf "zip %s-${{ steps.version.outputs.value }}.zip -r %s\n", $NF,$0 }'|xargs -i sh -c {}
           find . -name '*.zip'|xargs -L 1 basename|xargs -i echo "${{ env.packagePath }}/{}" |tr '\n' ','| jq -c -R 'split(",")'|xargs -i echo files={} >> $GITHUB_OUTPUT
@@ -82,5 +79,6 @@ jobs:
       - name: Make Release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
         with:
-          files: ${{fromJSON(steps.make_zip.outputs)}}
+          files: |
+            *.zip
           tag_name: ${{ env.version }}
