@@ -56,7 +56,7 @@ jobs:
         working-directory: "${{ env.packagePath }}"
         run: |
           find ${{ github.workspace }}/Packages -name 'package.json'|xargs dirname|awk -F "/" '{ printf "zip %s-${{ steps.version.outputs.value }}.zip -r %s\n", $NF,$0 }'|xargs -i sh -c {}
-          find . -name '*.zip'|xargs -L 1 basename|xargs -i echo "${{ env.packagePath }}/{}" |tr '\n' ','| jq -c -R 'split(",")' >> $GITHUB_OUTPUT
+          find . -name '*.zip'|xargs -L 1 basename|xargs -i echo "${{ env.packagePath }}/{}" |tr '\n' ','| jq -c -R 'split(",")'|xargs -i echo files={} >> $GITHUB_OUTPUT
 
       # Build a list of .meta files for future use
       # - name: Track Package Meta Files
