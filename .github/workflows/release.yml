@@ -52,7 +52,8 @@ jobs:
       - name: Create Package Zip
         id: make_zip
         run: |
-          find ${{ github.workspace }}/Packages -name 'package.json'|xargs dirname|awk -F "/" '{ printf "cd %s/..; zip -rq %s-${{ steps.version.outputs.value }}.zip %s\n", $NF, $NF,$0 }'|xargs -i sh -c "{}"
+          find ${{ github.workspace }}/Packages -name 'package.json'|xargs dirname|awk -F "/" '{ printf "cd %s; zip -rq %s-${{ steps.version.outputs.value }}.zip *\n", $0, $NF }'|xargs -i sh -c "{}"
+          find . -name '*.zip'| xargs -i mv {} .
           find . -name '*.zip'|xargs -L 1 basename|xargs -i echo "${{ env.packagePath }}/{}" |tr '\n' ','| jq -c -R 'split(",")'|xargs -i echo files={} >> $GITHUB_OUTPUT
       
       - name: Check Package Zip
