@@ -1,7 +1,7 @@
 {
 	"name": "tech.gyoku.fdmi.dynamics",
-	"displayName": "Saccflight-FDMi - Dynamics",
-	"version": "2.0.0",
+	"displayName": "FDMi - Dynamics",
+	"version": "2.0.1",
 	"unity": "2019.4",	
 	"description": "Flight dynamics add-on modules for Saccflight",
 	"author": {

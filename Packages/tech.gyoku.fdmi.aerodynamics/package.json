@@ -1,7 +1,12 @@
 {
 	"name" : "tech.gyoku.fdmi.aerodynamics",
-	"displayName" : "Saccflight-FDMi - Aerodynamics",
-	"version" : "0.1.0",
-	"unity" : "2019.3",
-	"description" : "Flight dynamics add-on modules for Saccflight"
+	"displayName" : "FDMi - Aerodynamics",
+	"version": "2.0.1",
+	"unity": "2019.4",	
+	"description": "Flight dynamics add-on modules for Saccflight",
+	"author": {
+		"name": "gyokute",
+		"email": "gyokutech@gmail.com",
+		"url": "https://github.com/gyokute"
+	}
 }
