@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiAnalogRotator
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 13eda21648bd2e948bc648b90bee6bd7,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 4edebfd3925a1df4aa0c2164ac0bf3bc,
     type: 2}
   udonAssembly: 
   assemblyError: 

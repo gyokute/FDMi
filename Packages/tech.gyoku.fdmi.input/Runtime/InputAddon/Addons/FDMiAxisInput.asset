@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiAxisInput
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 11775203d6d8e684ba07bae88327b584,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 5d2cb5900e58e4647a85c310e6cac8aa,
     type: 2}
   udonAssembly: 
   assemblyError: 

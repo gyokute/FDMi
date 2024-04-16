@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiKeyboardInput
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 3e980798a9679754e8427bbd9a827b20,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 80d1e39be2b03df48a9227ea7da06f2e,
     type: 2}
   udonAssembly: 
   assemblyError: 

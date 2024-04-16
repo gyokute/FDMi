@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiAnalogDrum
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 1aca32c0fc8078f4d8b9b3239953cc84,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 6e2670587931ee4469142baedfcd00ea,
     type: 2}
   udonAssembly: 
   assemblyError: 

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiBool
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: cbdce3a6924b9984a81b56a01372234a,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: b88bb9f597857f3499606476fcc315a1,
     type: 2}
   udonAssembly: 
   assemblyError: 

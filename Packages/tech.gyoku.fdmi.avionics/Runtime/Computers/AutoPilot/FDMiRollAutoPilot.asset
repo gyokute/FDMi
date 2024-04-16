@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiRollAutoPilot
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: b99f7822f609e7342accf03b6e6923cc,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 44be9b96c8261fd40b6eaeefc8ebd1f3,
     type: 2}
   udonAssembly: 
   assemblyError: 

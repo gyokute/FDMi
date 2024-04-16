@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiVerticalSpeed
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 82ad36c8c7635974997737a5aad27c3d,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 6c79734b0c7950348be227f394b1f6c6,
     type: 2}
   udonAssembly: 
   assemblyError: 

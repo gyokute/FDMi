@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiBooleanLogic
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 9d255dd188add18498c42c9eb7e53649,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: f18a4e903a6441c4e9e051bae04d74ea,
     type: 2}
   udonAssembly: 
   assemblyError: 

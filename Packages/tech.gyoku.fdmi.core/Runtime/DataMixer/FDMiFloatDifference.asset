@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFloatDifference
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: f6b050991d858de4093eba97f4fcaca9,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 476c77d6c2b99dd49be36a7bce953fcb,
     type: 2}
   udonAssembly: 
   assemblyError: 

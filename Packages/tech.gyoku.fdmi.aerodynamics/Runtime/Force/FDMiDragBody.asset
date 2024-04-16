@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiDragBody
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: ab3550e79c510074686130f14fc7b1b6,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 8cf15a8a6c2bee845a5dd07817e6026a,
     type: 2}
   udonAssembly: 
   assemblyError: 
