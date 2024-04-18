@@ -35,5 +35,24 @@ namespace tech.gyoku.FDMi.editor
                 }
             }
         }
+        [MenuItem("TESI/FDMi/Settings/Setup Layer", false, 1000)]
+        public static void setupLayer()
+        {
+            // 29番にBoardingColliderを追加
+            var layer = 29;
+            var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset"));
+            tagManager.Update();
+
+            var layersProperty = tagManager.FindProperty("layers");
+            layersProperty.arraySize = Mathf.Max(layersProperty.arraySize, layer);
+            layersProperty.GetArrayElementAtIndex(29).stringValue =  "BoardingCollider";
+
+            tagManager.ApplyModifiedProperties();
+            // 29番のコライダー判定はPlayerLocal以外無効にする
+            for(int i=0; i<32; i++) Physics.IgnoreLayerCollision(layer, i, true);
+            var playerLayerId = LayerMask.NameToLayer("PlayerLocal");
+            Physics.IgnoreLayerCollision(layer, playerLayerId, false);
+        }
+
     }
 }
