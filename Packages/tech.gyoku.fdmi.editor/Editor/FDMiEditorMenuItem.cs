@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor;
@@ -10,6 +11,7 @@ using UnityEngine.SceneManagement;
 using VRC.SDKBase.Editor.BuildPipeline;
 using tech.gyoku.FDMi.core;
 using tech.gyoku.FDMi.core.editor;
+using tech.gyoku.FDMi.core.editor.process;
 
 namespace tech.gyoku.FDMi.editor
 {
@@ -18,23 +20,27 @@ namespace tech.gyoku.FDMi.editor
         [MenuItem("TESI/FDMi/Setup All FDMi Behaviours", false, 1000)]
         public static void setupAllFDMiComponents()
         {
-            var FDMiBehaviours = Resources.FindObjectsOfTypeAll<FDMiBehaviour>();
-            var classes = Assembly.GetAssembly(typeof(FDMiEditorExt)).GetTypes().Where(x => x.IsSubclassOf(typeof(FDMiEditorExt)) && !x.IsAbstract);
-            classes = classes.Append(typeof(FDMiEditorExt));
-
-            foreach (FDMiBehaviour behaviour in FDMiBehaviours)
-            {
-                foreach (var cl in classes)
+            var processClasses = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(asm => asm.GetTypes())
+                .Where(x => x.IsSubclassOf(typeof(FDMiEditorProcess)) && !x.IsAbstract)
+                .Select(pc => new
                 {
-                    var editorComponent = Editor.CreateEditor(behaviour, cl);
-                    if (editorComponent != null)
-                    {
-                        ((dynamic)editorComponent).SetupAll(behaviour, editorComponent.serializedObject);
-                        DestroyImmediate(editorComponent);
-                    }
-                }
+                    process = pc,
+                    priority = Attribute.GetCustomAttribute(pc, typeof(FDMiEditorProcessPriorityAttribute)) as FDMiEditorProcessPriorityAttribute
+                })
+                .OrderBy(d => d.priority != null ? d.priority.priority : Int32.MaxValue).ToArray();
+            for (int i = 0; i < processClasses.Length; i++)
+            {
+                var processClass = processClasses[i];
+                EditorUtility.DisplayProgressBar("Running All FDMi Setup Processes", $"process > {nameof(processClass)}", i / processClasses.Length);
+                NewExpression body = Expression.New(processClass.process);
+                var expression = Expression.Lambda<Func<FDMiEditorProcess>>(body).Compile();
+                var instance = expression();
+                instance.execute();
             }
+            EditorUtility.ClearProgressBar();
         }
+
         [MenuItem("TESI/FDMi/Settings/Setup Layer", false, 1000)]
         public static void setupLayer()
         {
@@ -45,11 +51,11 @@ namespace tech.gyoku.FDMi.editor
 
             var layersProperty = tagManager.FindProperty("layers");
             layersProperty.arraySize = Mathf.Max(layersProperty.arraySize, layer);
-            layersProperty.GetArrayElementAtIndex(29).stringValue =  "BoardingCollider";
+            layersProperty.GetArrayElementAtIndex(29).stringValue = "BoardingCollider";
 
             tagManager.ApplyModifiedProperties();
             // 29番のコライダー判定はPlayerLocal以外無効にする
-            for(int i=0; i<32; i++) Physics.IgnoreLayerCollision(layer, i, true);
+            for (int i = 0; i < 32; i++) Physics.IgnoreLayerCollision(layer, i, true);
             var playerLayerId = LayerMask.NameToLayer("PlayerLocal");
             Physics.IgnoreLayerCollision(layer, playerLayerId, false);
         }
