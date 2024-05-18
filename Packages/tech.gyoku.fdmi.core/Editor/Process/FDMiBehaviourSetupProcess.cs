@@ -27,13 +27,14 @@ namespace tech.gyoku.FDMi.core.editor.process
             {
                 var editorComponents = classes.Select(c => new { typ = c, editor = Editor.CreateEditor(entity, c) });
                 var serializedObject = new SerializedObject(entity);
+                serializedObject.Update();
                 foreach (var ec in editorComponents)
                 {
                     ((dynamic)ec.editor).SetupAll(entity, serializedObject);
                     UnityEngine.Object.DestroyImmediate(ec.editor);
                 }
+                serializedObject.ApplyModifiedProperties();
             }
-
         }
     }
 }
