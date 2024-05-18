@@ -39,7 +39,7 @@ namespace tech.gyoku.FDMi.sync.editor
             setupSync();
             return true;
         }
-        [MenuItem("TESI/FDMi/Sync/Setup sync", false, 1000)]
+        [MenuItem("FDMi/Sync/Setup sync", false, 1000)]
         public static void setupSync()
         {
             setUpSyncManager();

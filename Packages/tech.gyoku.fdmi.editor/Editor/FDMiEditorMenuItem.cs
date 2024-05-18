@@ -17,7 +17,7 @@ namespace tech.gyoku.FDMi.editor
 {
     public class FDMiEditorExtSetupAll : Editor
     {
-        [MenuItem("TESI/FDMi/Setup All FDMi Behaviours", false, 1000)]
+        [MenuItem("FDMi/Setup FDMi Components", false, 1000)]
         public static void setupAllFDMiComponents()
         {
             var processClasses = AppDomain.CurrentDomain.GetAssemblies()
@@ -41,7 +41,7 @@ namespace tech.gyoku.FDMi.editor
             EditorUtility.ClearProgressBar();
         }
 
-        [MenuItem("TESI/FDMi/Settings/Setup Layer", false, 1000)]
+        [MenuItem("FDMi/Settings/Setup Layer", false, 1000)]
         public static void setupLayer()
         {
             // 29番にBoardingColliderを追加
