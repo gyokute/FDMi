@@ -14,7 +14,7 @@ using tech.gyoku.FDMi.input;
 namespace tech.gyoku.FDMi.input.editor
 {
     [CustomEditor(typeof(FDMiInputPage), true)]
-    public class FDMiInputPageEditor : FDMiEditorExt
+    public class FDMiInputPageEditor : FDMiBehaviourEditor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {

@@ -11,7 +11,7 @@ using tech.gyoku.FDMi.core;
 namespace tech.gyoku.FDMi.core.editor
 {
     [CustomEditor(typeof(FDMiAttribute), true)]
-    public class FDMiAttributeEditor : FDMiEditorExt
+    public class FDMiAttributeEditor : FDMiBehaviourEditor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
