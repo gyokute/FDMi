@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeSyncModelTransform : FDMiAttribute
     {
-        [SerializeField] FDMiBool InZone;
+        public FDMiBool InZone;
         [SerializeField] Transform onlyIsRoot;
         void Start()
         {
