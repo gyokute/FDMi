@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFixedPitchPropeller
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 178d51e5639e7ba46927aa317f680907,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 157d1e166be6b0747b32fda23bc54591, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 101278a4023a1da4190b073e883ed938, type: 3}

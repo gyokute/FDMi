@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiBodyKinematicSwitcher
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: cf2fec3f05dc533408f88263facd416b,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 4e247da004ddb264ea555f04de6d8e64, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 1b09ed04600dd254aae16a6407ecc253, type: 3}

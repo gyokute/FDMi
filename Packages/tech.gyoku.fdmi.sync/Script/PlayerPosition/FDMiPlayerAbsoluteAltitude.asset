@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiPlayerAbsoluteAltitude
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 7429c4ea2c0551e4bbbfe7d8298ef94e,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 9ff0cc8cee286484591382c3e601fb1c, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 8b90bdf848eebe94f829f96daced7b57, type: 3}

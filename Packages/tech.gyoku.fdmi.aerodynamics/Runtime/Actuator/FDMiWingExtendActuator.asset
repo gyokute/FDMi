@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiWingExtendActuator
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 42682b74e35efe1428c77d7a9719a7ae,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 189e6c79ca0042a458a5519794317277, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: a87a39d84a0f4064990cd28f0addecba, type: 3}

@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFloatOverrider
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: ff17ac86700dccf4db246fe42411e795,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: ff575acf49b067247a27dd5200ea1616, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: da04368cf397ff940acb771f37745b16, type: 3}

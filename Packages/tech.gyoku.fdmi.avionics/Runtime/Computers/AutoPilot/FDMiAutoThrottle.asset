@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiAutoThrottle
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 73ab197b2e750d64db8a84cc9a986b89,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 471c9fc1857f15f4682ae1410c12cc07, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: a8809201e7e664b45912bc7d55c182f9, type: 3}

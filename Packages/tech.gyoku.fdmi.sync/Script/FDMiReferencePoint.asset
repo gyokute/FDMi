@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiReferencePoint
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 828ed2737ce247b4f84d6914ba2a120d,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: a4819651bb7177f4a88da8db32e39182, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: fd74e1e95c79c234394bb99e83fff1ca, type: 3}

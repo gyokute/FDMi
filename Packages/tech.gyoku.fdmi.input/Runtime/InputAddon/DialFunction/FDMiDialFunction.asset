@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiDialFunction
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: dc7f39ee2ce0b814581a5a57fc48ce81,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 2636194731eaff543ae91a73b9e17dae, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: fc9a1518c5fdcce44b97f4ba03aec860, type: 3}
