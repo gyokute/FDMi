@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiTransformDriverArray : FDMiDriverArray
     {
-        [SerializeField] FDMiFloat[] Input;
+        public FDMiFloat[] Input;
         public Transform[] targetTransform;
         [SerializeField] Vector3[] zeroPosition, onePosition;
         [SerializeField] AnimationCurve[] multiplier;

@@ -7,7 +7,7 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiAnimatorDriver : FDMiBehaviour
     {
-        [SerializeField] private FDMiFloat Input;
+        public FDMiFloat Input;
         private float[] input = new float[1];
         [SerializeField] private Animator animator;
         [SerializeField] private string paramator;

@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.core
     public class FDMiSoundController : FDMiBehaviour
     {
         [SerializeField] AudioSource sound;
-        [SerializeField] FDMiFloat SoundVolume, SoundPitch;
+        public FDMiFloat SoundVolume, SoundPitch;
         [SerializeField] AnimationCurve gainCurve, pitchCurve;
         [SerializeField] bool useDopplerEffect;
         float[] vol, pitch;

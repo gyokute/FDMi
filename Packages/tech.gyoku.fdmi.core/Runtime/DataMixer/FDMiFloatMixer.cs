@@ -8,8 +8,8 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiFloatMixer : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat output;
-        [SerializeField] FDMiFloat[] data;
+        public FDMiFloat output;
+        public FDMiFloat[] data;
         [SerializeField] float t = 1f;
         [SerializeField] private AnimationCurve outputCurve;
         [SerializeField] private bool useUpdate = false, useOnChange = true;

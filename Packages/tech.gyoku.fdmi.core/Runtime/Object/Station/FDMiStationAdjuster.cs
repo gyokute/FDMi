@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiStationAdjuster : FDMiBehaviour
     {
-        [SerializeField] FDMiVector3 SeatOffset;
+        public FDMiVector3 SeatOffset;
         [SerializeField] Transform SeatPosition;
         Vector3 initialSeatPos;
         void Start()

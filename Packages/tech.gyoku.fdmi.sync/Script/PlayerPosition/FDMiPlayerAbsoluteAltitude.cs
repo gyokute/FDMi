@@ -10,7 +10,7 @@ namespace tech.gyoku.FDMi.sync
     public class FDMiPlayerAbsoluteAltitude : FDMiBehaviour
     {
         public FDMiFloat LocalPlayerAltitude;
-        [SerializeField] FDMiRelativeObjectSyncManager syncManager;
+        public FDMiRelativeObjectSyncManager syncManager;
         float[] playerAlt;
 
         void Start()

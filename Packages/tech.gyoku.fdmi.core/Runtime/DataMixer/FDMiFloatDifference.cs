@@ -9,9 +9,9 @@ namespace tech.gyoku.FDMi.core
     public enum FDMiFloatDifferenceType { PLUS, MINUS }
     public class FDMiFloatDifference : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat output;
-        [SerializeField] FDMiFloat[] input;
-        [SerializeField] FDMiFloatDifferenceType[] inputType;
+        public FDMiFloat output;
+        public FDMiFloat[] input;
+        public FDMiFloatDifferenceType[] inputType;
         [SerializeField] private bool useUpdate = false, useOnChange = true;
         void Start()
         {

@@ -10,7 +10,7 @@ namespace tech.gyoku.FDMi.input
 
     public class FDMiSWInput : FDMiInputAddon
     {
-        [SerializeField] FDMiBool Output;
+        public FDMiBool Output;
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] bool reg = true;
 

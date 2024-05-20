@@ -10,9 +10,9 @@ namespace tech.gyoku.FDMi.input
     public enum FDMiKeyboardInputType { momentum, alternate, detent, addition, stepAddition, smoothMomental }
     public class FDMiKeyboardInput : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat floatVal;
+        public FDMiFloat floatVal;
         [SerializeField] KeyCode key;
-        [SerializeField] FDMiKeyboardInputType type;
+        public FDMiKeyboardInputType type;
         [SerializeField] float initial, multiplier, min, max;
         [SerializeField] float[] detents;
         void Update()

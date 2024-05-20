@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiKeyboardVector3Input : FDMiBehaviour
     {
-        [SerializeField] FDMiVector3 Val;
+        public FDMiVector3 Val;
         [SerializeField] KeyCode key;
         [SerializeField] Vector3 multiplier;
         void Update()

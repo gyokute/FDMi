@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiButtonInput : FDMiInputAddon
     {
-        [SerializeField] FDMiSyncedBool Output;
+        public FDMiSyncedBool Output;
         [SerializeField] AxisBehaviourType behaviourType;
         protected override void Update()
         {

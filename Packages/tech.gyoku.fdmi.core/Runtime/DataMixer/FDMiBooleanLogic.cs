@@ -9,8 +9,8 @@ namespace tech.gyoku.FDMi.core
     public enum BooleanLogic { AND, OR }
     public class FDMiBooleanLogic : FDMiBehaviour
     {
-        [SerializeField] FDMiBool output;
-        [SerializeField] FDMiBool[] data;
+        public FDMiBool output;
+        public FDMiBool[] data;
         [SerializeField] BooleanLogic logic;
         [SerializeField] private bool useUpdate = false, useOnChange = true;
         void Start()

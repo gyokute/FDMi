@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiTransformRotationDriver : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat Value;
+        public FDMiFloat Value;
         [SerializeField] Transform rotateTransform;
         [SerializeField] Vector3 rotateAxis;
         [SerializeField] AnimationCurve multiplier;

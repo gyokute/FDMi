@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.avionics
     public class FDMiSoundByValue : FDMiBehaviour
     {
         [SerializeField] AudioSource sound;
-        [SerializeField] FDMiFloat Value;
+        public FDMiFloat Value;
         [SerializeField] AnimationCurve turnOnCurve;
         [SerializeField] private bool moveOnValueChange, moveOnUpdate, overridePlaying;
         void Start()

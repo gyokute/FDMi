@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
     public class FDMiAnimationDriverArray : FDMiDriverArray
     {
         [SerializeField] private Animator animator;
-        [SerializeField] private FDMiFloat[] Input;
+        public FDMiFloat[] Input;
         [SerializeField] private string[] paramator;
         [SerializeField] private AnimationCurve[] outputValue;
         [SerializeField] private DriverUpdateMode updateMode;

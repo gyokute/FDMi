@@ -11,7 +11,7 @@ namespace tech.gyoku.FDMi.input
 
     public class FDMiAxisInput : FDMiInputAddon
     {
-        [SerializeField] FDMiFloat Output;
+        public FDMiFloat Output;
         [SerializeField] InputButton inputAxisType;
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] float multiply = 1f, min = 0f, max = 1f;

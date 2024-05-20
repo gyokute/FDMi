@@ -7,7 +7,7 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiDefaultInput : FDMiInputPage
     {
-        [SerializeField] FDMiFingerTrackerType fingerTrackerType;
+        public FDMiFingerTrackerType fingerTrackerType;
         void Start()
         {
             fingerInZone[0] = true;

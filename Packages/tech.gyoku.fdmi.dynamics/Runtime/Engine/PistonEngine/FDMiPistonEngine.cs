@@ -10,9 +10,9 @@ namespace tech.gyoku.FDMi.dynamics
 {
     public class FDMiPistonEngine : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat Throttle, Mixture, Starter, Magneto;
-        [SerializeField] FDMiFloat PowerTrainRPM, OutputTorque;
-        [SerializeField] FDMiFloat Rho, IntakePressure;
+        public FDMiFloat Throttle, Mixture, Starter, Magneto;
+        public FDMiFloat PowerTrainRPM, OutputTorque;
+        public FDMiFloat Rho, IntakePressure;
         [SerializeField] AnimationCurve torqueMap;
         [SerializeField] AnimationCurve mixtureMap;
         [SerializeField] float loss, inertia, starterMaxRPM = 500f, idleThrottle = 0.01f, starterTorque = 50f, starterThreshold = 0.9f, magnetoThreshold = 0.05f;

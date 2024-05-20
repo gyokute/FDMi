@@ -9,8 +9,8 @@ namespace tech.gyoku.FDMi.avionics
 {
     public class FDMiAttitude : FDMiAttribute
     {
-        [SerializeField] FDMiFloat Pitch, Roll, HDG;
-        [SerializeField] FDMiQuaternion Rotation;
+        public FDMiFloat Pitch, Roll, HDG;
+        public FDMiQuaternion Rotation;
         Quaternion[] rot;
         void Start()
         {
