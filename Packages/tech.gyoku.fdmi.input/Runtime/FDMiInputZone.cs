@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiInputZone : FDMiBehaviour
     {
-        public FDMiInputPage input;
+        public FDMiInputPage inputPage;
         private FDMiFingerTracker fingerTracker;
         [SerializeField] private GameObject highlightObject;
 
@@ -34,17 +34,20 @@ namespace tech.gyoku.FDMi.input
             fingerTracker = other.GetComponent<FDMiFingerTracker>();
             if (fingerTracker)
                 disconnectFromFinger(other);
+            fingerTracker = null;
         }
 
         private void connectToFinger(Collider other)
         {
-            input.OnFingerEnter(fingerTracker);
+            fingerTracker.connect(inputPage);
+            // inputPage.OnFingerEnter(fingerTracker);
             if (highlightObject) InputManager.EnableObjectHighlight(highlightObject, true);
         }
 
         private void disconnectFromFinger(Collider other)
         {
-            input.OnFingerLeave(fingerTracker);
+            fingerTracker.disconnect(inputPage);
+            // inputPage.OnFingerLeave(fingerTracker);
             if (highlightObject) InputManager.EnableObjectHighlight(highlightObject, false);
         }
 

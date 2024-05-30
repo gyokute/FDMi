@@ -10,72 +10,61 @@ namespace tech.gyoku.FDMi.input
     public class FDMiInputAddon : FDMiBehaviour
     {
         [HideInInspector] public bool isActive = false;
-        public InputButton SelectInputType = InputButton.Grab;
+        // public InputButton SelectInputType = InputButton.Grab;
         protected KeyCode triggeredKey = KeyCode.None;
-        VRCPlayerApi.TrackingData track;
-        protected VRCPlayerApi.TrackingDataType handType = VRCPlayerApi.TrackingDataType.Head;
-        protected float[] input = new float[(int)InputButton.Length];
-        protected Vector3 handPos, handStartPos;
-        protected Quaternion handAxis, handStartAxis;
+        // protected float[] input = new float[(int)InputButton.Length];
+        protected Vector3 handPos, handPrevPos, handStartPos;
+        protected Quaternion handAxis, handPrevAxis, handStartAxis;
+        protected Vector3 fingerPos, fingerPrevPos, fingerStartPos;
+        protected Quaternion fingerAxis, fingerPrevAxis, fingerStartAxis;
+        protected FDMiFingerTracker touchFinger, grabFinger;
+        protected float[] touchAxis, grabAxis = null;
 
-        protected virtual void Start()
+        public virtual void whileTouch()
         {
-            gameObject.SetActive(false);
-        }
-        protected virtual void Update()
-        {
-            // If not Init, return
-            if (handType == VRCPlayerApi.TrackingDataType.Head) return;
-            if (handType == VRCPlayerApi.TrackingDataType.LeftHand) getLeftHandStatus();
-            if (handType == VRCPlayerApi.TrackingDataType.RightHand) getRightHandStatus();
-            if (Mathf.Approximately(input[(int)SelectInputType], 0f)) OnReleased();
-            track = Networking.LocalPlayer.GetTrackingData(handType);
-            handPos = transform.InverseTransformPoint(track.position);
-            handAxis = Quaternion.Inverse(transform.rotation) * track.rotation;
-        }
-        void getLeftHandStatus()
-        {
-            input[(int)InputButton.Grab] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryHandTrigger");
-            input[(int)InputButton.Trigger] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryIndexTrigger");
-            input[(int)InputButton.PadH] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickHorizontal");
-            input[(int)InputButton.PadV] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickVertical");
-            input[(int)InputButton.Jump] = Input.GetKey(KeyCode.JoystickButton3) ? 1f : 0f;
-            input[(int)InputButton.Menu] = Input.GetKey(KeyCode.JoystickButton2) ? 1f : 0f;
-            input[(int)InputButton.PadPush] = Input.GetKey(KeyCode.JoystickButton8) ? 1f : 0f;
-            input[(int)InputButton.PadTouch] = Input.GetKey(KeyCode.JoystickButton16) ? 1f : 0f;
-        }
-        void getRightHandStatus()
-        {
-            input[(int)InputButton.Grab] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryHandTrigger");
-            input[(int)InputButton.Trigger] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryIndexTrigger");
-            input[(int)InputButton.PadH] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickHorizontal");
-            input[(int)InputButton.PadV] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickVertical");
-            input[(int)InputButton.Jump] = Input.GetKey(KeyCode.JoystickButton1) ? 1f : 0f;
-            input[(int)InputButton.Menu] = Input.GetKey(KeyCode.JoystickButton0) ? 1f : 0f;
-            input[(int)InputButton.PadPush] = Input.GetKey(KeyCode.JoystickButton9) ? 1f : 0f;
-            input[(int)InputButton.PadTouch] = Input.GetKey(KeyCode.JoystickButton17) ? 1f : 0f;
-
+            if (!touchFinger) return;
+            fingerPrevPos = fingerPos;
+            fingerPrevAxis = fingerAxis;
+            fingerPos = transform.InverseTransformPoint(touchFinger.fingerPos);
+            fingerAxis = Quaternion.Inverse(transform.rotation) * touchFinger.fingerAxis;
         }
 
-        public virtual void OnCalled(VRCPlayerApi.TrackingDataType trackType)
+        public virtual void whileGrab()
         {
-            isActive = true;
-            handType = trackType;
-            if (trackType == VRCPlayerApi.TrackingDataType.LeftHand) getLeftHandStatus();
-            if (trackType == VRCPlayerApi.TrackingDataType.RightHand) getRightHandStatus();
-            track = Networking.LocalPlayer.GetTrackingData(trackType);
-            handStartPos = transform.InverseTransformPoint(track.position);
-            handStartAxis = Quaternion.Inverse(transform.rotation) * track.rotation;
-            gameObject.SetActive(true);
+            if (!grabFinger) return;
+            handPrevPos = handPos;
+            handPrevAxis = handAxis;
+            handPos = transform.InverseTransformPoint(grabFinger.handPos);
+            handAxis = Quaternion.Inverse(transform.rotation) * grabFinger.handAxis;
         }
-        public virtual void OnReleased()
+
+        public virtual void OnFingerEnter(FDMiFingerTracker finger)
         {
-            isActive = false;
-            gameObject.SetActive(false);
+            touchFinger = finger;
+            touchAxis = finger.axisInput;
+            fingerStartPos = transform.InverseTransformPoint(finger.fingerPos);
+            fingerStartAxis = Quaternion.Inverse(transform.rotation) * finger.fingerAxis;
+            fingerPos = fingerStartPos;
+            fingerAxis = fingerStartAxis;
         }
-        void OnDisable()
+        public virtual void OnFingerLeave(FDMiFingerTracker finger)
         {
-            OnReleased();
+            if (touchFinger != finger) return;
+            touchFinger = null;
+            touchAxis = null;
+        }
+        public virtual void OnGrab(FDMiFingerTracker finger)
+        {
+            grabFinger = finger;
+            grabAxis = finger.axisInput;
+            handStartPos = transform.InverseTransformPoint(finger.handPos);
+            handStartAxis = Quaternion.Inverse(transform.rotation) * finger.handAxis;
+            handPos = handStartPos;
+            handAxis = handStartAxis;
+        }
+        public virtual void OnRelease(FDMiFingerTracker finger)
+        {
+            grabAxis = null;
         }
     }
 }
