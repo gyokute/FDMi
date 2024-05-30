@@ -42,9 +42,9 @@ namespace tech.gyoku.FDMi.core.editor.process
             data.arraySize = globalNames.arraySize;
             for (int i = 0; i < globalNames.arraySize; i++)
             {
+                string dn = globalNames.GetArrayElementAtIndex(i).stringValue;
                 if (isGlobal.GetArrayElementAtIndex(i).boolValue)
                 {
-                    string dn = globalNames.GetArrayElementAtIndex(i).stringValue;
                     dataComponent = dataBus.dn
                     .Zip(dataBus.data, (n, d) => new { dn = n, data = d })
                     .Where(d => d.dn == dn)
@@ -52,7 +52,7 @@ namespace tech.gyoku.FDMi.core.editor.process
                 }
                 else
                 {
-                    string dn = privateNames.GetArrayElementAtIndex(i).stringValue;
+                    string privatedn = privateNames.GetArrayElementAtIndex(i).stringValue;
                     var privateDatam = privateData.Where(p => p.name == dn).ToArray();
                     if (privateDatam.Length > 0)
                         dataComponent = privateDatam.First();
@@ -64,6 +64,7 @@ namespace tech.gyoku.FDMi.core.editor.process
                         Undo.SetTransformParent(dataTran, target.transform, "Set FDMiData Parent");
                         Type typ = FDMiDataTypeUtils.getFDMiDataType((FDMiDataType)dataType.GetArrayElementAtIndex(i).intValue);
                         dataComponent = Undo.AddComponent(dataTran.gameObject, typ) as FDMiData;
+                        privateData = target.GetComponentsInChildren<FDMiData>();
                     }
                     dataComponent.VariableName = dn;
                 }
