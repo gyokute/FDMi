@@ -29,6 +29,7 @@ namespace tech.gyoku.FDMi.core
 
         public void TryTakePilot(int pilotPriority)
         {
+            InZone.Data = true;
             for (int i = 0; i < stations.Length; i++)
             {
                 if (stations[i].seatedPlayer == null)
