@@ -51,6 +51,7 @@ namespace tech.gyoku.FDMi.core
         protected bool isPlayerJoined = false;
         [SerializeField] protected float updateInterval = 0.2f;
         protected double nextUpdateTime;
+        bool isDeserialized = false, isWaitingNetworkSettled = false;
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
             if (player.isLocal) isPlayerJoined = true;
@@ -62,16 +63,24 @@ namespace tech.gyoku.FDMi.core
             // Try Serialize.
             if (Time.time > nextUpdateTime)
             {
+                isWaitingNetworkSettled = false;
                 if (!Networking.IsClogged)
                 {
                     RequestSerialization();
                     nextUpdateTime = Time.time + updateInterval;
+                    return;
                 }
-                else { SendCustomEventDelayedSeconds("TrySerialize", updateInterval); }
+            }
+
+            if (!isWaitingNetworkSettled)
+            {
+                isWaitingNetworkSettled = true;
+                SendCustomEventDelayedSeconds("TrySerialize", updateInterval);
             }
         }
         public void OnDeserialization()
         {
+            isDeserialized = true;
             if (data0) data0.Data = syncedData[0];
             if (data1) data1.Data = syncedData[1];
             if (data2) data2.Data = syncedData[2];
@@ -88,86 +97,103 @@ namespace tech.gyoku.FDMi.core
             if (data13) data13.Data = syncedData[13];
             if (data14) data14.Data = syncedData[14];
             if (data15) data15.Data = syncedData[15];
+            isDeserialized = false;
         }
         #endregion
 
         public void OnChange0()
         {
+            if (isDeserialized) return;
             syncedData[0] = data0.Data;
             TrySerialize();
         }
         public void OnChange1()
         {
+            if (isDeserialized) return;
             syncedData[1] = data1.Data;
             TrySerialize();
         }
         public void OnChange2()
         {
+            if (isDeserialized) return;
             syncedData[2] = data2.Data;
             TrySerialize();
         }
         public void OnChange3()
         {
+            if (isDeserialized) return;
             syncedData[3] = data3.Data;
             TrySerialize();
         }
         public void OnChange4()
         {
+            if (isDeserialized) return;
             syncedData[4] = data4.Data;
             TrySerialize();
         }
         public void OnChange5()
         {
+            if (isDeserialized) return;
             syncedData[5] = data5.Data;
             TrySerialize();
         }
         public void OnChange6()
         {
+            if (isDeserialized) return;
             syncedData[6] = data6.Data;
             TrySerialize();
         }
         public void OnChange7()
         {
+            if (isDeserialized) return;
             syncedData[7] = data7.Data;
             TrySerialize();
         }
         public void OnChange8()
         {
+            if (isDeserialized) return;
             syncedData[8] = data8.Data;
             TrySerialize();
         }
         public void OnChange9()
         {
+            if (isDeserialized) return;
             syncedData[9] = data9.Data;
             TrySerialize();
         }
         public void OnChange10()
         {
+            if (isDeserialized) return;
             syncedData[10] = data10.Data;
             TrySerialize();
         }
         public void OnChange11()
         {
+            if (isDeserialized) return;
             syncedData[11] = data11.Data;
             TrySerialize();
         }
         public void OnChange12()
         {
+            if (isDeserialized) return;
             syncedData[12] = data12.Data;
             TrySerialize();
         }
         public void OnChange13()
         {
+            if (isDeserialized) return;
             syncedData[13] = data13.Data;
             TrySerialize();
         }
         public void OnChange14()
         {
+            if (isDeserialized) return;
             syncedData[14] = data14.Data;
             TrySerialize();
         }
         public void OnChange15()
         {
+            if (isDeserialized) return;
             syncedData[15] = data15.Data;
             TrySerialize();
         }
