@@ -16,7 +16,8 @@ namespace tech.gyoku.FDMi.dynamics
         [SerializeField] AnimationCurve torqueMap;
         [SerializeField] AnimationCurve mixtureMap;
         [SerializeField] AnimationCurve intakeDragCurve;
-        [SerializeField] float loss, inertia, starterMaxRPM = 500f, idleThrottle = 0.01f, starterTorque = 50f, starterThreshold = 0.9f, magnetoThreshold = 0.05f;
+        [SerializeField] AnimationCurve lossCurve;
+        [SerializeField] float inertia, starterMaxRPM = 500f, idleThrottle = 0.01f, starterTorque = 50f, starterThreshold = 0.9f, magnetoThreshold = 0.05f;
         [Header("エンジン排気量[m^3]. Lを1000分の1にして代入")]
         [SerializeField] float displacement = 0.0054f;
         [Header("スロート断面積[m^2]")]
@@ -71,7 +72,7 @@ namespace tech.gyoku.FDMi.dynamics
             mixtureRatio = currentFuelFlow / Mathf.Max(m_th, 0.0000001f);
             currentFuelFlow *= 7936.641f; //debug
 
-            pureEngineTorque = torqueMap.Evaluate(rpm[0]) * mixtureMap.Evaluate(mixtureRatio) * currentThrottle * ((mag[0] - magnetoThreshold) > 0 ? 1 : 0) - loss * rpm[0];
+            pureEngineTorque = torqueMap.Evaluate(rpm[0]) * mixtureMap.Evaluate(mixtureRatio) * currentThrottle * ((mag[0] - magnetoThreshold) > 0 ? 1 : 0) - lossCurve.Evaluate(rpm[0]);
             engineTorque = pureEngineTorque + output[0];
             engineTorque += starterTorque * ((starter[0] - starterThreshold) > 0 ? (1 - rpm[0] / starterMaxRPM) : 0);
             PowerTrainRPM.Data = rpm[0] + engineTorque / inertia;
