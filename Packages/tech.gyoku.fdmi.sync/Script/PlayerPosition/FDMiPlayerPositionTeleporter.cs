@@ -10,9 +10,11 @@ namespace tech.gyoku.FDMi.sync
     {
         public FDMiRelativePositionTrigger teleportTarget, teleportFrom;
         public Transform teleportPosition;
-        public void ExecTeleport(){
-            if(teleportFrom) teleportFrom.ExitLocalPlayer();
-            if(teleportTarget) teleportTarget.TeleportLocalPlayer(teleportPosition);
+        public void ExecTeleport()
+        {
+            if (teleportFrom) teleportFrom.ExitLocalPlayer();
+            if (teleportTarget) teleportTarget.TeleportLocalPlayer(teleportPosition);
+            else Networking.LocalPlayer.TeleportTo(teleportPosition.position, teleportPosition.rotation);
         }
     }
 }
