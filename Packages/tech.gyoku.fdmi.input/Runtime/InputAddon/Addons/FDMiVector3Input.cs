@@ -11,6 +11,8 @@ namespace tech.gyoku.FDMi.input
     public class FDMiVector3Input : FDMiInputAddon
     {
         public FDMiVector3 Output;
+        public FingerInputType inputAxisType = FingerInputType.Trigger;
+        [SerializeField] float axisThreshold = 0.5f;
         [SerializeField] float multiplier, limitMagnitude = 0.2f;
         Vector3 initialValue, adjustedOrigin;
         [SerializeField] bool useInSeatAdjuster;
@@ -28,6 +30,7 @@ namespace tech.gyoku.FDMi.input
         public override void whileGrab()
         {
             base.whileGrab();
+            if (grabAxis[(int)inputAxisType] < axisThreshold) return;
             if (useInSeatAdjuster)
             {
                 bodyTrack = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin);
