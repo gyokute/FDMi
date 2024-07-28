@@ -7,7 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.aerodynamics
 {
-    public class FDMiWind : FDMiAttribute
+    public class FDMiWind : FDMiBehaviour
     {
         public FDMiVector3 Wind, Position;
         public FDMiVector3 WindConstant;
