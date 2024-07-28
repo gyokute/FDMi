@@ -9,20 +9,26 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiDefaultInput : FDMiInputPage
     {
-        public FDMiBool IsPilot;
         public FDMiFingerTrackerType fingerTrackerType;
 
-        void Start()
-        {
-            IsPilot.subscribe(this, "OnChangeInZone");
-        }
-        public void OnChangeInZone()
+        public void FDMiOnSeatEnter()
         {
             foreach (var fingerTracker in inputManager.fingerTrackers)
             {
                 if (fingerTracker.fingerType == fingerTrackerType)
                 {
-                    fingerTracker.setDefaultPage(IsPilot.Data ? this : null);
+                    fingerTracker.setDefaultPage(this);
+                    return;
+                }
+            }
+        }
+        public void FDMiOnSeatExit()
+        {
+            foreach (var fingerTracker in inputManager.fingerTrackers)
+            {
+                if (fingerTracker.fingerType == fingerTrackerType)
+                {
+                    fingerTracker.setDefaultPage(null);
                     return;
                 }
             }
