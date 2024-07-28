@@ -14,7 +14,7 @@ namespace tech.gyoku.FDMi.input
         public FDMiFloat Output;
         [SerializeField] FingerInputType inputAxisType;
         [SerializeField] AxisBehaviourType behaviourType;
-        [SerializeField] float multiply = 1f, min = 0f, max = 1f;
+        [SerializeField] float multiply = 1f, min = 0f, max = 1f, initial = 0f;
         [SerializeField] float threshold = 0.5f;
         bool alternateLatch = false;
 
@@ -55,7 +55,7 @@ namespace tech.gyoku.FDMi.input
             base.OnRelease(finger);
             alternateLatch = false;
             if (behaviourType == AxisBehaviourType.momentum)
-                Output.set(min);
+                Output.set(initial);
         }
     }
 }
