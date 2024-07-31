@@ -125,8 +125,8 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             spRL.vector3Value = spl - spr;
 
             Vector3 spn = (spl - spr).normalized;
-            Vector3 planfn = Vector3.Cross(spn, Vector3.forward).normalized;
             Vector3 chordn = -bt.InverseTransformDirection(Vector3.Lerp(wing.SectionL.transform.forward, wing.SectionR.transform.forward, 0.5f));
+            Vector3 planfn = Vector3.Cross(chordn, spn);
 
             Vector3 lpspn = Vector3.Lerp(spn, Vector3.Cross(planfn, chordn), 0.5f).normalized;
             spanNormal.vector3Value = lpspn;
@@ -140,8 +140,9 @@ namespace tech.gyoku.FDMi.aerodynamics.editor
             cpChordLength.floatValue = Mathf.Lerp(wing.SectionL.chordLength, wing.SectionR.chordLength, 0.5f);
             cpSpanLength.floatValue = Vector3.Project(spr - spl, spn).magnitude;
             cpArea.floatValue = cpChordLength.floatValue * cpSpanLength.floatValue;
-            wing.transform.position = bt.TransformPoint(Vector3.Lerp(spl, spr, 0.5f));
-            wing.transform.rotation = bt.rotation * Quaternion.LookRotation(Vector3.Cross(planfn, spn), planfn);
+
+            wing.transform.position = bt.TransformPoint(Vector3.Lerp(cpl, cpr, 0.5f));
+            wing.transform.rotation = bt.rotation * Quaternion.LookRotation(Vector3.Cross(planfn, lpspn), planfn);
 
             Qij.arraySize = wing.affectWing.Length;
             for (int i = 0; i < wing.affectWing.Length; i++)
