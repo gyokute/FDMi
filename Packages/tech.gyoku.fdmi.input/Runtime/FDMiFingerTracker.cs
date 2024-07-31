@@ -122,10 +122,12 @@ namespace tech.gyoku.FDMi.input
             axisInput[(int)FingerInputType.Trigger] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryIndexTrigger");
             axisInput[(int)FingerInputType.PadV] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickVertical");
             axisInput[(int)FingerInputType.PadH] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstickHorizontal");
+            axisInput[(int)FingerInputType.Menu] = Input.GetAxisRaw("Oculus_CrossPlatform_Button4");
+            axisInput[(int)FingerInputType.PadPush] = Input.GetAxisRaw("Oculus_CrossPlatform_PrimaryThumbstick");
 
             axisInput[(int)FingerInputType.Jump] = Input.GetKey(KeyCode.JoystickButton3) ? 1.0f : 0.0f;
-            axisInput[(int)FingerInputType.Menu] = Input.GetKey(KeyCode.JoystickButton2) ? 1.0f : 0.0f;
-            axisInput[(int)FingerInputType.PadPush] = Input.GetKey(KeyCode.JoystickButton8) ? 1.0f : 0.0f;
+            // axisInput[(int)FingerInputType.Menu] = Input.GetKey(KeyCode.JoystickButton2) ? 1.0f : 0.0f;
+            // axisInput[(int)FingerInputType.PadPush] = Input.GetKey(KeyCode.JoystickButton8) ? 1.0f : 0.0f;
             axisInput[(int)FingerInputType.PadTouch] = Input.GetKey(KeyCode.JoystickButton16) ? 1.0f : 0.0f;
         }
         public void getRightHandAxis()
@@ -134,10 +136,12 @@ namespace tech.gyoku.FDMi.input
             axisInput[(int)FingerInputType.Trigger] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryIndexTrigger");
             axisInput[(int)FingerInputType.PadV] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickVertical");
             axisInput[(int)FingerInputType.PadH] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickHorizontal");
+            axisInput[(int)FingerInputType.Menu] = Input.GetAxisRaw("Oculus_CrossPlatform_Button2");
+            axisInput[(int)FingerInputType.PadPush] = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstick");
 
             axisInput[(int)FingerInputType.Jump] = Input.GetKey(KeyCode.JoystickButton1) ? 1.0f : 0.0f;
-            axisInput[(int)FingerInputType.Menu] = Input.GetKey(KeyCode.JoystickButton0) ? 1.0f : 0.0f;
-            axisInput[(int)FingerInputType.PadPush] = Input.GetKey(KeyCode.JoystickButton9) ? 1.0f : 0.0f;
+            // axisInput[(int)FingerInputType.Menu] = Input.GetKey(KeyCode.JoystickButton0) ? 1.0f : 0.0f;
+            // axisInput[(int)FingerInputType.PadPush] = Input.GetKey(KeyCode.JoystickButton9) ? 1.0f : 0.0f;
             axisInput[(int)FingerInputType.PadTouch] = Input.GetKey(KeyCode.JoystickButton17) ? 1.0f : 0.0f;
         }
         #endregion
