@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiRelativePositionTrigger
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: a2c786bafcd2f404bb68c8c15872962f, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 59348a7b348d24240ad34f8a3a451244, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: c98b58450238c1949b35289baac87b60, type: 3}

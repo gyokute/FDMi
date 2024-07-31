@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFlightControlInput
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 3627ceb55ad4d5b4eb8777b26da361ec, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 76f02d34053a4fa4b850924311b9c34f, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: a026726ac1ff55641ae04056ee62002a, type: 3}

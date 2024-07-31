@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiSyncedQuaternion
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 762e632742a28b644b951a15856b23d4, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 1168d1b3323a3cf49aab0b9e5259131f, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: b26acb7f507c6bf46b3148ef4c579128, type: 3}
