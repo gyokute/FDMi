@@ -41,13 +41,14 @@ namespace tech.gyoku.FDMi.sync
             }
         }
 
-        public void changeRootRefPoint(FDMiReferencePoint target)
+        public bool changeRootRefPoint(FDMiReferencePoint target)
         {
+            if (!localPlayerPosition) return false;
             if (localRootRefPoint.index != index && target.index != index)
             {
-                changeRootRefPoint(syncManager);
-                changeRootRefPoint(target);
-                return;
+                if (!changeRootRefPoint(syncManager)) return false;
+                if (!changeRootRefPoint(target)) return false;
+                return true;
             }
             FDMiReferencePoint prevRoot = localRootRefPoint;
             Transform tgtTransform = target.transform;
@@ -75,6 +76,7 @@ namespace tech.gyoku.FDMi.sync
             {
                 refPoints[i].onChangeRootRefPoint(target);
             }
+            return true;
         }
     }
 }
