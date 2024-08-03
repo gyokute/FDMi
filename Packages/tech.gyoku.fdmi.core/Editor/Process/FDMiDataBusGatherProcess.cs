@@ -65,8 +65,7 @@ namespace tech.gyoku.FDMi.core.editor.process
             for (var i = 0; i < termVariables.Length; i++)
             {
                 dn.GetArrayElementAtIndex(i).stringValue = termVariables[i].dn;
-
-                Transform datamTran = DataRoot.Find(termVariables[i].dn);
+                Transform datamTran = DataRoot.GetComponentsInChildren<FDMiData>().Select(datam => datam.transform).FirstOrDefault(datam => datam.name == termVariables[i].dn);
                 if (!datamTran)
                 {
                     var dataObj = new GameObject(termVariables[i].dn);

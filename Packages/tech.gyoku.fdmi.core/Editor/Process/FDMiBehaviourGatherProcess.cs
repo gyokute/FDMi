@@ -44,6 +44,22 @@ namespace tech.gyoku.FDMi.core.editor.process
                 if (index >= 0)
                     f.property.objectReferenceValue = terminal.data[Array.IndexOf(terminal.privateName, f.name)];
             }
+
+            var arrayFields = target.GetType().GetFields()
+                .Where(x => x.FieldType.IsArray)
+                .Where(x => x.FieldType.GetElementType().IsSubclassOf(typeof(FDMiData)))
+                .Select(x => new { typ = x.FieldType, name = x.Name, property = so.FindProperty(x.Name) });
+
+            foreach (var f in arrayFields)
+            {
+                var data = terminal.data.Where((x, i) => terminal.privateName[i] == f.name).ToList();
+                if (data.Count > 0)
+                {
+                    f.property.arraySize = data.Count;
+                    for (int i = 0; i < data.Count; i++)
+                        f.property.GetArrayElementAtIndex(i).objectReferenceValue = data[i];
+                }
+            }
         }
 
     }
