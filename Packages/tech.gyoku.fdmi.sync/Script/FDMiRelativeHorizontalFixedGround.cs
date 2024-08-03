@@ -22,8 +22,8 @@ namespace tech.gyoku.FDMi.sync
                 diff -= rootRefPoint._position;
                 dir = Quaternion.Inverse(rootRefPoint._rotation);
             }
-            diff += 1000f * (kmDiff - syncManager.localPlayerPosition._kmPosition);
-            // diff += 1000f * kmDiff;
+            if (syncManager.localPlayerPosition) diff -= 1000f * syncManager.localPlayerPosition._kmPosition;
+            diff += 1000f * kmDiff;
             diff.x = 0f;
             diff.z = 0f;
             return dir * diff;
