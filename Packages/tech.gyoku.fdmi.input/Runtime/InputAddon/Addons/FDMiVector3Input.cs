@@ -34,7 +34,7 @@ namespace tech.gyoku.FDMi.input
             if (useInSeatAdjuster)
             {
                 bodyTrack = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin);
-                p = Vector3.ClampMagnitude(handPos - bodyTrack.position - adjustedOrigin, limitMagnitude);
+                p = Vector3.ClampMagnitude(handPos - bodyTrack.position, limitMagnitude);
             }
             else
             {
