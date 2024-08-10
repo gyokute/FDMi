@@ -54,9 +54,11 @@ namespace tech.gyoku.FDMi.editor
             layersProperty.GetArrayElementAtIndex(29).stringValue = "BoardingCollider";
 
             tagManager.ApplyModifiedProperties();
-            // 29番のコライダー判定はPlayerLocal以外無効にする
+            // 29番のコライダー判定はPlayerLocal,boardingCollider以外無効にする
             for (int i = 0; i < 32; i++) Physics.IgnoreLayerCollision(layer, i, true);
             var playerLayerId = LayerMask.NameToLayer("PlayerLocal");
+            Physics.IgnoreLayerCollision(layer, playerLayerId, false);
+            playerLayerId = LayerMask.NameToLayer("BoardingCollider");
             Physics.IgnoreLayerCollision(layer, playerLayerId, false);
         }
 
