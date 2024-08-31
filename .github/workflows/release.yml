@@ -58,6 +58,14 @@ jobs:
       
       - name: Check Package Zip
         run:  echo ${{steps.make_zip.outputs.files}}
+
+      # create "Packgage.json" list
+      - name: Create package.json list
+        id: make_package_json
+        run: |
+          find ${{ github.workspace }}/Packages -name 'package.json' |xargs dirname|awk -F "/" '{ printf "jq  '.name as $name | .version as $ver | {$name:{versions:{$ver:.}}}' %s > .\$NF.json \n", $0, $NF }'|xargs -i sh -c "{}"
+          find . -name '*.json'| xargs jq -s add | jq |'{.packages:.}' > package.json
+      
       # Build a list of .meta files for future use
       # - name: Track Package Meta Files
       # run: find "${{ env.packagePath }}/" -name \*.meta >> metaList
@@ -82,4 +90,5 @@ jobs:
         with:
           files: |
             *.zip
+            package.json
           tag_name: ${{ env.version }}
