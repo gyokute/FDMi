@@ -23,7 +23,7 @@ namespace tech.gyoku.FDMi.core
             float outTarget = 0f;
             foreach (FDMiFloat d in data) outTarget += d.data[0];
             outTarget = outputCurve.Evaluate(outTarget);
-            output.Data = Mathf.MoveTowards(output.data[0], outputCurve.Evaluate(outTarget), Time.deltaTime * t);
+            output.Data = Mathf.MoveTowards(output.data[0], outTarget, Time.deltaTime * t);
             if (!useUpdate && Mathf.Approximately(output.data[0], outTarget)) gameObject.SetActive(false);
         }
         public void OnChange()
