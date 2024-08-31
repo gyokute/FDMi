@@ -63,7 +63,7 @@ jobs:
       - name: Create package.json list
         id: make_package_json
         run: |
-          find ./Packages -name 'package.json'|xargs dirname|xargs -I insert jq -c '{ (.name):{versions:{(.version):.}}}' insert/package.json  | jq --slurp 'add' | jq '{packages:.}' > .\package.json
+          find ./Packages -name 'package.json'|xargs dirname|xargs -I insert jq -c '{ (.name):{versions:{(.version):.}}}' insert/package.json  | jq --slurp 'add' | jq '{packages:.}' > package.json
       
       # Build a list of .meta files for future use
       # - name: Track Package Meta Files
