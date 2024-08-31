@@ -7,6 +7,7 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.aerodynamics
 {
+     [System.Obsolete("Use FDMi.core.FDMiTransformRotationDriver.")]
     public class FDMiWingAngleActuator : FDMiBehaviour
     {
         public FDMiFloat InputValue;
