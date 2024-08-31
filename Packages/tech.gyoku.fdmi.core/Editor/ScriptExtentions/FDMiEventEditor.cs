@@ -15,12 +15,14 @@ namespace tech.gyoku.FDMi.core.editor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
-            base.SetPropertyOption(tgt, property, forceSetup);
             if (property.name == nameof(FDMiEvent.VariableName))
             {
                 if ((FDMiEditorUI.Button(false, "Maybe"))) property.stringValue = tgt.transform.name;
                 if ((FDMiEditorUI.Button(false, "FullPath"))) property.stringValue = GetFullPath(tgt.transform);
             }
+        }
+        public override void SetupAll(Component tgt, SerializedObject serializedObject){
+            // do nothing.
         }
         public static string GetFullPath(Transform t)
         {

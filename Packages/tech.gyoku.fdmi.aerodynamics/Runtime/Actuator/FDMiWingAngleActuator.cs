@@ -7,10 +7,11 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.aerodynamics
 {
+     [System.Obsolete("Use FDMi.core.FDMiTransformRotationDriver.")]
     public class FDMiWingAngleActuator : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat InputValue;
-        [SerializeField] FDMiWing wing;
+        public FDMiFloat InputValue;
+        public FDMiWing wing;
         [SerializeField] Vector3 rotateAxis;
         [SerializeField] AnimationCurve curve;
         private float[] input;

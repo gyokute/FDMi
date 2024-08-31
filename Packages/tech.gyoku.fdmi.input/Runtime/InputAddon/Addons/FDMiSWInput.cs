@@ -10,13 +10,13 @@ namespace tech.gyoku.FDMi.input
 
     public class FDMiSWInput : FDMiInputAddon
     {
-        [SerializeField] FDMiBool Output;
+        public FDMiBool Output;
         [SerializeField] AxisBehaviourType behaviourType;
         [SerializeField] bool reg = true;
 
-        public override void OnCalled(VRCPlayerApi.TrackingDataType trackType)
+        public override void OnGrab(FDMiFingerTracker finger)
         {
-            base.OnCalled(trackType);
+            base.OnGrab(finger);
             if (behaviourType == AxisBehaviourType.alternate)
             {
                 Output.set(!Output.Data);
@@ -26,9 +26,9 @@ namespace tech.gyoku.FDMi.input
                 Output.set(reg);
             }
         }
-        public override void OnReleased()
+        public override void OnRelease(FDMiFingerTracker finger)
         {
-            base.OnReleased();
+            base.OnRelease(finger);
             if (behaviourType == AxisBehaviourType.momentum)
                 Output.set(!reg);
         }

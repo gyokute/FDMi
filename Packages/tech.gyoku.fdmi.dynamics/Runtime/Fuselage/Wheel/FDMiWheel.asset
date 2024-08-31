@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiWheel
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 444a8b5e81c1fb14fa6aa34a9a6b8688,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 79a67bca38b755c4bbf3cf8f8517f38c, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 1390058844657fe4c8d3b5b35f359b02, type: 3}

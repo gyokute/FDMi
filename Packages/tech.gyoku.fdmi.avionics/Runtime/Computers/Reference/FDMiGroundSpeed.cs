@@ -9,8 +9,8 @@ namespace tech.gyoku.FDMi.avionics
 {
     public class FDMiGroundSpeed : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat GroundSpeed;
-        [SerializeField] FDMiVector3 Velocity;
+        public FDMiFloat GroundSpeed;
+        public FDMiVector3 Velocity;
         public FDMiQuaternion Rotation;
         Vector3[] vel;
         private Quaternion[] rot;

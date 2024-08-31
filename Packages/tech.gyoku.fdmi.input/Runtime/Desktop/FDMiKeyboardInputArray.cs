@@ -9,9 +9,9 @@ namespace tech.gyoku.FDMi.input
 {
     public class FDMiKeyboardInputArray : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat[] floatVal;
+        public FDMiFloat[] floatVal;
         [SerializeField] int[] key;
-        [SerializeField] FDMiKeyboardInputType[] type;
+        public FDMiKeyboardInputType[] type;
         [SerializeField] float[] initial, multiplier, min, max;
 
         bool prevAnyKey;

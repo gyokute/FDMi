@@ -10,8 +10,8 @@ namespace tech.gyoku.FDMi.avionics
 {
     public class FDMiGroundAltitude : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat GroundAltitude;
-        [SerializeField] FDMiQuaternion Rotation;
+        public FDMiFloat GroundAltitude;
+        public FDMiQuaternion Rotation;
         [SerializeField] float maxLength = 914.4f, offset;
         [SerializeField] LayerMask groundLayer;
         RaycastHit[] hit = new RaycastHit[32];

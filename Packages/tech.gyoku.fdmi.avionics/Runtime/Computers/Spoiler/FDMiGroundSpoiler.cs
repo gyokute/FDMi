@@ -10,8 +10,8 @@ namespace tech.gyoku.FDMi.avionics
 
     public class FDMiGroundSpoiler : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat SpoilerLever, GroundSpoilerLever;
-        [SerializeField] FDMiBool AnyIsGround;
+        public FDMiFloat SpoilerLever, GroundSpoilerLever;
+        public FDMiBool AnyIsGround;
         [SerializeField] float SpoilerLeverMaxMove = 1.2f, MoveSpeed = 1f;
         float[] gsLever, spoiler;
         bool[] anyGround;

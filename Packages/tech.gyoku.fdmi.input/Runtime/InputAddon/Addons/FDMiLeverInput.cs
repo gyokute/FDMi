@@ -11,36 +11,65 @@ namespace tech.gyoku.FDMi.input
     public enum LeverAxis { x, y, z }
     public class FDMiLeverInput : FDMiInputAddon
     {
-        public FDMiFloat LeverOutput, Multiplier;
+        public FDMiFloat LeverOutput;
+        public FDMiFloat Multiplier;
+        public float multiplier;
         public LeverControlType controlType;
         public LeverAxis leverAxis;
-        public float angleDiv = 1f, multiplier, min, max;
+        public float angleDiv = 1f, min, max;
         [SerializeField] bool doRepeat, doRound, preventSetWhileHold;
         public float[] detents;
-        float[] mul = { 0f };
         float initial, rawInput, ret, rotateAcc;
-        Vector3 prevPos;
-        Quaternion prevAxis;
+        float[] mul;
 
-        protected override void Start()
+        void Start()
         {
-            base.Start();
-            mul[0] = multiplier;
             if (Multiplier) mul = Multiplier.data;
+            else mul = new float[] { multiplier };
+        }
+        public override void whileGrab()
+        {
+            base.whileGrab();
+            if (grabAxis == null) return;
 
+            if (controlType == LeverControlType.pull)
+            {
+                Vector3 p = (handPos - handStartPos);
+                rawInput = p[(int)leverAxis];
+                ret = initial + mul[0] * rawInput;
+            }
+            if (controlType == LeverControlType.rotate)
+            {
+                Quaternion q = Quaternion.FromToRotation(handPrevPos, handPos);
+                rotateAcc += Mathf.Repeat(q.eulerAngles[(int)leverAxis] + 180, 360) - 180;
+                rawInput = Mathf.Sign(rotateAcc) * Mathf.Floor(Mathf.Abs(rotateAcc) / angleDiv);
+                ret += mul[0] * rawInput;
+                if (rawInput != 0) rotateAcc = 0;
+            }
+            if (controlType == LeverControlType.twist)
+            {
+                Vector3 eular = (Quaternion.Inverse(handPrevAxis) * handAxis).eulerAngles;
+                rotateAcc += Mathf.Repeat(eular[(int)leverAxis] + 180, 360) - 180;
+                rawInput = Mathf.Sign(rotateAcc) * Mathf.Floor(Mathf.Abs(rotateAcc) / angleDiv);
+                ret += mul[0] * rawInput;
+                if (rawInput != 0) rotateAcc = 0;
+            }
+            if (doRepeat) ret = Mathf.Repeat(ret, max);
+            if (doRound) ret = Mathf.Round(ret);
+            ret = Mathf.Clamp(ret, min, max);
+            if (!preventSetWhileHold) LeverOutput.Data = ret;
         }
-        public override void OnCalled(VRCPlayerApi.TrackingDataType trackType)
+
+        public override void OnGrab(FDMiFingerTracker finger)
         {
-            base.OnCalled(trackType);
-            if (!isActive) return;
-            prevPos = handStartPos;
-            prevAxis = handStartAxis;
+            base.OnGrab(finger);
             initial = LeverOutput.Data;
-            rotateAcc = 0f;
+            ret = LeverOutput.Data;
+            rotateAcc = 0;
         }
-        public override void OnReleased()
+        public override void OnRelease(FDMiFingerTracker finger)
         {
-            base.OnReleased();
+            base.OnRelease(finger);
             int detentIndex = -1;
             rotateAcc = 0f;
             float minDetDiff = float.MaxValue;
@@ -53,38 +82,8 @@ namespace tech.gyoku.FDMi.input
                     minDetDiff = detDiff;
                 }
             }
-            if (detentIndex < 0 && preventSetWhileHold) LeverOutput.set(Mathf.Clamp(ret, min, max));
-            if (detentIndex >= 0) LeverOutput.set(detents[detentIndex]);
+            if (detentIndex < 0 && preventSetWhileHold) LeverOutput.Data = Mathf.Clamp(ret, min, max);
+            if (detentIndex >= 0) LeverOutput.Data = detents[detentIndex];
         }
-        protected override void Update()
-        {
-            base.Update();
-            if (!isActive) return;
-            if (controlType == LeverControlType.pull)
-            {
-                Vector3 p = (handPos - handStartPos);
-                rawInput = p[(int)leverAxis];
-            }
-            if (controlType == LeverControlType.rotate)
-            {
-                Quaternion q = Quaternion.FromToRotation(prevPos, handPos);
-                rotateAcc += Mathf.Repeat(q.eulerAngles[(int)leverAxis] + 180, 360) - 180;
-                rawInput = Mathf.Sign(rotateAcc) * Mathf.Floor(Mathf.Abs(rotateAcc) / angleDiv) * angleDiv;
-            }
-            if (controlType == LeverControlType.twist)
-            {
-                Vector3 eular = (Quaternion.Inverse(prevAxis) * handAxis).eulerAngles;
-                rotateAcc += Mathf.Repeat(eular[(int)leverAxis] + 180, 360) - 180;
-                rawInput = Mathf.Sign(rotateAcc) * Mathf.Floor(Mathf.Abs(rotateAcc) / angleDiv) * angleDiv;
-            }
-            ret = initial + mul[0] * rawInput;
-            if (doRepeat) ret = Mathf.Repeat(ret, max);
-            if (doRound) ret = Mathf.Round(ret);
-            if (!preventSetWhileHold) LeverOutput.set(Mathf.Clamp(ret, min, max));
-            // if (!Input.GetKey(triggeredKey)) OnReleased();
-            prevPos = handPos;
-            prevAxis = handAxis;
-        }
-
     }
 }

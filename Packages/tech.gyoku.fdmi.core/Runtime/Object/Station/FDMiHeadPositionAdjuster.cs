@@ -9,7 +9,7 @@ namespace tech.gyoku.FDMi.core
     {
         [SerializeField] Transform headPosition;
         [SerializeField] Transform seatEnterPosition;
-        [SerializeField] FDMiVector3 SeatOffset;
+        public FDMiVector3 SeatOffset;
 
         void Start()
         {

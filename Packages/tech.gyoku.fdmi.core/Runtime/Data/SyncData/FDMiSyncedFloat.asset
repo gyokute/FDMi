@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiSyncedFloat
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 3c9c0d3e2b11d8540b047ed92a7c6110,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 0c04988cb86e9984f897ff805022d6d3, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 344857313581cb34ea418241dda31a68, type: 3}

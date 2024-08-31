@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiWing
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: ff7a4e9abce733742922e2e64109fbb2,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 1e702372d4e063c49baf7cc0075ab3b0, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: f7be86f56b7bc0c4bb94d4effe254375, type: 3}
@@ -734,13 +733,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: Mach
+      Data: SonicSpeed
     - Name: $v
       Entry: 7
       Data: 38|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: Mach
+      Data: SonicSpeed
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 36
@@ -1052,13 +1051,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: mach
+      Data: sonicSpeed
     - Name: $v
       Entry: 7
       Data: 55|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: mach
+      Data: sonicSpeed
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 52

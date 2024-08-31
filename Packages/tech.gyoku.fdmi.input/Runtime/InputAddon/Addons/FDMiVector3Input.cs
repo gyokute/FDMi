@@ -11,34 +11,30 @@ namespace tech.gyoku.FDMi.input
     public class FDMiVector3Input : FDMiInputAddon
     {
         public FDMiVector3 Output;
+        public FingerInputType inputAxisType = FingerInputType.Trigger;
+        [SerializeField] float axisThreshold = 0.5f;
         [SerializeField] float multiplier, limitMagnitude = 0.2f;
         Vector3 initialValue, adjustedOrigin;
         [SerializeField] bool useInSeatAdjuster;
         [SerializeField] Transform SeatTransform;
-        VRCPlayerApi.TrackingData handTrack, bodyTrack;
+        VRCPlayerApi.TrackingData bodyTrack;
 
-        public override void OnCalled(VRCPlayerApi.TrackingDataType trackType)
+        public override void OnGrab(FDMiFingerTracker finger)
         {
-            base.OnCalled(trackType);
-            handTrack = Networking.LocalPlayer.GetTrackingData(trackType);
-            bodyTrack = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin);
+            base.OnGrab(finger);
             initialValue = Output.data[0];
-            if (useInSeatAdjuster) adjustedOrigin = handTrack.position - bodyTrack.position;
-        }
-        public override void OnReleased()
-        {
-            base.OnReleased();
+            bodyTrack = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin);
+            if (useInSeatAdjuster) adjustedOrigin = finger.handPos - bodyTrack.position;
         }
         Vector3 p;
-        protected void LateUpdate()
+        public override void whileGrab()
         {
-            if (handType == VRCPlayerApi.TrackingDataType.Head) return;
-            if (!Input.GetKey(triggeredKey)) OnReleased();
+            base.whileGrab();
+            if (grabAxis[(int)inputAxisType] < axisThreshold) return;
             if (useInSeatAdjuster)
             {
-                handTrack = Networking.LocalPlayer.GetTrackingData(handType);
                 bodyTrack = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin);
-                p = Vector3.ClampMagnitude(handTrack.position - bodyTrack.position - adjustedOrigin, limitMagnitude);
+                p = Vector3.ClampMagnitude(handPos - bodyTrack.position, limitMagnitude);
             }
             else
             {
@@ -46,6 +42,5 @@ namespace tech.gyoku.FDMi.input
             }
             Output.set(initialValue + multiplier * p);
         }
-
     }
 }

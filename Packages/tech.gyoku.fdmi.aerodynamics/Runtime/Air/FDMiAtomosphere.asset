@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiAtomosphere
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 06cd6c3b89e7fd647be374da5bba6807,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 2f5e259f568807f40a6e59c136ccd9a3, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 914550e2b0152ce4181d2ab03c85b85a, type: 3}

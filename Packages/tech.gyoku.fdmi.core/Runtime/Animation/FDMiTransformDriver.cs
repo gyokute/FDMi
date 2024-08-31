@@ -7,7 +7,7 @@ namespace tech.gyoku.FDMi.core
 {
     public class FDMiTransformDriver : FDMiBehaviour
     {
-        [SerializeField] private FDMiFloat Input;
+        public FDMiFloat Input;
         private float[] input = new float[1];
         [SerializeField] private Transform targetTransform;
         [SerializeField] private Vector3 zeroPosition, onePosition;

@@ -10,7 +10,7 @@ namespace tech.gyoku.FDMi.avionics
 
     public class FDMiSpoileron : FDMiBehaviour
     {
-        [SerializeField] FDMiFloat SpoilerL, SpoilerR, SpoilerLever, RollOutput;
+        public FDMiFloat SpoilerL, SpoilerR, SpoilerLever, RollOutput;
         [SerializeField] float moveSpeed;
         float[] lever, roll, sl, sr;
 

@@ -1,9 +1,11 @@
 {
 	"name": "tech.gyoku.fdmi.avionics",
 	"displayName": "FDMi - Avionics",
-	"version": "2.0.1",
-	"unity": "2019.4",	
-	"description": "Flight dynamics add-on modules for Saccflight",
+	"version": "2.1.0",
+	"vpmDependencies": {
+		"tech.gyoku.fdmi.core": "^2.1.0"
+	},
+	"description": "Provides basic avionics system for FDMi.",
 	"author": {
 		"name": "gyokute",
 		"email": "gyokutech@gmail.com",

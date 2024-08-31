@@ -9,8 +9,8 @@ namespace tech.gyoku.FDMi.avionics
 {
     public class FDMiVerticalSpeed : FDMiAttribute
     {
-        [SerializeField] FDMiFloat VerticalSpeed;
-        [SerializeField] FDMiVector3 Velocity;
+        public FDMiFloat VerticalSpeed;
+        public FDMiVector3 Velocity;
         Vector3[] vel;
         void Start()
         {

@@ -13,20 +13,21 @@ namespace tech.gyoku.FDMi.dynamics
         public AnimationCurve Cd_Alpha;
         public FDMiVector3 AirSpeed;
         public FDMiFloat Rho;
+        public FDMiFloat BladePitch;
         public FDMiFloat PowerTrainRPM;
         public FDMiFloat OutputTorque;
         public int bladeNum = 2;
         public float bladeRadius = 1.0f;
         public float bladeChord = 0.2f;
-        public float bladePitch = 12.0f;
         public float gearRatio = 10f;
 
         private Vector3[] airSpeed;
-        private float[] rho, rpm, torqueOut;
+        private float[] bladePitch, rho, rpm, torqueOut;
         float r;
         void Start()
         {
             airSpeed = AirSpeed.data;
+            bladePitch = BladePitch.data;
             rho = Rho.data;
             rpm = PowerTrainRPM.data;
             torqueOut = OutputTorque.data;
@@ -44,7 +45,7 @@ namespace tech.gyoku.FDMi.dynamics
             Vr.z = Vector3.Dot(airSpeed[0], transform.forward);
             Vr.x = r * 6.2831853f * n;
             phi = Vector3.SignedAngle(Vr, Vector3.right, Vector3.up);
-            alpha = bladePitch - Vector3.SignedAngle(Vr, Vector3.right, Vector3.up);
+            alpha = bladePitch[0] - Vector3.SignedAngle(Vr, Vector3.right, Vector3.up);
 
             LiftVec.z = Vr.x;
             LiftVec.x = -Vr.z;

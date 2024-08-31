@@ -8,7 +8,7 @@ namespace tech.gyoku.FDMi.core
     public class FDMiObjectActivateByValue : FDMiBehaviour
     {
         [SerializeField] GameObject obj;
-        [SerializeField] FDMiFloat Value;
+        public FDMiFloat Value;
         [SerializeField] AnimationCurve turnOnCurve;
         [SerializeField] private bool moveOnValueChange, moveOnUpdate;
         void Start()

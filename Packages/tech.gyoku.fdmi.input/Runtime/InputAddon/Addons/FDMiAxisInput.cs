@@ -11,26 +11,27 @@ namespace tech.gyoku.FDMi.input
 
     public class FDMiAxisInput : FDMiInputAddon
     {
-        [SerializeField] FDMiFloat Output;
-        [SerializeField] InputButton inputAxisType;
+        public FDMiFloat Output;
+        [SerializeField] FingerInputType inputAxisType;
         [SerializeField] AxisBehaviourType behaviourType;
-        [SerializeField] float multiply = 1f, min = 0f, max = 1f;
+        [SerializeField] float multiply = 1f, min = 0f, max = 1f, initial = 0f;
         [SerializeField] float threshold = 0.5f;
         bool alternateLatch = false;
 
-        protected override void Update()
+        public override void whileGrab()
         {
-            base.Update();
+            base.whileGrab();
+            if (grabAxis == null) return;
             if (behaviourType == AxisBehaviourType.momentum)
-                Output.set(Mathf.Clamp(multiply * input[(int)inputAxisType], min, max));
+                Output.set(Mathf.Clamp(multiply * grabAxis[(int)inputAxisType], min, max));
             if (behaviourType == AxisBehaviourType.force)
             {
-                if (input[(int)inputAxisType] * multiply > threshold)
+                if (grabAxis[(int)inputAxisType] * multiply > threshold)
                     Output.set(max);
             }
             if (behaviourType == AxisBehaviourType.alternate)
             {
-                if (input[(int)inputAxisType] * multiply > threshold)
+                if (grabAxis[(int)inputAxisType] * multiply > threshold)
                 {
                     if (!alternateLatch)
                     {
@@ -45,15 +46,16 @@ namespace tech.gyoku.FDMi.input
             }
             if (behaviourType == AxisBehaviourType.addition)
             {
-                Output.set(Mathf.Clamp(Output.Data + input[(int)inputAxisType] * multiply * Time.deltaTime, min, max));
+                Output.set(Mathf.Clamp(Output.Data + grabAxis[(int)inputAxisType] * multiply * Time.deltaTime, min, max));
             }
         }
 
-        public override void OnReleased()
+        public override void OnRelease(FDMiFingerTracker finger)
         {
-            base.OnReleased();
+            base.OnRelease(finger);
+            alternateLatch = false;
             if (behaviourType == AxisBehaviourType.momentum)
-                Output.set(min);
+                Output.set(initial);
         }
     }
 }

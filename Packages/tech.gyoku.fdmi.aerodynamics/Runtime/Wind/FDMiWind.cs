@@ -7,11 +7,11 @@ using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.aerodynamics
 {
-    public class FDMiWind : FDMiAttribute
+    public class FDMiWind : FDMiBehaviour
     {
         public FDMiVector3 Wind, Position;
-        public FDMiSyncedVector3 WindConstant;
-        public FDMiSyncedFloat WindTurbulanceScale, WindGustStrength;
+        public FDMiVector3 WindConstant;
+        public FDMiFloat WindTurbulanceScale, WindGustStrength;
         private Vector3[] pos, wind, windConst;
         private float[] turbulanceScale, gustStrength;
 

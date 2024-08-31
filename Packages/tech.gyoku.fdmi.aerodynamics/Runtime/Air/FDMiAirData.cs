@@ -12,7 +12,7 @@ namespace tech.gyoku.FDMi.aerodynamics
     {
         public FDMiVector3 AirSpeed, Wind, Velocity;
         public FDMiQuaternion Rotation;
-        public FDMiFloat Alpha, Beta, IAS, TAS, Mach, Rho, SonicSpeed, IASAcc, TASAcc;
+        public FDMiFloat Alpha, Beta, IAS, TAS, Mach, Rho, SonicSpeed, IASAcc, TASAcc, VerticalSpeed;
         private Vector3[] airSpeed, wind, vel;
         private Quaternion[] rot;
         private float[] alpha, beta, ias, tas, mach, sat, rho, sonic, iasAcc, tasAcc;
@@ -60,6 +60,7 @@ namespace tech.gyoku.FDMi.aerodynamics
             // tat[0] = (1f + 0.2f * mach[0] * mach[0]) / sat[0];
             IASAcc.Data = Mathf.Lerp((ias[0] - pIAS) / Time.deltaTime, iasAcc[0], omega);
             TASAcc.Data = Mathf.Lerp((tas[0] - pIAS) / Time.deltaTime, tasAcc[0], omega);
+            VerticalSpeed.Data = vel[0].y;
         }
     }
 }

@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFloataccumulator
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 84a134eb55a4437469714f49f0a802af,
-    type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: ff4fa5ebd1ccdbd41a1b93b043d436f2, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: ea3714b88d5116d449fe4009c5309d18, type: 3}

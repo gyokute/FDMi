@@ -10,10 +10,10 @@ namespace tech.gyoku.FDMi.avionics
     public enum AutobrakeMode { RTO, OFF, ONE, TWO, THREE, MAX }
     public class FDMiAutoBrake : FDMiAutoPilot
     {
-        [SerializeField] FDMiFloat BrakeInputL, BrakeInputR;
+        public FDMiFloat BrakeInputL, BrakeInputR;
 
-        [SerializeField] FDMiFloat AutoBrakeMode, Throttle, BrakeInput, GroundSpeed;
-        [SerializeField] FDMiBool AnyIsGround;
+        public FDMiFloat AutoBrakeMode, Throttle, BrakeInput, GroundSpeed;
+        public FDMiBool AnyIsGround;
 
         [SerializeField] float ki, brakeAcc = -2.19456f;
         float[] bl, br, absMode, throttle, brake, gs;
