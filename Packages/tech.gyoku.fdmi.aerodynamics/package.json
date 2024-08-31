@@ -1,9 +1,11 @@
 {
-	"name" : "tech.gyoku.fdmi.aerodynamics",
-	"displayName" : "FDMi - Aerodynamics",
-	"version": "2.0.1",
-	"unity": "2019.4",	
-	"description": "Flight dynamics add-on modules for Saccflight",
+	"name": "tech.gyoku.fdmi.aerodynamics",
+	"displayName": "FDMi - Aerodynamics",
+	"version": "2.1.0",
+	"vpmDependencies": {
+		"tech.gyoku.fdmi.core": "^2.1.0"
+	},
+	"description": "Realistic aerodynamic physics for VRChat.",
 	"author": {
 		"name": "gyokute",
 		"email": "gyokutech@gmail.com",
