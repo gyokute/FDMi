@@ -43,6 +43,5 @@ namespace tech.gyoku.FDMi.sync.editor
                 }
             }
         }
-
     }
 }
