@@ -10,14 +10,13 @@ using UdonSharpEditor;
 using UnityEngine.SceneManagement;
 using VRC.SDKBase.Editor.BuildPipeline;
 using tech.gyoku.FDMi.core;
-using tech.gyoku.FDMi.core.editor;
 using tech.gyoku.FDMi.core.editor.process;
 
-namespace tech.gyoku.FDMi.editor
+namespace tech.gyoku.FDMi.core.editor
 {
     public class FDMiEditorExtSetupAll : Editor
     {
-        [MenuItem("FDMi/Setup FDMi Components", false, 1000)]
+        [MenuItem("FDMi/Setup All FDMi Components", false, 1000)]
         public static void setupAllFDMiComponents()
         {
             var processClasses = AppDomain.CurrentDomain.GetAssemblies()
@@ -41,7 +40,7 @@ namespace tech.gyoku.FDMi.editor
             EditorUtility.ClearProgressBar();
         }
 
-        [MenuItem("FDMi/Settings/Setup Layer", false, 1000)]
+        [MenuItem("FDMi/Setup/Setup Layer", false, 1000)]
         public static void setupLayer()
         {
             // 29番にBoardingColliderを追加
