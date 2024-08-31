@@ -4,12 +4,13 @@ using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
 using VRC.Udon.Serialization.OdinSerializer;
+using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.sync
 {
     [DefaultExecutionOrder(-90)]
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class FDMiPlayerPositionAssigner : UdonSharpBehaviour
+    public class FDMiPlayerPositionAssigner : FDMiBehaviour
     {
         public FDMiPlayerSyncManager playerSyncMan;
         public FDMiPlayerPosition playerPosition;

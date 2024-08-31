@@ -5,10 +5,11 @@ using VRC.SDKBase;
 using VRC.Udon;
 using VRC.Udon.Common.Interfaces;
 using VRC.Udon.Serialization.OdinSerializer;
+using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.sync
 {
-    public class FDMiPlayerSyncManager : UdonSharpBehaviour
+    public class FDMiPlayerSyncManager : FDMiBehaviour
     {
         public FDMiPlayerPositionAssigner[] assigners;
         VRCPlayerApi[] players = new VRCPlayerApi[80];

@@ -3,11 +3,12 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using tech.gyoku.FDMi.core;
 
 namespace tech.gyoku.FDMi.sync
 {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class FDMiReferencePoint : UdonSharpBehaviour
+    public class FDMiReferencePoint : FDMiBehaviour
     {
 
         [HideInInspector] public int index; // use in FDMiRelativeObjectSyncManager.Identify FDMiReferencePoint.

@@ -13,7 +13,7 @@ using tech.gyoku.FDMi.sync;
 namespace tech.gyoku.FDMi.sync.editor
 {
     [CustomEditor(typeof(FDMiPlayerSyncManager), true)]
-    public class FDMiPlayerSyncManagerEditor : FDMiAttributeEditor
+    public class FDMiPlayerSyncManagerEditor : FDMiSyncAttributeEditor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {

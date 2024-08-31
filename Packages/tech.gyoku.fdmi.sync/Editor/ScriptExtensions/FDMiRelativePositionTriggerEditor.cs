@@ -13,20 +13,13 @@ using tech.gyoku.FDMi.sync;
 
 namespace tech.gyoku.FDMi.sync.editor
 {
-    [CustomEditor(typeof(FDMiRelativeSyncStationManager), true)]
-    public class FDMiRelativeSyncStationManagerEditor : FDMiStationManagerEditor
+    [CustomEditor(typeof(FDMiRelativePositionTrigger), true)]
+    public class FDMiRelativePositionTriggerEditor : FDMiSyncAttributeEditor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
             base.SetPropertyOption(tgt, property, forceSetup);
-            if (property.name == nameof(FDMiRelativeSyncStationManager.syncManager))
-            {
-                if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
-                {
-                    property.objectReferenceValue = FindObjectOfType<FDMiRelativeObjectSyncManager>();
-                }
-            }
-            if (property.name == nameof(FDMiRelativeSyncStationManager.refPoint))
+            if (property.name == nameof(FDMiRelativePositionTrigger.refPoint))
             {
                 if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 {
@@ -35,6 +28,5 @@ namespace tech.gyoku.FDMi.sync.editor
                 }
             }
         }
-
     }
 }

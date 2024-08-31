@@ -13,7 +13,7 @@ using tech.gyoku.FDMi.sync;
 namespace tech.gyoku.FDMi.sync.editor
 {
     [CustomEditor(typeof(FDMiPlayerPositionAssigner), true)]
-    public class FDMiPlayerPositionAssignerEditor : FDMiAttributeEditor
+    public class FDMiPlayerPositionAssignerEditor : FDMiSyncAttributeEditor
     {
         public override void SetPropertyOption(Component tgt, SerializedProperty property, bool forceSetup)
         {
@@ -23,6 +23,13 @@ namespace tech.gyoku.FDMi.sync.editor
                 if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
                 {
                     property.objectReferenceValue = tgt.GetComponentInParent<FDMiPlayerSyncManager>();
+                }
+            }
+            if (property.name == nameof(FDMiPlayerPositionAssigner.playerPosition))
+            {
+                if ((forceSetup ? true : FDMiEditorUI.Button(forceSetup, "Find")))
+                {
+                    property.objectReferenceValue = tgt.GetComponentInChildren<FDMiPlayerPosition>();
                 }
             }
         }
