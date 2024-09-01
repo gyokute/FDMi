@@ -88,7 +88,11 @@ const config = {
             items: [
               {
                 label: 'Tutorial',
+<<<<<<< HEAD
                 to: '/intro',
+=======
+                to: '/docs/intro',
+>>>>>>> main
               },
             ],
           },
