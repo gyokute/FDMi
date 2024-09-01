@@ -8,8 +8,8 @@ import { themes as prismThemes } from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'FDMi',
+  tagline: 'Flight Dynamics Model improved.',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
@@ -61,9 +61,9 @@ const config = {
       // Replace with your project's social card
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
-        title: 'My Site',
+        title: 'FDMi',
         logo: {
-          alt: 'My Site Logo',
+          alt: 'FDMi Logo',
           src: 'img/logo.svg',
         },
         items: [
@@ -71,11 +71,10 @@ const config = {
             type: 'docSidebar',
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Tutorial',
+            label: 'Documents',
           },
-          { to: '/blog', label: 'Blog', position: 'left' },
           {
-            href: 'https://github.com/facebook/docusaurus',
+            href: 'https://github.com/gyokute/FDMi',
             label: 'GitHub',
             position: 'right',
           },
@@ -94,33 +93,25 @@ const config = {
             ],
           },
           {
-            title: 'Community',
+            title: 'VRChat Worlds',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-              },
-              {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/docusaurus',
-              },
+                label: 'GenericSkyWorlds-TFFJ',
+                href: 'https://vrchat.com/home/launch?worldId=wrld_cc87574e-feae-4fb0-aa97-7bdac8ff9f47 ',
+              }
             ],
           },
           {
             title: 'More',
             items: [
               {
-                label: 'Blog',
-                to: '/blog',
+                label: 'GitHub - FDMi',
+                href: 'https://github.com/gyokute/FDMi',
               },
               {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
-              },
+                label: 'Twitter',
+                href: 'https://twitter.com/gyo_ku_te',
+              }
             ],
           },
         ],
