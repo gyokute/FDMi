@@ -1,0 +1,8 @@
+{
+  "label": "Developers Guide",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "スクリプト製作者向けに、FDMiの機能全体で特筆すべき事項を説明します。"
+  }
+}
