@@ -10,5 +10,10 @@
 		"name": "gyokute",
 		"email": "gyokutech@gmail.com",
 		"url": "https://github.com/gyokute"
-	}
+	},
+	"licensesUrl": "https://github.com/gyokute/FDMi/blob/main/LICENSE",
+	"license": "MIT",
+	"keywords": ["Udonsharp"],
+	"url": "https://github.com/gyokute/FDMi/releases/download/2.1.0/tech.gyoku.fdmi.avionics-2.1.0.zip?",
+	"repo": "https://vpm.gyoku.tech/vpm.json"
 }

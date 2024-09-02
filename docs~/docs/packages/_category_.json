@@ -1,0 +1,8 @@
+{
+  "label": "Packages",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "スクリプトの使用者向けに、各パッケージ・スクリプトの機能を説明します。"
+  }
+}
