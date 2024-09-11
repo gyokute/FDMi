@@ -7,7 +7,7 @@ using VRC.Udon;
 namespace tech.gyoku.FDMi.core
 {
     [DefaultExecutionOrder(-100)]
-    public class FDMiObjectManager : UdonSharpBehaviour
+    public class FDMiObjectManager : FDMiBehaviour
     {
         public Rigidbody body;
         public FDMiAttribute[] attributes;
