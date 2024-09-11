@@ -62,10 +62,10 @@ const config = {
       image: 'img/docusaurus-social-card.jpg',
       navbar: {
         title: 'FDMi',
-        logo: {
-          alt: 'FDMi Logo',
-          src: 'img/logo.svg',
-        },
+        // logo: {
+        //   alt: 'FDMi Logo',
+        //   src: 'img/logo.svg',
+        // },
         items: [
           {
             type: 'docSidebar',
