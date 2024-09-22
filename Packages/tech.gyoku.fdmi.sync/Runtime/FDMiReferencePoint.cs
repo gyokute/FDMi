@@ -51,7 +51,10 @@ namespace tech.gyoku.FDMi.sync
 
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
         protected bool isInit = false;
-        public Vector3 respawnPoint;
+        public Transform respawnPoint;
+        [HideInInspector]public Vector3 respawnPos = Vector3.zero;
+        [HideInInspector]public Quaternion respawnRot = Quaternion.identity;
+        private
         protected Vector3 prevPos;
         protected Quaternion prevRot;
 
@@ -62,6 +65,11 @@ namespace tech.gyoku.FDMi.sync
             if (!parentRefPoint) parentRefPoint = syncManager;
             rootRefPoint = syncManager;
             if (parentRefPoint) ParentIndex = parentRefPoint.index;
+            if (Utilities.IsValid(respawnPoint))
+            {
+                respawnPos = transform.InverseTransformPoint(respawnPoint.position);
+                respawnRot = Quaternion.Inverse(transform.rotation) * respawnPoint.rotation;
+            }
 
             waitUpdate();
             isInit = true;
