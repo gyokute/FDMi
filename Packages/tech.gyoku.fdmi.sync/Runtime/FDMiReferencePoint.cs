@@ -65,7 +65,7 @@ namespace tech.gyoku.FDMi.sync
             if (!parentRefPoint) parentRefPoint = syncManager;
             rootRefPoint = syncManager;
             if (parentRefPoint) ParentIndex = parentRefPoint.index;
-            if (respawnPoint)
+            if (Utilities.IsValid(respawnPoint))
             {
                 respawnPos = transform.InverseTransformPoint(respawnPoint.position);
                 respawnRot = Quaternion.Inverse(transform.rotation) * respawnPoint.rotation;
