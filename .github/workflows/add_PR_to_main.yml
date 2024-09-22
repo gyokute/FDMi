@@ -1,0 +1,37 @@
+# from https://www.memory-lovers.blog/entry/2022/11/18/083000
+name: create PR by github-actions[bot]
+on:
+  push:
+    branches-ignore:
+      - "main"
+env:
+  BASE_BRANCH: main
+  REVIEWER: gyokute
+
+jobs:
+  create_pr:
+    # ブランチが作成されただけならスキップ
+    if: ${{ !github.event.created }}
+    runs-on: ubuntu-latest
+    steps:
+      # チェックアウト
+      - uses: actions/checkout@v3
+        with:
+          # PRのタイトルとかをコミット履歴から取得するので、
+          # fetch-depthを0に設定して全履歴を取得
+          fetch-depth: 0
+
+      # PRがすでに存在していないかのチェック
+      # gh pr listでbase/headのブランチが同じPR検索して判定
+      - name: check PR
+        id: check_pr
+        run: |
+          echo "count=$(gh pr list -B ${{ env.BASE_BRANCH }} -H ${{ github.ref_name }} --json 'id' -q '.[] | length')" >> $GITHUB_OUTPUT
+
+      # PRがまだなかったらghコマンドで生成
+      - name: Create PR
+        if: ${{ steps.check_pr.outputs.count == '' }}
+        run: gh pr create --fill -B ${{ env.BASE_BRANCH }} -r ${{ env.REVIEWER }}
+        env:
+          # github-actions[bot]のトークンを使って作成するために設定
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
