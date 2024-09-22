@@ -15,7 +15,7 @@ namespace tech.gyoku.FDMi.sync
             setPosition(transform.position);
             _rotation = transform.rotation;
         }
-        public void LateUpdate()
+        public void FixedUpdate()
         {
             Vector3 relativePos = getViewPosition();
             transform.SetPositionAndRotation(relativePos, getViewRotation());
