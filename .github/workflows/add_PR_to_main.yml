@@ -1,9 +1,7 @@
 # from https://www.memory-lovers.blog/entry/2022/11/18/083000
 name: create PR by github-actions[bot]
 on:
-  push:
-    branches-ignore:
-      - "main"
+  workflow_dispatch:
 env:
   BASE_BRANCH: main
   REVIEWER: gyokute
