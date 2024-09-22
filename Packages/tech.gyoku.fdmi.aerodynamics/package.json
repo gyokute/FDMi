@@ -1,9 +1,9 @@
 {
 	"name": "tech.gyoku.fdmi.aerodynamics",
 	"displayName": "FDMi - Aerodynamics",
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"vpmDependencies": {
-		"tech.gyoku.fdmi.core": "^2.1.0"
+		"tech.gyoku.fdmi.core": "^2.1.1"
 	},
 	"description": "Realistic aerodynamic physics for VRChat.",
 	"author": {
@@ -14,6 +14,6 @@
 	"licensesUrl": "https://github.com/gyokute/FDMi/blob/main/LICENSE",
 	"license": "MIT",
 	"keywords": ["Udonsharp"],
-	"url": "https://github.com/gyokute/FDMi/releases/download/2.1.0/tech.gyoku.fdmi.aerodynamics-2.1.0.zip?",
+	"url": "https://github.com/gyokute/FDMi/releases/download/2.1.1/tech.gyoku.fdmi.aerodynamics-2.1.1.zip?",
 	"repo": "https://vpm.gyoku.tech/vpm.json"
 }
