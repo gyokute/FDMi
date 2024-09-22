@@ -58,8 +58,9 @@ namespace tech.gyoku.FDMi.sync
                 syncManager.localPlayerPosition = this;
                 SendCustomEventDelayedFrames(nameof(useSeat), 1);
                 syncManager.changeRootRefPoint(syncManager);
-                transform.position = syncManager.respawnPoint;
-                localPlayer.TeleportTo(syncManager.respawnPoint, Quaternion.identity);
+                transform.position = syncManager.respawnPos;
+                transform.rotation = syncManager.respawnRot;
+                localPlayer.TeleportTo(syncManager.respawnPos, syncManager.respawnRot);
                 station.PlayerMobility = VRCStation.Mobility.Mobile;
                 ResetSyncTime();
                 TrySerialize();
@@ -123,8 +124,8 @@ namespace tech.gyoku.FDMi.sync
                 gameObject.SetActive(false);
                 ParentIndex = syncManager.index;
                 _kmPosition = Vector3.zero;
-                transform.position = syncManager.respawnPoint;
-                _position = syncManager.respawnPoint;
+                transform.position = syncManager.respawnPos;
+                _position = syncManager.respawnPos;
             }
         }
         public override void OnPlayerRespawn(VRCPlayerApi player)
@@ -134,10 +135,11 @@ namespace tech.gyoku.FDMi.sync
         void RespawnLocalPlayer()
         {
             ParentIndex = syncManager.rootRefPoint.index;
-            localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPoint, Quaternion.identity);
+            localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPos, syncManager.rootRefPoint.respawnRot);
             inVehicle = false;
             _kmPosition = Vector3.zero;
-            _position = syncManager.rootRefPoint.respawnPoint;
+            _position = syncManager.rootRefPoint.respawnPos;
+            _rotation = syncManager.rootRefPoint.respawnRot;
             syncManager.onChangeLocalPlayerKMPosition();
             RequestSerialization();
         }
