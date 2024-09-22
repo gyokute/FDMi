@@ -25,6 +25,7 @@ FDMiを利用した飛行機ギミックの導入では、以下の操作が必�
 - 地面/空の設定
   - FDMiRelativeGroundSync(地面)
   - FDMiRelativeSkybox(空)
+- 航空機の追加
 
 ## FDMi stack(ワールド全体設定)
 
@@ -91,3 +92,8 @@ FDMiでは、空を回転させるため、`FDMi - Example/Prefabs/FDMiSkybox`�
 - `Main Camera`(ワールド設定用カメラ)の設定を調整します。
   - `Clear Flags`を`Solid Color`にします。
   - `Clipping Planes`を`FDMiSkybox/uvSphere`の２倍以上のサイズに設定します。
+
+## 航空機の追加
+
+各機体の設定がなされたprefabを**シーンのルート**(親がない状態)に配置します。  
+この状態で、上部メニュー`FDMi/Setup FDMi`を押せば、自動で設定されます。
