@@ -7,9 +7,18 @@ using VRC.Udon.Common.Interfaces;
 
 namespace tech.gyoku.FDMi.sync
 {
-    public class FDMiRelativeHorizontalFixedGround : FDMiRelativeGroundSync
+    public class FDMiRelativeHorizontalFixedGround : FDMiReferencePoint
     {
+        void Start()
+        {
+            setPosition(transform.position);
+            _rotation = transform.rotation;
+        }
+        public void Update()
+        {
+            transform.position = getViewPosition();
 
+        }
         public override Vector3 getViewPosition()
         {
             if (isRoot) return Vector3.zero;

@@ -64,26 +64,34 @@ namespace tech.gyoku.FDMi.sync
         void FixedUpdate()
         {
             if (!isInit) return;
-            if (!Networking.IsOwner(gameObject) || body.isKinematic) return;
-            if (isRoot)
+            if (Networking.IsOwner(gameObject) && !body.isKinematic)
             {
-                Quaternion br = body.rotation;
-                Vector3 bp = body.position;
-                setRotation((_rotation * br).normalized);
-                setPosition(_rotation * bp + _position);
-                body.position = Vector3.zero;
-                body.rotation = Quaternion.identity;
-                body.velocity = Quaternion.Inverse(br) * body.velocity;
+                if (isRoot)
+                {
+                    Quaternion br = body.rotation;
+                    Vector3 bp = body.position;
+                    setRotation((_rotation * br).normalized);
+                    setPosition(_rotation * bp + _position);
+                    body.position = Vector3.zero;
+                    body.rotation = Quaternion.identity;
+                    body.velocity = Quaternion.Inverse(br) * body.velocity;
 
-                // gravity
-                Vector3 g = Quaternion.Inverse(_rotation) * gravity;
-                body.AddForce(g, ForceMode.Acceleration);
+                    // gravity
+                    Vector3 g = Quaternion.Inverse(_rotation) * gravity;
+                    body.AddForce(g, ForceMode.Acceleration);
+                }
+                if (parentRefPoint.index == rootRefPoint.index)
+                {
+                    // gravity
+                    Vector3 g = Quaternion.Inverse(parentRefPoint._rotation) * gravity;
+                    body.AddForce(g, ForceMode.Acceleration);
+                }
             }
-            if (parentRefPoint.index == rootRefPoint.index)
+            else
             {
-                // gravity
-                Vector3 g = Quaternion.Inverse(parentRefPoint._rotation) * gravity;
-                body.AddForce(g, ForceMode.Acceleration);
+                if (stopUpdate || isRoot) return;
+                body.rotation = getViewRotation();
+                body.position = getViewPosition();
             }
         }
 
@@ -96,8 +104,6 @@ namespace tech.gyoku.FDMi.sync
                 Vector3 btp = body.transform.position + (syncManager.localPlayerPosition ? 1000f * syncManager.localPlayerPosition._kmPosition : Vector3.zero);
                 if (isRoot)
                 {
-                    // setRotation((btr * _rotation).normalized);
-                    // setPosition(_rotation * btp + Position);
                     _velocity = _rotation * body.velocity;
                 }
                 if (parentRefPoint.index == rootRefPoint.index)
@@ -116,10 +122,10 @@ namespace tech.gyoku.FDMi.sync
         {
             if (!Networking.IsOwner(gameObject)) ExtrapolationAndSmoothing();
             if (stopUpdate || isRoot) return;
-            transform.rotation = getViewRotation();
-            transform.position = getViewPosition();
-            body.position = transform.position;
-            body.rotation = transform.rotation;
+            // body.rotation = getViewRotation();
+            // body.position = getViewPosition();
+            // body.position = transform.position;
+            // body.rotation = transform.rotation;
         }
 
         #region Interpolated

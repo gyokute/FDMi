@@ -15,10 +15,10 @@ namespace tech.gyoku.FDMi.sync
             setPosition(transform.position);
             _rotation = transform.rotation;
         }
-        public void FixedUpdate()
+        public void Update()
         {
             Vector3 relativePos = getViewPosition();
-            transform.SetPositionAndRotation(relativePos, getViewRotation());
+            // transform.SetPositionAndRotation(relativePos, getViewRotation());
             if (relativePos.magnitude * 0.001f > disableKmPos + 1)
             {
                 gameObject.SetActive(false);

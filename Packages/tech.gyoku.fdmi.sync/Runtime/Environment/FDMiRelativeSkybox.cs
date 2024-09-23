@@ -7,12 +7,16 @@ using VRC.Udon.Common.Interfaces;
 
 namespace tech.gyoku.FDMi.sync
 {
-    public class FDMiRelativeSkybox : FDMiRelativeGroundSync
+    public class FDMiRelativeSkybox : FDMiReferencePoint
     {
-
-        public override Vector3 getViewPosition()
+        void Start()
         {
-            return Vector3.zero;
+            setPosition(transform.position);
+            _rotation = transform.rotation;
+        }
+        void Update()
+        {
+            transform.position = Vector3.zero;
         }
 
     }

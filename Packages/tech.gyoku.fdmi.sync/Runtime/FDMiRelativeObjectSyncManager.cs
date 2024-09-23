@@ -25,11 +25,11 @@ namespace tech.gyoku.FDMi.sync
                 refPoints[i].initReferencePoint();
         }
 
-        public void LateUpdate()
+        public void FixedUpdate()
         {
             if (!isInit) return;
-            transform.rotation = getViewRotation();
-            transform.position = getViewPosition();
+            body.rotation = getViewRotation();
+            body.position = getViewPosition();
         }
 
         public void onChangeLocalPlayerKMPosition()
