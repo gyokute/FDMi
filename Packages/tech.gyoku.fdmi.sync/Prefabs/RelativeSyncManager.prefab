@@ -47,14 +47,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 345118508}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1621297719}
@@ -219,7 +222,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
+    SerializedFormat: 2
     SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
@@ -339,7 +342,7 @@ MonoBehaviour:
   SynchronizePosition: 0
   AllowCollisionOwnershipTransfer: 0
   Reliable: 0
-  _syncMethod: 2
+  _syncMethod: 1
   serializedProgramAsset: {fileID: 11400000, guid: 1669f51da7de03f48b53d39f942098ca, type: 2}
   programSource: {fileID: 11400000, guid: 2168c5f3451136a46bc9939d434e5734, type: 2}
   serializedPublicVariablesBytesString: Ai8AAAAAATIAAABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlAFQAYQBiAGwAZQAsACAAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4AAAAAAAYBAAAAAAAAACcBBAAAAHQAeQBwAGUAAWgAAABTAHkAcwB0AGUAbQAuAEMAbwBsAGwAZQBjAHQAaQBvAG4AcwAuAEcAZQBuAGUAcgBpAGMALgBMAGkAcwB0AGAAMQBbAFsAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4ALgBJAG4AdABlAHIAZgBhAGMAZQBzAC4ASQBVAGQAbwBuAFYAYQByAGkAYQBiAGwAZQAsACAAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4AXQBdACwAIABtAHMAYwBvAHIAbABpAGIAAQEJAAAAVgBhAHIAaQBhAGIAbABlAHMALwEAAAABaAAAAFMAeQBzAHQAZQBtAC4AQwBvAGwAbABlAGMAdABpAG8AbgBzAC4ARwBlAG4AZQByAGkAYwAuAEwAaQBzAHQAYAAxAFsAWwBWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAEkAbgB0AGUAcgBmAGEAYwBlAHMALgBJAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlACwAIABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgBdAF0ALAAgAG0AcwBjAG8AcgBsAGkAYgABAAAABgEAAAAAAAAAAi8CAAAAAUkAAABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlAGAAMQBbAFsAUwB5AHMAdABlAG0ALgBJAG4AdAAzADIALAAgAG0AcwBjAG8AcgBsAGkAYgBdAF0ALAAgAFYAUgBDAC4AVQBkAG8AbgAuAEMAbwBtAG0AbwBuAAIAAAAGAgAAAAAAAAAnAQQAAAB0AHkAcABlAAEXAAAAUwB5AHMAdABlAG0ALgBTAHQAcgBpAG4AZwAsACAAbQBzAGMAbwByAGwAaQBiACcBCgAAAFMAeQBtAGIAbwBsAE4AYQBtAGUAAR8AAABfAF8AXwBVAGQAbwBuAFMAaABhAHIAcABCAGUAaABhAHYAaQBvAHUAcgBWAGUAcgBzAGkAbwBuAF8AXwBfACcBBAAAAHQAeQBwAGUAARYAAABTAHkAcwB0AGUAbQAuAEkAbgB0ADMAMgAsACAAbQBzAGMAbwByAGwAaQBiABcBBQAAAFYAYQBsAHUAZQACAAAABwUHBQcF
@@ -412,14 +415,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1621297720}
   index: 0
   parentIsRoot: 0
@@ -433,9 +442,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -536,14 +547,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3047439010956089738}
   index: 0
   parentIsRoot: 0
@@ -557,9 +574,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -660,14 +679,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 9171697579639304025}
   index: 0
   parentIsRoot: 0
@@ -681,9 +706,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -764,14 +791,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4803528153986946905}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6787396637716292376}
@@ -847,14 +877,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3952575320815955049}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2333224299449869562}
@@ -930,14 +963,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 2843137613565066603}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 265382216488779011}
@@ -1033,14 +1069,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7105850023131414785}
   index: 0
   parentIsRoot: 0
@@ -1054,9 +1096,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -1157,14 +1201,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3874844166893320818}
   index: 0
   parentIsRoot: 0
@@ -1178,9 +1228,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -1281,14 +1333,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3839170320047403124}
   index: 0
   parentIsRoot: 0
@@ -1302,9 +1360,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -1385,14 +1445,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7343794464310425366}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 3022904799586944862}
@@ -1468,14 +1531,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 81665076100213051}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1926365272771059211}
@@ -1551,14 +1617,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7786733521758206074}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 3640941586358081391}
@@ -1654,14 +1723,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7117668752380605229}
   index: 0
   parentIsRoot: 0
@@ -1675,9 +1750,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -1758,14 +1835,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3408303894240653601}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4187412141740590641}
@@ -1861,14 +1941,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4683064578163123224}
   index: 0
   parentIsRoot: 0
@@ -1882,9 +1968,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -1965,14 +2053,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5112017905259481537}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1479923279999130053}
@@ -2068,14 +2159,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7623304505342135366}
   index: 0
   parentIsRoot: 0
@@ -2089,9 +2186,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -2192,14 +2291,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7273379859205528354}
   index: 0
   parentIsRoot: 0
@@ -2213,9 +2318,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -2296,14 +2403,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6937261463615265107}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 9098185162246288856}
@@ -2399,14 +2509,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8850306965969766806}
   index: 0
   parentIsRoot: 0
@@ -2420,9 +2536,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -2523,14 +2641,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 398810367196933337}
   index: 0
   parentIsRoot: 0
@@ -2544,9 +2668,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -2627,14 +2753,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4613084623786508113}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6453878040538233857}
@@ -2730,14 +2859,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 2157295499552106956}
   index: 0
   parentIsRoot: 0
@@ -2751,9 +2886,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -2834,14 +2971,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4789808144738297770}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 30549244748755022}
@@ -2937,14 +3077,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8685022476726143103}
   index: 0
   parentIsRoot: 0
@@ -2958,9 +3104,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -3061,14 +3209,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4703177127592195496}
   index: 0
   parentIsRoot: 0
@@ -3082,9 +3236,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -3185,14 +3341,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 9087717643638252500}
   index: 0
   parentIsRoot: 0
@@ -3206,9 +3368,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -3289,14 +3453,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5687532691693415232}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8869012986943225771}
@@ -3372,14 +3539,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1624556466266856437}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2492725390453359430}
@@ -3455,14 +3625,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6622656337093290178}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6525986658637528485}
@@ -3558,14 +3731,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3724375049540186374}
   index: 0
   parentIsRoot: 0
@@ -3579,9 +3758,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -3682,14 +3863,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3133554506356179540}
   index: 0
   parentIsRoot: 0
@@ -3703,9 +3890,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -3786,14 +3975,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5515407987249742431}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4926931277820812733}
@@ -3889,14 +4081,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3362039436622697157}
   index: 0
   parentIsRoot: 0
@@ -3910,9 +4108,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -3993,14 +4193,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1206649291076431508}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8308015738464202012}
@@ -4076,14 +4279,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1970153578258844832}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 82823851828973673}
@@ -4179,14 +4385,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 5244880948121735763}
   index: 0
   parentIsRoot: 0
@@ -4200,9 +4412,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -4303,14 +4517,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7629308483944046563}
   index: 0
   parentIsRoot: 0
@@ -4324,9 +4544,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -4407,14 +4629,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1940932746131364700}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 102464403934250551}
@@ -4490,14 +4715,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7729805012646327329}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 126299091199999399}
@@ -4593,14 +4821,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 2177880161198380671}
   index: 0
   parentIsRoot: 0
@@ -4614,9 +4848,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -4717,14 +4953,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8194644836185620784}
   index: 0
   parentIsRoot: 0
@@ -4738,9 +4980,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -4841,14 +5085,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 5976927831923860352}
   index: 0
   parentIsRoot: 0
@@ -4862,9 +5112,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -4965,14 +5217,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4325534659670470987}
   index: 0
   parentIsRoot: 0
@@ -4986,9 +5244,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -5089,14 +5349,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 9100712830354374492}
   index: 0
   parentIsRoot: 0
@@ -5110,9 +5376,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -5213,14 +5481,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7926287690722235137}
   index: 0
   parentIsRoot: 0
@@ -5234,9 +5508,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -5317,14 +5593,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5654507328278952319}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6798772106906957232}
@@ -5420,14 +5699,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8496280950842070519}
   index: 0
   parentIsRoot: 0
@@ -5441,9 +5726,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -5544,14 +5831,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6951713177128498935}
   index: 0
   parentIsRoot: 0
@@ -5565,9 +5858,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -5668,14 +5963,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4718822539100127507}
   index: 0
   parentIsRoot: 0
@@ -5689,9 +5990,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -5792,14 +6095,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8601883094999880711}
   index: 0
   parentIsRoot: 0
@@ -5813,9 +6122,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -5896,14 +6207,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 9151152672739982415}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 5763795044487375611}
@@ -5979,14 +6293,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1206867449320765867}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4852980509114714191}
@@ -6062,14 +6379,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3545444475279351149}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8263267679036139795}
@@ -6145,14 +6465,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8843230090571840620}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 3168226506697215223}
@@ -6228,14 +6551,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5695116292303113233}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 7945909370848086976}
@@ -6331,14 +6657,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6358902059378166813}
   index: 0
   parentIsRoot: 0
@@ -6352,9 +6684,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -6455,14 +6789,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 142846964614066051}
   index: 0
   parentIsRoot: 0
@@ -6476,9 +6816,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -6559,14 +6901,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 727954713136161177}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 824524395232745295}
@@ -6662,14 +7007,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8028027336036776259}
   index: 0
   parentIsRoot: 0
@@ -6683,9 +7034,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -6786,14 +7139,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6883838537970509077}
   index: 0
   parentIsRoot: 0
@@ -6807,9 +7166,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -6910,14 +7271,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 5222369215642198378}
   index: 0
   parentIsRoot: 0
@@ -6931,9 +7298,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -7034,14 +7403,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6804708609451879992}
   index: 0
   parentIsRoot: 0
@@ -7055,9 +7430,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -7158,14 +7535,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1220731810509753322}
   index: 0
   parentIsRoot: 0
@@ -7179,9 +7562,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -7282,14 +7667,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7317692861696633008}
   index: 0
   parentIsRoot: 0
@@ -7303,9 +7694,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -7386,14 +7779,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4879701386375724949}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1169264877379357524}
@@ -7469,14 +7865,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3504335102983624421}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2237191424374865214}
@@ -7552,14 +7951,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8504765659680249212}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2472384380392872691}
@@ -7635,14 +8037,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3268609702224764469}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 31588383449038469}
@@ -7718,14 +8123,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6610550527857242241}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1739796836613527428}
@@ -7801,14 +8209,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3202665861094129309}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6449225417957241506}
@@ -7904,14 +8315,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4887001381836367204}
   index: 0
   parentIsRoot: 0
@@ -7925,9 +8342,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -8028,14 +8447,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 778422408480212697}
   index: 0
   parentIsRoot: 0
@@ -8049,9 +8474,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -8152,14 +8579,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4896081066942738176}
   index: 0
   parentIsRoot: 0
@@ -8173,9 +8606,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -8256,14 +8691,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1529210064155387372}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 7026521556280842614}
@@ -8339,14 +8777,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3526993189741008941}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8707276536035695480}
@@ -8422,14 +8863,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1142289406139849806}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6718403744579612958}
@@ -8505,14 +8949,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6907266329768184993}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4597601882013888753}
@@ -8588,14 +9035,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 530443167191847670}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8963603897672001198}
@@ -8671,14 +9121,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1171835096485687470}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1319085831078694422}
@@ -8754,14 +9207,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7995264538789661142}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 9115096212186694203}
@@ -8837,14 +9293,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 2834333420484050094}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2439816485402408059}
@@ -8920,14 +9379,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 137262660054125743}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1941898051377847}
@@ -9023,14 +9485,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8735179328550909315}
   index: 0
   parentIsRoot: 0
@@ -9044,9 +9512,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -9147,14 +9617,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 203457853994609419}
   index: 0
   parentIsRoot: 0
@@ -9168,9 +9644,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -9251,14 +9729,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8599535799634922036}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 7504357177106613344}
@@ -9334,14 +9815,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7829144053612864861}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 102245536311588962}
@@ -9417,14 +9901,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4397339133811960123}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2365209855688978645}
@@ -9500,14 +9987,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4726262329439785820}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 78244136849259778}
@@ -9603,14 +10093,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1308032715555418039}
   index: 0
   parentIsRoot: 0
@@ -9624,9 +10120,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -9727,14 +10225,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6633813605023172519}
   index: 0
   parentIsRoot: 0
@@ -9748,9 +10252,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -9851,14 +10357,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1328376395726112727}
   index: 0
   parentIsRoot: 0
@@ -9872,9 +10384,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -9955,14 +10469,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6259538361331182409}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2269593005026095520}
@@ -10038,14 +10555,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7683966732744526393}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2049624357574119105}
@@ -10141,14 +10661,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8901975990606985252}
   index: 0
   parentIsRoot: 0
@@ -10162,9 +10688,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -10265,14 +10793,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3589238448864827098}
   index: 0
   parentIsRoot: 0
@@ -10286,9 +10820,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -10369,14 +10905,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3739961938454034878}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 5438793766029799194}
@@ -10452,14 +10991,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8946696934585371322}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 5108704937303309308}
@@ -10535,14 +11077,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6718840437169155629}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 548849034070995754}
@@ -10638,14 +11183,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7974112071399009970}
   index: 0
   parentIsRoot: 0
@@ -10659,9 +11210,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -10742,14 +11295,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4284349688238423134}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2674256335813937464}
@@ -10845,14 +11401,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 5049192934625553218}
   index: 0
   parentIsRoot: 0
@@ -10866,9 +11428,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -10949,14 +11513,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6008242930828923431}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2213669079268438121}
@@ -11032,14 +11599,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 3772131969571817251}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 3316778670816586172}
@@ -11115,14 +11685,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5307746510010050672}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1370679217910630963}
@@ -11218,14 +11791,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6813993224735834290}
   index: 0
   parentIsRoot: 0
@@ -11239,9 +11818,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -11342,14 +11923,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1249936709597977161}
   index: 0
   parentIsRoot: 0
@@ -11363,9 +11950,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -11466,14 +12055,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1899084766656896599}
   index: 0
   parentIsRoot: 0
@@ -11487,9 +12082,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -11570,14 +12167,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7790189696258320186}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2506008119996434964}
@@ -11673,14 +12273,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1231918579332342635}
   index: 0
   parentIsRoot: 0
@@ -11694,9 +12300,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -11777,14 +12385,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8614495242116559444}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 532335752413097000}
@@ -11880,14 +12491,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 467404137782301494}
   index: 0
   parentIsRoot: 0
@@ -11901,9 +12518,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -12004,14 +12623,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6644601648162444302}
   index: 0
   parentIsRoot: 0
@@ -12025,9 +12650,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -12108,14 +12735,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8783212317302975115}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1771542807859260787}
@@ -12191,14 +12821,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1815167165170705690}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 3297500270687931227}
@@ -12294,14 +12927,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1939841755993451246}
   index: 0
   parentIsRoot: 0
@@ -12315,9 +12954,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -12398,14 +13039,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 2265796874706868802}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8105120747126043275}
@@ -12501,14 +13145,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6275070953222407092}
   index: 0
   parentIsRoot: 0
@@ -12522,9 +13172,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -12625,14 +13277,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6671006777617861409}
   index: 0
   parentIsRoot: 0
@@ -12646,9 +13304,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -12749,14 +13409,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 2329054024384945943}
   index: 0
   parentIsRoot: 0
@@ -12770,9 +13436,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -12853,14 +13521,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7603154284491606203}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 7236292532717897247}
@@ -12936,14 +13607,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6917532708380615716}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 709526358870245628}
@@ -13039,14 +13713,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 5644956797353199434}
   index: 0
   parentIsRoot: 0
@@ -13060,9 +13740,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -13163,14 +13845,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1500910585130082637}
   index: 0
   parentIsRoot: 0
@@ -13184,9 +13872,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -13287,14 +13977,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 5983281759420199825}
   index: 0
   parentIsRoot: 0
@@ -13308,9 +14004,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -13391,14 +14089,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5582007069938714397}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8349285760087396519}
@@ -13474,14 +14175,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4000905124197579038}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4199675636279423109}
@@ -13557,14 +14261,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4844056608849122405}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 535198460051950525}
@@ -13660,14 +14367,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8614301239305423111}
   index: 0
   parentIsRoot: 0
@@ -13681,9 +14394,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -13784,14 +14499,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7160239923713618849}
   index: 0
   parentIsRoot: 0
@@ -13805,9 +14526,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -13888,14 +14611,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7468144453673667596}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 7125734654786983992}
@@ -13991,14 +14717,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4991261397855482545}
   index: 0
   parentIsRoot: 0
@@ -14012,9 +14744,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -14115,14 +14849,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7273210501199273625}
   index: 0
   parentIsRoot: 0
@@ -14136,9 +14876,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -14239,14 +14981,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 2522901119191421793}
   index: 0
   parentIsRoot: 0
@@ -14260,9 +15008,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -14363,14 +15113,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6327689038783586962}
   index: 0
   parentIsRoot: 0
@@ -14384,9 +15140,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -14487,14 +15245,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7230010466763235601}
   index: 0
   parentIsRoot: 0
@@ -14508,9 +15272,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -14591,14 +15357,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 441784535656071377}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8129596432330633853}
@@ -14674,14 +15443,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 738384849047334714}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6449217245011773243}
@@ -14777,14 +15549,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7073278004307049845}
   index: 0
   parentIsRoot: 0
@@ -14798,9 +15576,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -14881,14 +15661,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1034552558576588278}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 5738172596311417600}
@@ -14984,14 +15767,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7050040798219474173}
   index: 0
   parentIsRoot: 0
@@ -15005,9 +15794,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -15088,14 +15879,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5789635400003074572}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4907258092725899779}
@@ -15191,14 +15985,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 2843035695856873220}
   index: 0
   parentIsRoot: 0
@@ -15212,9 +16012,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -15295,14 +16097,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 2043162248521980798}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4790523178528255573}
@@ -15378,14 +16183,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7136022078427734041}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2818244326896321466}
@@ -15461,14 +16269,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5559835960242178271}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1395770830174417278}
@@ -15544,14 +16355,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 1621445199242203087}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 5575773810870169277}
@@ -15647,14 +16461,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7720120363173591744}
   index: 0
   parentIsRoot: 0
@@ -15668,9 +16488,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -15751,14 +16573,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 2379066866954823814}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4127606516225317711}
@@ -15834,14 +16659,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4749001523674724083}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1669952409394755662}
@@ -15917,14 +16745,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 898333586762651637}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 8089440017634180734}
@@ -16020,14 +16851,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6107370270044433853}
   index: 0
   parentIsRoot: 0
@@ -16041,9 +16878,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -16124,14 +16963,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 428733912146146577}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 5365919047498001316}
@@ -16227,14 +17069,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 2414960691809399468}
   index: 0
   parentIsRoot: 0
@@ -16248,9 +17096,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -16331,14 +17181,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4913081567099797737}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 840021949007174838}
@@ -16434,14 +17287,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 780047416564920317}
   index: 0
   parentIsRoot: 0
@@ -16455,9 +17314,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -16558,14 +17419,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3689881148884950061}
   index: 0
   parentIsRoot: 0
@@ -16579,9 +17446,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -16682,14 +17551,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4285161842586072108}
   index: 0
   parentIsRoot: 0
@@ -16703,9 +17578,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -16786,14 +17663,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 7324406505594111429}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2653897486247515528}
@@ -16869,14 +17749,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5454453503690530341}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 6330007084216593201}
@@ -16972,14 +17855,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4269566515288378139}
   index: 0
   parentIsRoot: 0
@@ -16993,9 +17882,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -17096,14 +17987,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 4046318248125276849}
   index: 0
   parentIsRoot: 0
@@ -17117,9 +18014,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -17220,14 +18119,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8907318164361707205}
   index: 0
   parentIsRoot: 0
@@ -17241,9 +18146,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -17324,14 +18231,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 6078730428726056597}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 413014533854834470}
@@ -17407,14 +18317,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 834154752382338191}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 4798034765838639065}
@@ -17510,14 +18423,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 1015985913670061271}
   index: 0
   parentIsRoot: 0
@@ -17531,9 +18450,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -17614,14 +18535,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8722810360804235993}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 3758248151393857049}
@@ -17661,6 +18585,7 @@ GameObject:
   - component: {fileID: 8684246722110468197}
   - component: {fileID: 8684246722110468199}
   - component: {fileID: 8684246722110468198}
+  - component: {fileID: 6353826083254707578}
   m_Layer: 0
   m_Name: RelativeSyncManager
   m_TagString: Untagged
@@ -17697,7 +18622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
+    SerializedFormat: 2
     SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
@@ -17709,7 +18634,7 @@ MonoBehaviour:
   index: 0
   parentIsRoot: 0
   syncManager: {fileID: 8684246722110468199}
-  body: {fileID: 0}
+  body: {fileID: 6353826083254707578}
   syncedPos: {x: 0, y: 0, z: 0}
   syncedRot: {x: 0, y: 0, z: 0, w: 0}
   syncedKmPos: {x: 0, y: 0, z: 0}
@@ -17719,8 +18644,10 @@ MonoBehaviour:
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 1
   parentRefPoint: {fileID: 8684246722110468199}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -17728,89 +18655,97 @@ MonoBehaviour:
   IdleRotationRange: 5
   refPoints:
   - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 1621297719}
   - {fileID: 8684246722110468199}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 3022904799586944862}
+  - {fileID: 5763795044487375611}
+  - {fileID: 1479923279999130053}
+  - {fileID: 1736129383887535850}
+  - {fileID: 6330007084216593201}
+  - {fileID: 2049624357574119105}
+  - {fileID: 5738172596311417600}
+  - {fileID: 4199675636279423109}
+  - {fileID: 6787396637716292376}
+  - {fileID: 8869012986943225771}
+  - {fileID: 8707276536035695480}
+  - {fileID: 7125734654786983992}
+  - {fileID: 6525986658637528485}
+  - {fileID: 265382216488779011}
+  - {fileID: 3640941586358081391}
+  - {fileID: 5365919047498001316}
+  - {fileID: 4790523178528255573}
+  - {fileID: 2269593005026095520}
+  - {fileID: 1926365272771059211}
+  - {fileID: 548849034070995754}
+  - {fileID: 4926931277820812733}
+  - {fileID: 413014533854834470}
+  - {fileID: 1319085831078694422}
+  - {fileID: 709526358870245628}
+  - {fileID: 6718403744579612958}
+  - {fileID: 2365209855688978645}
+  - {fileID: 1370679217910630963}
+  - {fileID: 2439816485402408059}
+  - {fileID: 2653897486247515528}
+  - {fileID: 4127606516225317711}
+  - {fileID: 8263267679036139795}
+  - {fileID: 1739796836613527428}
+  - {fileID: 9098185162246288856}
+  - {fileID: 840021949007174838}
+  - {fileID: 7236292532717897247}
+  - {fileID: 1771542807859260787}
+  - {fileID: 7504357177106613344}
+  - {fileID: 2256655752448163592}
+  - {fileID: 8129596432330633853}
+  - {fileID: 535198460051950525}
+  - {fileID: 2472384380392872691}
+  - {fileID: 4852980509114714191}
+  - {fileID: 82823851828973673}
+  - {fileID: 1169264877379357524}
+  - {fileID: 5575773810870169277}
+  - {fileID: 2506008119996434964}
+  - {fileID: 78244136849259778}
+  - {fileID: 2492725390453359430}
+  - {fileID: 2237191424374865214}
+  - {fileID: 2213669079268438121}
+  - {fileID: 3297500270687931227}
+  - {fileID: 6453878040538233857}
+  - {fileID: 2333224299449869562}
+  - {fileID: 9115096212186694203}
+  - {fileID: 1669952409394755662}
+  - {fileID: 1941898051377847}
+  - {fileID: 3758248151393857049}
+  - {fileID: 3316778670816586172}
+  - {fileID: 824524395232745295}
+  - {fileID: 8105120747126043275}
+  - {fileID: 4907258092725899779}
+  - {fileID: 2818244326896321466}
+  - {fileID: 532335752413097000}
+  - {fileID: 30549244748755022}
+  - {fileID: 7945909370848086976}
+  - {fileID: 5438793766029799194}
+  - {fileID: 31588383449038469}
+  - {fileID: 4798034765838639065}
+  - {fileID: 8963603897672001198}
+  - {fileID: 504797822495505317}
+  - {fileID: 102464403934250551}
+  - {fileID: 2492927654145134083}
+  - {fileID: 6798772106906957232}
+  - {fileID: 2718830567644550809}
+  - {fileID: 126299091199999399}
+  - {fileID: 7026521556280842614}
+  - {fileID: 8089440017634180734}
+  - {fileID: 6449225417957241506}
+  - {fileID: 7512105556388268601}
+  - {fileID: 8349285760087396519}
+  - {fileID: 3168226506697215223}
+  - {fileID: 102245536311588962}
+  - {fileID: 6449217245011773243}
+  - {fileID: 2674256335813937464}
+  - {fileID: 8308015738464202012}
+  - {fileID: 1395770830174417278}
+  - {fileID: 4597601882013888753}
+  - {fileID: 4187412141740590641}
+  - {fileID: 5108704937303309308}
+  - {fileID: 1621297719}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
@@ -17848,6 +18783,33 @@ MonoBehaviour:
   serializedPublicVariablesBytesString: Ai8AAAAAATIAAABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlAFQAYQBiAGwAZQAsACAAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4AAAAAAAYBAAAAAAAAACcBBAAAAHQAeQBwAGUAAWgAAABTAHkAcwB0AGUAbQAuAEMAbwBsAGwAZQBjAHQAaQBvAG4AcwAuAEcAZQBuAGUAcgBpAGMALgBMAGkAcwB0AGAAMQBbAFsAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4ALgBJAG4AdABlAHIAZgBhAGMAZQBzAC4ASQBVAGQAbwBuAFYAYQByAGkAYQBiAGwAZQAsACAAVgBSAEMALgBVAGQAbwBuAC4AQwBvAG0AbQBvAG4AXQBdACwAIABtAHMAYwBvAHIAbABpAGIAAQEJAAAAVgBhAHIAaQBhAGIAbABlAHMALwEAAAABaAAAAFMAeQBzAHQAZQBtAC4AQwBvAGwAbABlAGMAdABpAG8AbgBzAC4ARwBlAG4AZQByAGkAYwAuAEwAaQBzAHQAYAAxAFsAWwBWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAEkAbgB0AGUAcgBmAGEAYwBlAHMALgBJAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlACwAIABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgBdAF0ALAAgAG0AcwBjAG8AcgBsAGkAYgABAAAABgEAAAAAAAAAAi8CAAAAAUkAAABWAFIAQwAuAFUAZABvAG4ALgBDAG8AbQBtAG8AbgAuAFUAZABvAG4AVgBhAHIAaQBhAGIAbABlAGAAMQBbAFsAUwB5AHMAdABlAG0ALgBJAG4AdAAzADIALAAgAG0AcwBjAG8AcgBsAGkAYgBdAF0ALAAgAFYAUgBDAC4AVQBkAG8AbgAuAEMAbwBtAG0AbwBuAAIAAAAGAgAAAAAAAAAnAQQAAAB0AHkAcABlAAEXAAAAUwB5AHMAdABlAG0ALgBTAHQAcgBpAG4AZwAsACAAbQBzAGMAbwByAGwAaQBiACcBCgAAAFMAeQBtAGIAbwBsAE4AYQBtAGUAAR8AAABfAF8AXwBVAGQAbwBuAFMAaABhAHIAcABCAGUAaABhAHYAaQBvAHUAcgBWAGUAcgBzAGkAbwBuAF8AXwBfACcBBAAAAHQAeQBwAGUAARYAAABTAHkAcwB0AGUAbQAuAEkAbgB0ADMAMgAsACAAbQBzAGMAbwByAGwAaQBiABcBBQAAAFYAYQBsAHUAZQACAAAABwUHBQcF
   publicVariablesUnityEngineObjects: []
   publicVariablesSerializationDataFormat: 0
+--- !u!54 &6353826083254707578
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8684246722110468196}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 1
+  m_Constraints: 0
+  m_CollisionDetection: 3
 --- !u!1 &8698524610115243056
 GameObject:
   m_ObjectHideFlags: 0
@@ -17915,14 +18877,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3571749486376661484}
   index: 0
   parentIsRoot: 0
@@ -17936,9 +18904,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -18019,14 +18989,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5392733019467957391}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 1736129383887535850}
@@ -18122,14 +19095,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 710109965597669992}
   index: 0
   parentIsRoot: 0
@@ -18143,9 +19122,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -18226,14 +19207,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 787959410977023827}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2718830567644550809}
@@ -18309,14 +19293,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 8888007581336028817}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 504797822495505317}
@@ -18412,14 +19399,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 8780122042725741700}
   index: 0
   parentIsRoot: 0
@@ -18433,9 +19426,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -18536,14 +19531,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 3527466436323656557}
   index: 0
   parentIsRoot: 0
@@ -18557,9 +19558,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -18660,14 +19663,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 7103655998392655075}
   index: 0
   parentIsRoot: 0
@@ -18681,9 +19690,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -18764,14 +19775,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 5127016979560186751}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2492927654145134083}
@@ -18847,14 +19861,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 4787706605633532294}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 2256655752448163592}
@@ -18950,14 +19967,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 2d010b0000006c006f00630061006c0050006c0061007900650072002d010600000050006c006100790065007200
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: localPlayer
+      Entry: 6
+      Data: 
+    - Name: Player
+      Entry: 6
+      Data: 
   _udonSharpBackingUdonBehaviour: {fileID: 6103456283939428539}
   index: 0
   parentIsRoot: 0
@@ -18971,9 +19994,11 @@ MonoBehaviour:
   _kmPosition: {x: 0, y: 0, z: 0}
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 0
-  parentRefPoint: {fileID: 0}
-  rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
+  parentRefPoint: {fileID: 8684246722110468199}
+  rootRefPoint: {fileID: 8684246722110468199}
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   stopUpdate: 1
   careIsKinematic: 0
   updateInterval: 0.25
@@ -19054,14 +20079,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
-    SerializedBytes: 1701090000005f0070006c00610079006500720049006400ffffffff
+    SerializedFormat: 2
+    SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes: []
+    SerializationNodes:
+    - Name: _playerId
+      Entry: 3
+      Data: -1
   _udonSharpBackingUdonBehaviour: {fileID: 2305950621587707585}
   playerSyncMan: {fileID: 776664980}
   playerPosition: {fileID: 7512105556388268601}
