@@ -24,12 +24,16 @@ namespace tech.gyoku.FDMi.sync
             for (int i = 0; i < refPoints.Length; i++)
                 refPoints[i].initReferencePoint();
         }
+        public Quaternion localRotation;
+        public Vector3 localPosition;
 
         public void FixedUpdate()
         {
             if (!isInit) return;
-            body.rotation = getViewRotation();
-            body.position = getViewPosition();
+            localRotation = getViewRotation();
+            localPosition = getViewPosition();
+            transform.rotation = localRotation;
+            transform.position = localPosition;
         }
 
         public void onChangeLocalPlayerKMPosition()
