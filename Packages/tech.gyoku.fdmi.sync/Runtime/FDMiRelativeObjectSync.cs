@@ -11,18 +11,18 @@ namespace tech.gyoku.FDMi.sync
         public Vector3 gravity = new Vector3(0, -9.8f, 0);
         public FDMiObjectManager obejctManaer;
 
-        void Start()
+        public override void initReferencePoint()
         {
-            if (!body)
-            {
-                gameObject.SetActive(false);
-                return;
-            }
+            base.initReferencePoint();
             if (obejctManaer) obejctManaer.SubscribeOwnerManagement(this);
             body.useGravity = false;
 
+            isRoot = false;
             setPosition(body.position);
             setRotation(body.rotation);
+            syncedPos = _position;
+            syncedRot = _rotation;
+            syncedKmPos = _kmPosition;
             ResetSyncStuff();
         }
         public override void OnPlayerJoined(VRCPlayerApi player)
@@ -87,9 +87,14 @@ namespace tech.gyoku.FDMi.sync
                     Quaternion smr = syncManager.localRotation;
                     Vector3 smp = syncManager.localPosition;
                     Vector3 rbdp = Vector3.zero;
+                    if (rootRefPoint.body)
+                    {
+                        smr = rootRefPoint.body.rotation * smr;
+                        rbdp = rootRefPoint.body.position;
+                    }
 
                     setRotation((Quaternion.Inverse(smr) * br).normalized);
-                    setPosition(Quaternion.Inverse(smr) * (bp - smp));
+                    setPosition(Quaternion.Inverse(smr) * (bp - smp - rbdp));
                     body.rotation = getViewRotation();
                     body.position = getViewPosition();
                     // body.velocity = Quaternion.Inverse(rbr) * body.velocity;
@@ -101,9 +106,13 @@ namespace tech.gyoku.FDMi.sync
             }
             else
             {
-                if (stopUpdate || isRoot) return;
+                if (isRoot) return;
                 body.rotation = getViewRotation();
                 body.position = getViewPosition();
+                body.transform.position = getViewPosition();
+                body.transform.rotation = getViewRotation();
+                Vector3 g = Quaternion.Inverse(rootRefPoint._rotation) * gravity;
+                body.AddForce(g, ForceMode.Acceleration);
             }
         }
 
@@ -132,9 +141,10 @@ namespace tech.gyoku.FDMi.sync
             if (!Networking.IsOwner(gameObject))
             {
                 ExtrapolationAndSmoothing();
-                body.rotation = getViewRotation();
-                body.position = getViewPosition();
+                if (Networking.IsOwner(body.gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
             }
+            transform.position = getViewPosition();
+            transform.rotation = getViewRotation();
         }
 
         #region Interpolated

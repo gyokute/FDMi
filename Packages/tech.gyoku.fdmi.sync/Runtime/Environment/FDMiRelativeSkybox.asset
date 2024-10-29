@@ -1165,13 +1165,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: stopUpdate
+      Data: careIsKinematic
     - Name: $v
       Entry: 7
       Data: 62|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: stopUpdate
+      Data: careIsKinematic
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 7
@@ -1213,13 +1213,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: careIsKinematic
+      Data: stopUpdate
     - Name: $v
       Entry: 7
       Data: 64|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: careIsKinematic
+      Data: stopUpdate
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 7
@@ -1246,7 +1246,7 @@ MonoBehaviour:
       Data: 1
     - Name: 
       Entry: 7
-      Data: 66|UnityEngine.SerializeField, UnityEngine.CoreModule
+      Data: 66|UnityEngine.HideInInspector, UnityEngine.CoreModule
     - Name: 
       Entry: 8
       Data: 

@@ -13,15 +13,26 @@ namespace tech.gyoku.FDMi.sync
         public FDMiReferencePoint refPoint;
         public FDMiBool InZone;
         [SerializeField] bool detectEnter = true, detectExit = true;
-        bool enableOnExit = true;
+        bool enableOnExit = true, enableDetecting = false;
 
         void Start()
         {
             syncManager = refPoint.syncManager;
         }
+        public override void OnPlayerJoined(VRCPlayerApi player)
+        {
+            base.OnPlayerJoined(player);
+            if (!player.isLocal) return;
+            SendCustomEventDelayedSeconds(nameof(EnableDetecting), 1);
+        }
+
+        public void EnableDetecting()
+        {
+            enableDetecting = true;
+        }
         public override void OnPlayerTriggerEnter(VRCPlayerApi player)
         {
-            if (!detectEnter) return;
+            if (!detectEnter || !enableDetecting) return;
             if (player.isLocal && enableOnExit && syncManager.isRoot)
             {
                 syncManager.changeRootRefPoint(refPoint);
@@ -37,7 +48,7 @@ namespace tech.gyoku.FDMi.sync
         }
         public override void OnPlayerTriggerExit(VRCPlayerApi player)
         {
-            if (!detectExit) return;
+            if (!detectExit || !enableDetecting) return;
             if (player.isLocal && refPoint.isRoot && enableOnExit)
             {
                 syncManager.changeRootRefPoint(syncManager);

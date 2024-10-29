@@ -29,6 +29,7 @@ namespace tech.gyoku.FDMi.core
         public void takeOwnerOfAllAttributes()
         {
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            Networking.SetOwner(Networking.LocalPlayer, body.gameObject);
             foreach (FDMiAttribute att in attributes)
                 if (att) att.takeOwner();
             foreach (UdonSharpBehaviour behaviour in ownerManagingObject)
@@ -39,7 +40,7 @@ namespace tech.gyoku.FDMi.core
         }
         public void SubscribeOwnerManagement(UdonSharpBehaviour tgt)
         {
-            for(int i=0;i<ownerManagingObject.Length; i++)
+            for (int i = 0; i < ownerManagingObject.Length; i++)
             {
                 if (!ownerManagingObject[i])
                 {

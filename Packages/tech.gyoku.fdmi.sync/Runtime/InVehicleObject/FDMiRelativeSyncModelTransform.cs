@@ -14,7 +14,7 @@ namespace tech.gyoku.FDMi.sync
         void Start()
         {
             InZone.subscribe(this, "OnChangeInZone");
-            OnChangeInZone();
+            // OnChangeInZone();
         }
         public void OnChangeInZone()
         {

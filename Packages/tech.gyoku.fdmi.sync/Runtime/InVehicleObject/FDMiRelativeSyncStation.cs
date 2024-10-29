@@ -19,9 +19,9 @@ namespace tech.gyoku.FDMi.sync
             if (player.isLocal)
             {
                 FDMiPlayerPosition lpp = rStationMan.syncManager.localPlayerPosition;
-                lpp.inVehicle = true;
-                lpp.transform.localPosition = transform.localPosition;
-                lpp.transform.localRotation = transform.localRotation;
+                // lpp.inVehicle = true;
+                // lpp.transform.localPosition = transform.localPosition;
+                // lpp.transform.localRotation = transform.localRotation;
                 if (!rStationMan.refPoint.isRoot && isChangeRootRefPoint)
                     rStationMan.syncManager.changeRootRefPoint(rStationMan.refPoint);
             }
@@ -32,8 +32,8 @@ namespace tech.gyoku.FDMi.sync
             base.OnStationExited(player);
             if (player.isLocal)
             {
-                FDMiPlayerPosition lpp = rStationMan.syncManager.localPlayerPosition;
-                lpp.inVehicle = false;
+                // FDMiPlayerPosition lpp = rStationMan.syncManager.localPlayerPosition;
+                // lpp.inVehicle = false;
                 if (!rStationMan.refPoint.isRoot && isChangeRootRefPoint)
                     rStationMan.syncManager.changeRootRefPoint(rStationMan.refPoint);
             }
