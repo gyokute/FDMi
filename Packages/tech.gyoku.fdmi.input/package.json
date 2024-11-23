@@ -1,9 +1,9 @@
 {
 	"name": "tech.gyoku.fdmi.input",
 	"displayName": "FDMi - Input",
-	"version": "2.1.1",
+	"version": "2.1.2",
 	"vpmDependencies": {
-		"tech.gyoku.fdmi.core": "^2.1.1"
+		"tech.gyoku.fdmi.core": "^2.1.2"
 	},
 	"description": "Advanced full-grabbable interaction inputs for VRChat.",
 	"author": {

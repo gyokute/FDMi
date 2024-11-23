@@ -15,28 +15,12 @@ namespace tech.gyoku.FDMi.sync
             setPosition(transform.position);
             _rotation = transform.rotation;
         }
-        public void FixedUpdate()
+        public void Update()
         {
             Vector3 relativePos = getViewPosition();
-            transform.SetPositionAndRotation(relativePos, getViewRotation());
-            if (relativePos.magnitude * 0.001f > disableKmPos + 1)
-            {
-                gameObject.SetActive(false);
-                SendCustomEventDelayedSeconds("UpdatePosWhenDisable", 1f);
-            }
+            transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
-        public void UpdatePosWhenDisable()
-        {
-            Vector3 relativePos = getViewPosition();
-            if (relativePos.magnitude * 0.001f < disableKmPos - 1)
-            {
-                gameObject.SetActive(true);
-            }
-            else
-            {
-                SendCustomEventDelayedSeconds("UpdatePosWhenDisable", 1f);
-            }
-        }
+
         public override void windupPositionAndRotation()
         {
             base.windupPositionAndRotation();
@@ -48,7 +32,6 @@ namespace tech.gyoku.FDMi.sync
             else
             {
                 gameObject.SetActive(false);
-                SendCustomEventDelayedSeconds("UpdatePosWhenDisable", 1f);
             }
         }
     }

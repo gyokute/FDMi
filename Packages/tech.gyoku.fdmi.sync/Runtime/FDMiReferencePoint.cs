@@ -1,4 +1,3 @@
-﻿
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -52,14 +51,16 @@ namespace tech.gyoku.FDMi.sync
         public FDMiReferencePoint parentRefPoint, rootRefPoint;
         protected bool isInit = false;
         public Transform respawnPoint;
-        [HideInInspector]public Vector3 respawnPos = Vector3.zero;
-        [HideInInspector]public Quaternion respawnRot = Quaternion.identity;
+        [HideInInspector] public Vector3 respawnPos = Vector3.zero;
+        [HideInInspector] public Quaternion respawnRot = Quaternion.identity;
         private
         protected Vector3 prevPos;
         protected Quaternion prevRot;
 
         #region RelativePosition
-        public bool stopUpdate = true;
+        public bool careIsKinematic = true;
+        [HideInInspector] public bool stopUpdate = true;
+        bool kinematicFlag = false;
         public virtual void initReferencePoint()
         {
             if (!parentRefPoint) parentRefPoint = syncManager;
@@ -70,51 +71,46 @@ namespace tech.gyoku.FDMi.sync
                 respawnPos = transform.InverseTransformPoint(respawnPoint.position);
                 respawnRot = Quaternion.Inverse(transform.rotation) * respawnPoint.rotation;
             }
-
+            if (body) kinematicFlag = body.isKinematic;
+            stopUpdate = false;
             waitUpdate();
             isInit = true;
         }
-
-        [SerializeField] bool careIsKinematic = true;
-        bool kinematicFlag = false;
         public virtual void waitUpdate()
         {
             if (!body) return;
-            setKinematic();
             turnOnStopUpdate();
-            SendCustomEventDelayedFrames(nameof(turnOffStopUpdate), 5);
         }
         public void turnOnStopUpdate()
         {
+            if (stopUpdate) return;
+            setKinematic();
+            SendCustomEventDelayedFrames(nameof(turnOffStopUpdate), 5);
             stopUpdate = true;
         }
 
         public void turnOffStopUpdate()
         {
-            stopUpdate = false;
             unsetKinematic();
+            stopUpdate = false;
         }
         public void setKinematic()
         {
-            kinematicFlag = kinematicFlag || (careIsKinematic && !body.isKinematic);
+            if (!body || !careIsKinematic || !isInit) return;
             body.isKinematic = true;
         }
         public void unsetKinematic()
         {
-            if (kinematicFlag)
-            {
-                body.isKinematic = false;
-                kinematicFlag = false;
-            }
+            if (!body || !careIsKinematic) return;
+            body.isKinematic = body.isKinematic && (kinematicFlag || (!isRoot && !parentIsRoot));
         }
 
         public void onChangeRootRefPoint(FDMiReferencePoint refPoint)
         {
             rootRefPoint = refPoint;
             parentIsRoot = (parentRefPoint.index == refPoint.index);
+            waitUpdate();
             windupPositionAndRotation();
-            if (body && (!isRoot && !parentIsRoot))
-                body.isKinematic = true;
         }
         public void changeParentRefPoint(FDMiReferencePoint refPoint)
         {
@@ -127,7 +123,6 @@ namespace tech.gyoku.FDMi.sync
         {
             turnOnStopUpdate();
             _parentIndex = value;
-            SendCustomEventDelayedFrames(nameof(turnOffStopUpdate), 2);
             if (value >= 0)
             {
                 parentRefPoint = syncManager.refPoints[value];

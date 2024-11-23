@@ -11,18 +11,18 @@ namespace tech.gyoku.FDMi.sync
         public Vector3 gravity = new Vector3(0, -9.8f, 0);
         public FDMiObjectManager obejctManaer;
 
-        void Start()
+        public override void initReferencePoint()
         {
-            if (!body)
-            {
-                gameObject.SetActive(false);
-                return;
-            }
+            base.initReferencePoint();
             if (obejctManaer) obejctManaer.SubscribeOwnerManagement(this);
             body.useGravity = false;
 
+            isRoot = false;
             setPosition(body.position);
             setRotation(body.rotation);
+            syncedPos = _position;
+            syncedRot = _rotation;
+            syncedKmPos = _kmPosition;
             ResetSyncStuff();
         }
         public override void OnPlayerJoined(VRCPlayerApi player)
@@ -38,6 +38,8 @@ namespace tech.gyoku.FDMi.sync
             if (!Networking.IsOwner(gameObject)) ExtrapolationAndSmoothing();
             transform.position = getViewPosition();
             transform.rotation = getViewRotation();
+            prevRootPos = rootRefPoint._position;
+            prevRootRot = rootRefPoint._rotation;
             if (body)
             {
                 body.position = transform.position;
@@ -59,30 +61,57 @@ namespace tech.gyoku.FDMi.sync
             _velocity = tentativeVel;
             body.velocity = Quaternion.Inverse(_rotation) * _velocity;
         }
-        Vector3 tPos = Vector3.zero, tVel = Vector3.zero, tAngVel = Vector3.zero;
-        Quaternion tRot = Quaternion.identity;
+        Vector3 prevRootPos = Vector3.zero;
+        Quaternion prevRootRot = Quaternion.identity;
         void FixedUpdate()
         {
             if (!isInit) return;
-            if (!Networking.IsOwner(gameObject) || body.isKinematic) return;
-            if (isRoot)
+            if (Networking.IsOwner(gameObject) && !body.isKinematic)
             {
                 Quaternion br = body.rotation;
                 Vector3 bp = body.position;
-                setRotation((_rotation * br).normalized);
-                setPosition(_rotation * bp + _position);
-                body.position = Vector3.zero;
-                body.rotation = Quaternion.identity;
-                body.velocity = Quaternion.Inverse(br) * body.velocity;
+                if (isRoot)
+                {
+                    setRotation((_rotation * br).normalized);
+                    setPosition(_rotation * bp + _position);
+                    body.position = Vector3.zero;
+                    body.rotation = Quaternion.identity;
+                    body.velocity = Quaternion.Inverse(br) * body.velocity;
 
-                // gravity
-                Vector3 g = Quaternion.Inverse(_rotation) * gravity;
-                body.AddForce(g, ForceMode.Acceleration);
+                    // gravity
+                    Vector3 g = Quaternion.Inverse(_rotation) * gravity;
+                    body.AddForce(g, ForceMode.Acceleration);
+                }
+                else
+                {
+                    Quaternion smr = syncManager.localRotation;
+                    Vector3 smp = syncManager.localPosition;
+                    Vector3 rbdp = Vector3.zero;
+                    if (rootRefPoint.body)
+                    {
+                        smr = rootRefPoint.body.rotation * smr;
+                        rbdp = rootRefPoint.body.position;
+                    }
+
+                    setRotation((Quaternion.Inverse(smr) * br).normalized);
+                    setPosition(Quaternion.Inverse(smr) * (bp - smp - rbdp));
+                    body.rotation = getViewRotation();
+                    body.position = getViewPosition();
+                    // body.velocity = Quaternion.Inverse(rbr) * body.velocity;
+
+                    // gravity
+                    Vector3 g = Quaternion.Inverse(rootRefPoint._rotation) * gravity;
+                    body.AddForce(g, ForceMode.Acceleration);
+                }
             }
-            if (parentRefPoint.index == rootRefPoint.index)
+            else
             {
-                // gravity
-                Vector3 g = Quaternion.Inverse(parentRefPoint._rotation) * gravity;
+                if (isRoot) return;
+                body.rotation = getViewRotation();
+                body.position = getViewPosition();
+                body.transform.position = getViewPosition();
+                body.transform.rotation = getViewRotation();
+                Vector3 g = Quaternion.Inverse(rootRefPoint._rotation) * gravity;
                 body.AddForce(g, ForceMode.Acceleration);
             }
         }
@@ -96,30 +125,26 @@ namespace tech.gyoku.FDMi.sync
                 Vector3 btp = body.transform.position + (syncManager.localPlayerPosition ? 1000f * syncManager.localPlayerPosition._kmPosition : Vector3.zero);
                 if (isRoot)
                 {
-                    // setRotation((btr * _rotation).normalized);
-                    // setPosition(_rotation * btp + Position);
                     _velocity = _rotation * body.velocity;
                 }
-                if (parentRefPoint.index == rootRefPoint.index)
-                {
-                    setRotation((btr * parentRefPoint._rotation).normalized);
-                    setPosition(parentRefPoint._rotation * btp + parentRefPoint._position + 1000f * (parentRefPoint.syncedKmPos - syncedKmPos));
-                    _velocity = parentRefPoint._rotation * body.velocity;
-                }
+                // if (parentRefPoint.index == rootRefPoint.index)
+                // {
+                //     setRotation((btr * parentRefPoint._rotation).normalized);
+                //     setPosition(parentRefPoint._rotation * btp + parentRefPoint._position + 1000f * (parentRefPoint.syncedKmPos - syncedKmPos));
+                //     _velocity = parentRefPoint._rotation * body.velocity;
+                // }
                 // Serialize
                 ownerSyncedTime = ServerTimeDiff + Time.time;
                 syncedVel = _velocity;
                 TrySerialize();
             }
-        }
-        public void LateUpdate()
-        {
-            if (!Networking.IsOwner(gameObject)) ExtrapolationAndSmoothing();
-            if (stopUpdate || isRoot) return;
-            transform.rotation = getViewRotation();
+            if (!Networking.IsOwner(gameObject))
+            {
+                ExtrapolationAndSmoothing();
+                if (Networking.IsOwner(body.gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            }
             transform.position = getViewPosition();
-            body.position = transform.position;
-            body.rotation = transform.rotation;
+            transform.rotation = getViewRotation();
         }
 
         #region Interpolated

@@ -1,4 +1,4 @@
-﻿using UdonSharp;
+using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
@@ -11,27 +11,6 @@ namespace tech.gyoku.FDMi.sync
     public class FDMiPlayerPosition : FDMiReferencePoint
     {
         public VRCStation station;
-        [UdonSynced, FieldChangeCallback(nameof(inVehicle))] public bool _inVehicle = false;
-        public bool inVehicle
-        {
-            set
-            {
-                _inVehicle = value;
-                if (Networking.IsOwner(gameObject))
-                {
-                    if (!value)
-                    {
-                        gameObject.SetActive(true);
-                        SendCustomEventDelayedFrames(nameof(useSeat), 1);
-                    }
-                    else
-                    {
-                        gameObject.SetActive(false);
-                    }
-                }
-            }
-            get => _inVehicle;
-        }
         public VRCPlayerApi localPlayer;
         public VRCPlayerApi Player;
         [SerializeField] private bool isMine;
@@ -74,11 +53,8 @@ namespace tech.gyoku.FDMi.sync
         }
         public void useSeat()
         {
-            if (inVehicle) return;
+            if (!Utilities.IsValid(Player)) return;
             station.UseStation(Player);
-#if !UNITY_EDITOR
-            SendCustomEventDelayedSeconds(nameof(useSeat), 10f);
-#endif
         }
 
         public override void handleParentIndex(int value)
@@ -136,7 +112,6 @@ namespace tech.gyoku.FDMi.sync
         {
             ParentIndex = syncManager.rootRefPoint.index;
             localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPos, syncManager.rootRefPoint.respawnRot);
-            inVehicle = false;
             _kmPosition = Vector3.zero;
             _position = syncManager.rootRefPoint.respawnPos;
             _rotation = syncManager.rootRefPoint.respawnRot;
@@ -151,13 +126,28 @@ namespace tech.gyoku.FDMi.sync
 
         public override void OnStationExited(VRCPlayerApi player)
         {
-            if (!Player.isLocal) return;
-            if (!inVehicle)
+            if (Player.isLocal)
             {
-                SendCustomEventDelayedFrames(nameof(useSeat), 1);
-                return;
+                gameObject.SetActive(false);
+                SendCustomEventDelayedFrames(nameof(SetActive), 5);
             }
-            if (Player.isLocal) gameObject.SetActive(false);
+        }
+        public void SetActive()
+        {
+            gameObject.SetActive(true);
+        }
+
+        private Collider[] localOverlaps = new Collider[32];
+        public LayerMask playerLocalLayer;
+        public bool IsPlayerInStation()
+        {
+            VRCPlayerApi.TrackingData avatarRoot = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.AvatarRoot);
+            int overlapCount = Physics.OverlapSphereNonAlloc(avatarRoot.position, 1f, localOverlaps, playerLocalLayer);
+            for (int i = 0; i < overlapCount; i++)
+            {
+                if (!Utilities.IsValid(localOverlaps[i])) return false;
+            }
+            return true;
         }
         #endregion
 
@@ -209,8 +199,8 @@ namespace tech.gyoku.FDMi.sync
 
         public override void windupPositionAndRotation()
         {
-            // prevPos = getViewPosition();
-            // prevRot = getViewRotation();
+            prevPos = getViewPosition();
+            prevRot = getViewRotation();
             transform.localPosition = getViewPosition();
             transform.localRotation = getViewRotation();
         }
@@ -221,21 +211,17 @@ namespace tech.gyoku.FDMi.sync
             if (!isInit || !isPlayerJoined || localPlayer == null) return;
             if (Networking.IsOwner(gameObject))
             {
+                if (!IsPlayerInStation()) useSeat();
                 setPosition(localPlayer.GetPosition());
                 _rotation = localPlayer.GetRotation();
                 // for preventing very-far jumping
                 if (localPlayer.GetPosition().magnitude > 100000f) RespawnLocalPlayer();
                 if (Vector3.Distance(syncedPos, _position) > 0.01f || Quaternion.Angle(syncedRot, _rotation) > 0.75f)
                     TrySerialize();
-                // prevPos = _position;
-                // prevRot = _rotation;
                 return;
             }
-            if (!inVehicle)
-            {
-                transform.localPosition = getViewPositionInterpolated();
-                transform.localRotation = getViewRotationInterpolated();
-            }
+            transform.localPosition = getViewPositionInterpolated();
+            transform.localRotation = getViewRotationInterpolated();
         }
     }
 }

@@ -182,15 +182,19 @@ MonoBehaviour:
   _isRoot: 0
   parentRefPoint: {fileID: 0}
   rootRefPoint: {fileID: 0}
-  respawnPoint: {x: 0, y: 0, z: 0}
-  stopUpdate: 1
+  respawnPoint: {fileID: 0}
+  respawnPos: {x: 0, y: 0, z: 0}
+  respawnRot: {x: 0, y: 0, z: 0, w: 1}
   careIsKinematic: 1
+  stopUpdate: 1
   updateInterval: 0.25
   IdleMovementRange: 0.35
   IdleRotationRange: 5
   station: {fileID: 6327869157707038143}
-  _inVehicle: 0
   isMine: 0
+  playerLocalLayer:
+    serializedVersion: 2
+    m_Bits: 1024
 --- !u!114 &6327869157707038129
 MonoBehaviour:
   m_ObjectHideFlags: 0

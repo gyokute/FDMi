@@ -62,7 +62,7 @@ namespace tech.gyoku.FDMi.sync
         void delayCheckSeating()
         {
             if (_playerId != Networking.LocalPlayer.playerId) return;
-            if (!playerPosition._inVehicle) playerPosition.useSeat();
+            // if (!playerPosition._inVehicle) playerPosition.useSeat();
         }
         void playerAttached(int pId)
         {
