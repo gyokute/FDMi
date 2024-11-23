@@ -13,7 +13,7 @@ FDMiは、VRChat上で航空機の挙動を再現するスクリプト群です�
 
 ## Tutorial - How to make worlds
 
-FDMiを使用したワールド制作の流れを説明します。
+FDMiを使用したWorld制作の流れを説明します。
 
 ## Developers Guide
 

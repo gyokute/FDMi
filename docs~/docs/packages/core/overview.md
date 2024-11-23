@@ -2,6 +2,6 @@
 sidebar_position: 1
 ---
 
-# Developers Guide - Overview
+# Core - Overview
 
 ただいま執筆中です。すいません！
