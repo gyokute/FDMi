@@ -16,8 +16,13 @@ namespace tech.gyoku.FDMi.sync
         }
         void Update()
         {
-            transform.position = Vector3.zero;
+            if (syncManager.localPlayerPosition)
+                transform.position = syncManager.localPlayerPosition._position;
+            transform.rotation = getViewRotation();
         }
+        public override void windupPositionAndRotation()
+        {
 
+        }
     }
 }
