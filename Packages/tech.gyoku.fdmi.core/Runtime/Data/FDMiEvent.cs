@@ -35,17 +35,20 @@ namespace tech.gyoku.FDMi.core
 
         [SerializeField] protected float updateInterval = 0.25f;
         protected double nextUpdateTime;
+        public bool trySerializeLatch = false;
         public void TrySerialize()
         {
             // Try Serialize.
-            if (Time.time > nextUpdateTime)
+            if (Time.time > nextUpdateTime && !Networking.IsClogged)
             {
-                if (!Networking.IsClogged)
-                {
-                    RequestSerialization();
-                    nextUpdateTime = Time.time + updateInterval;
-                }
-                else { SendCustomEventDelayedSeconds("TrySerialize", updateInterval); }
+                RequestSerialization();
+                nextUpdateTime = Time.time + updateInterval;
+                trySerializeLatch = false;
+            }
+            else if (!trySerializeLatch)
+            {
+                SendCustomEventDelayedSeconds("TrySerialize", updateInterval);
+                trySerializeLatch = true;
             }
         }
     }
