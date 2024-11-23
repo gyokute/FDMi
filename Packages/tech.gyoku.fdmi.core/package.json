@@ -1,7 +1,7 @@
 {
 	"name": "tech.gyoku.fdmi.core",
 	"displayName": "FDMi - Core",
-	"version": "2.1.1",
+	"version": "2.1.2",
 	"description": "Imprimented variable abstraction and basic animation/transform system for VRChat.",
 	"author": {
 		"name": "gyokute",
