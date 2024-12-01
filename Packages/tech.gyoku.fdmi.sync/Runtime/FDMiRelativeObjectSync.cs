@@ -191,6 +191,7 @@ namespace tech.gyoku.FDMi.sync
         private Quaternion RotExtrapDirection_Smooth, RotationL;
         private void ExtrapolationAndSmoothing()
         {
+            if (_rotation.innan()) _rotation = syncedRot;
             if (deserialized)
             {
                 deserialized = false;
