@@ -75,6 +75,7 @@ namespace tech.gyoku.FDMi.sync
             localRootRefPoint = target;
             localPlayerPosition.transform.SetParent(target.transform);
             localPlayerPosition.ParentIndex = target.index;
+            localPlayerPosition.onChangeRootRefPoint(target);
 
             for (int i = 0; i < refPoints.Length; i++)
             {

@@ -12,49 +12,14 @@ namespace tech.gyoku.FDMi.sync
     {
         public VRCStation station;
         public VRCPlayerApi localPlayer;
-        public VRCPlayerApi Player;
-        [SerializeField] private bool isMine;
+        [SerializeField] public bool isMine;
         private bool isPlayerJoined = false;
         private bool isUserInVR;
-        void Start()
-        {
-            gameObject.SetActive(false);
-        }
 
-        public void attachPlayer(VRCPlayerApi tgtPlayer)
-        {
-            Player = tgtPlayer;
-            localPlayer = Networking.LocalPlayer;
-            isUserInVR = localPlayer.IsUserInVR();
-            if (tgtPlayer == null)
-            {
-                gameObject.SetActive(false);
-                return;
-            }
-            if (tgtPlayer.isLocal)
-            {
-                isMine = true;
-                syncManager.localPlayerPosition = this;
-                SendCustomEventDelayedFrames(nameof(useSeat), 1);
-                syncManager.changeRootRefPoint(syncManager);
-                transform.position = syncManager.respawnPos;
-                transform.rotation = syncManager.respawnRot;
-                localPlayer.TeleportTo(syncManager.respawnPos, syncManager.respawnRot);
-                station.PlayerMobility = VRCStation.Mobility.Mobile;
-                ResetSyncTime();
-                TrySerialize();
-            }
-            else
-            {
-                isMine = false;
-                station.PlayerMobility = VRCStation.Mobility.ImmobilizeForVehicle;
-            }
-            gameObject.SetActive(true);
-        }
         public void useSeat()
         {
-            if (!Utilities.IsValid(Player)) return;
-            station.UseStation(Player);
+            if (!Utilities.IsValid(localPlayer)) return;
+            station.UseStation(localPlayer);
         }
 
         public override void handleParentIndex(int value)
@@ -79,36 +44,39 @@ namespace tech.gyoku.FDMi.sync
             _position = teleportPos;
             _rotation = teleportRot;
             _kmPosition = teleportKmPos;
+
+            TrySerialize();
         }
 
         #region station events
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
-            // if (Player != null) if (Player.isLocal) useSeat();
-            if (!player.isLocal) return;
-            transform.localPosition = getViewPosition();
-            transform.localRotation = getViewRotation();
-            isPlayerJoined = true;
-            SendCustomEventDelayedSeconds(nameof(RespawnLocalPlayer), 1f);
-        }
-        public override void OnPlayerLeft(VRCPlayerApi player)
-        {
-            if (!Networking.IsMaster) return;
-            if (Player == null) return;
-            if (Player.playerId == player.playerId)
+            if (Networking.GetOwner(gameObject) != player) return;
+
+            if (Networking.GetOwner(gameObject) == Networking.LocalPlayer)
             {
-                gameObject.SetActive(false);
-                ParentIndex = syncManager.index;
-                _kmPosition = Vector3.zero;
-                transform.position = syncManager.respawnPos;
-                _position = syncManager.respawnPos;
+                localPlayer = player;
+                isPlayerJoined = true;
+                isMine = true;
+                station.PlayerMobility = VRCStation.Mobility.Mobile;
+                syncManager.localPlayerPosition = this;
+                syncManager.changeRootRefPoint(syncManager);
+                ResetSyncTime();
+                initReferencePoint();
+                SendCustomEventDelayedFrames(nameof(RespawnLocalPlayer), 1);
             }
+            else
+            {
+                station.PlayerMobility = VRCStation.Mobility.ImmobilizeForVehicle;
+            }
+
         }
+
         public override void OnPlayerRespawn(VRCPlayerApi player)
         {
             if (isMine) RespawnLocalPlayer();
         }
-        void RespawnLocalPlayer()
+        public void RespawnLocalPlayer()
         {
             ParentIndex = syncManager.rootRefPoint.index;
             localPlayer.TeleportTo(syncManager.rootRefPoint.respawnPos, syncManager.rootRefPoint.respawnRot);
@@ -121,12 +89,14 @@ namespace tech.gyoku.FDMi.sync
 
         public override void OnStationEntered(VRCPlayerApi player)
         {
-            if (Player.isLocal) gameObject.SetActive(true);
+            Debug.Log("StationEntered>" + player.playerId);
+            if (isMine) gameObject.SetActive(true);
         }
 
         public override void OnStationExited(VRCPlayerApi player)
         {
-            if (Player.isLocal)
+            Debug.Log("StationExit>" + player.playerId);
+            if (isMine)
             {
                 gameObject.SetActive(false);
                 SendCustomEventDelayedFrames(nameof(SetActive), 5);
@@ -208,14 +178,14 @@ namespace tech.gyoku.FDMi.sync
 
         public void LateUpdate()
         {
-            if (!isInit || !isPlayerJoined || localPlayer == null) return;
-            if (Networking.IsOwner(gameObject))
+            // if (!isInit || !isPlayerJoined || localPlayer == null) return;
+            if (isMine)
             {
                 if (!IsPlayerInStation()) useSeat();
                 setPosition(localPlayer.GetPosition());
                 _rotation = localPlayer.GetRotation();
                 // for preventing very-far jumping
-                if (localPlayer.GetPosition().magnitude > 100000f) RespawnLocalPlayer();
+                // if (localPlayer.GetPosition().magnitude > 100000f) RespawnLocalPlayer();
                 if (Vector3.Distance(syncedPos, _position) > 0.01f || Quaternion.Angle(syncedRot, _rotation) > 0.75f)
                     TrySerialize();
                 return;
