@@ -52,8 +52,7 @@ namespace tech.gyoku.FDMi.sync
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
             if (Networking.GetOwner(gameObject) != player) return;
-
-            if (Networking.GetOwner(gameObject) == Networking.LocalPlayer)
+            if (Networking.GetOwner(gameObject).isLocal)
             {
                 localPlayer = player;
                 isPlayerJoined = true;
