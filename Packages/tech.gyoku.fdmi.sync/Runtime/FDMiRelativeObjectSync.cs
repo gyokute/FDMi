@@ -32,6 +32,7 @@ namespace tech.gyoku.FDMi.sync
                 ResetSyncTime();
                 whenSynced();
             }
+            if (Networking.IsOwner(gameObject)) TrySerialize();
         }
         public override void windupPositionAndRotation()
         {
