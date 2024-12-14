@@ -29,7 +29,7 @@ namespace tech.gyoku.FDMi.core
         public void takeOwnerOfAllAttributes()
         {
             Networking.SetOwner(Networking.LocalPlayer, gameObject);
-            Networking.SetOwner(Networking.LocalPlayer, body.gameObject);
+            if (Utilities.IsValid(body)) Networking.SetOwner(Networking.LocalPlayer, body.gameObject);
             foreach (FDMiAttribute att in attributes)
                 if (att) att.takeOwner();
             foreach (UdonSharpBehaviour behaviour in ownerManagingObject)
