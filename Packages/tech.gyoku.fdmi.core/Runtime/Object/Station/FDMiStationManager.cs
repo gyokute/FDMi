@@ -20,6 +20,13 @@ namespace tech.gyoku.FDMi.core
         #region Owner Transfer
         public override void OnPlayerLeft(VRCPlayerApi player)
         {
+            if (!Networking.IsOwner(objectManager.gameObject)) return;
+            if (player.isLocal) TryDelegatePilot();
+        }
+
+        public override void OnPlayerRespawn(VRCPlayerApi player)
+        {
+            if (!Networking.IsOwner(objectManager.gameObject)) return;
             if (player.isLocal) TryDelegatePilot();
         }
         public void OnChangeInZone()
