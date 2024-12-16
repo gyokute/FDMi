@@ -124,11 +124,11 @@ namespace tech.gyoku.FDMi.sync
             {
                 Quaternion btr = body.transform.rotation;
                 Vector3 btp = body.transform.position + (syncManager.localPlayerPosition ? 1000f * syncManager.localPlayerPosition._kmPosition : Vector3.zero);
-                if (isRoot && !body.isKinematic)
+                if (isRoot)
                 {
                     _velocity = _rotation * body.velocity;
                 }
-                else if (parentIsRoot && !body.isKinematic)
+                else if (parentIsRoot)
                 {
                     _velocity = parentRefPoint._rotation * body.velocity;
                 }
@@ -143,12 +143,10 @@ namespace tech.gyoku.FDMi.sync
                 //     _velocity = parentRefPoint._rotation * body.velocity;
                 // }
                 // Serialize
-                if (!body.isKinematic || syncedVel != _velocity)
-                {
-                    ownerSyncedTime = ServerTimeDiff + Time.time;
-                    syncedVel = _velocity;
-                    TrySerialize();
-                }
+
+                ownerSyncedTime = ServerTimeDiff + Time.time;
+                syncedVel = _velocity;
+                TrySerialize();
             }
             if (!Networking.IsOwner(gameObject))
             {
