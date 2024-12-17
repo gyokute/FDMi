@@ -15,6 +15,7 @@ namespace tech.gyoku.FDMi.avionics
         [SerializeField] float maxLength = 914.4f, offset;
         [SerializeField] LayerMask groundLayer;
         RaycastHit[] hit = new RaycastHit[32];
+        float[] groundAltitude;
 
         int i;
         float minimum;
@@ -22,13 +23,14 @@ namespace tech.gyoku.FDMi.avionics
         void Start()
         {
             rot = Rotation.data;
+            groundAltitude = GroundAltitude.data;
         }
         void Update()
         {
             minimum = maxLength;
             for (i = 0; i < Physics.RaycastNonAlloc(transform.position, Quaternion.Inverse(rot[0]) * Vector3.down, hit, maxLength, groundLayer); i++)
                 minimum = Mathf.Min(minimum, hit[i].distance);
-            GroundAltitude.Data = minimum + offset;
+            groundAltitude[0] = minimum + offset;
         }
     }
 }
