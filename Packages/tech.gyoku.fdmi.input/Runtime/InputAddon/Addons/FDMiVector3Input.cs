@@ -16,7 +16,6 @@ namespace tech.gyoku.FDMi.input
         [SerializeField] float multiplier, limitMagnitude = 0.2f;
         Vector3 initialValue, adjustedOrigin;
         [SerializeField] bool useInSeatAdjuster;
-        [SerializeField] Transform SeatTransform;
         VRCPlayerApi.TrackingData bodyTrack;
 
         public override void OnGrab(FDMiFingerTracker finger)
@@ -24,7 +23,7 @@ namespace tech.gyoku.FDMi.input
             base.OnGrab(finger);
             initialValue = Output.data[0];
             bodyTrack = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin);
-            if (useInSeatAdjuster) adjustedOrigin = finger.handPos - bodyTrack.position;
+            if (useInSeatAdjuster) adjustedOrigin = handPos - transform.InverseTransformPoint(bodyTrack.position);
         }
         Vector3 p;
         public override void whileGrab()
@@ -34,7 +33,7 @@ namespace tech.gyoku.FDMi.input
             if (useInSeatAdjuster)
             {
                 bodyTrack = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Origin);
-                p = Vector3.ClampMagnitude(handPos - bodyTrack.position, limitMagnitude);
+                p = Vector3.ClampMagnitude(handPos - transform.InverseTransformPoint(bodyTrack.position) - adjustedOrigin, limitMagnitude);
             }
             else
             {
