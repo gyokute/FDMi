@@ -82,13 +82,14 @@ namespace tech.gyoku.FDMi.avionics
                 case RollAutoPilotMode.LOCTRK:
                 case RollAutoPilotMode.ILSTRK:
                     pLoc = loc[0];
+                    iLoc = 0;
                     break;
             }
         }
 
         float hdgRepeat(float c) { return (Mathf.Abs(c) >= 180f) ? c - 360f * Mathf.Sign(c) : c; }
 
-        float ret, hdgErr, pHdgErr, locErr, pLoc;
+        float ret, hdgErr, pHdgErr, locErr, plocErr, pLoc, iLoc;
         float rollCommand()
         {
             if (isPilot[0])
@@ -126,16 +127,18 @@ namespace tech.gyoku.FDMi.avionics
                     break;
                 case RollAutoPilotMode.LOCTRK:
                 case RollAutoPilotMode.ILSTRK:
-                    // locErr = PControl(loc[0], kpLOC);
-                    locErr = PIControl(loc[0], pLoc, locErr, kpLOC, kiLOC);
+                    iLoc = IControl(locErr, plocErr, iLoc, kiLOC);
+                    locErr = PControl(loc[0], kpLOC) + iLoc;
+                    // locErr = PIControl(loc[0], pLoc, locErr, kpLOC, kiLOC);
                     hdgErr = hdgRepeat(crs[0] + locErr - hdg[0]);
                     pLoc = loc[0];
+                    plocErr = locErr;
                     break;
             }
             ret = Mathf.Clamp(PControl(hdgErr, kpHDG), -rollLim[0], rollLim[0]);
             // ret = PIControl(hdgErr, pHdgErr, ret, kpHDG, kiHDG);
             pHdgErr = hdgErr;
-            return ret - roll[0];
+            return ret;
         }
         float rollErr, pRollErr, output;
         void FixedUpdate()
@@ -145,10 +148,10 @@ namespace tech.gyoku.FDMi.avionics
             rollRate = LPF((roll[0] - prevRoll) / Time.fixedDeltaTime, rollRate, tau);
             prevRoll = roll[0];
 
-            rollErr = rollCommand();
+            rollErr = rollCommand() - roll[0];
             pRollErr = rollErr;
 
-            float nextOutput = Mathf.Clamp(PControl(rollErr - rollRate, kq), -1f, 1f);
+            float nextOutput = PControl(rollErr, kp) + PControl(-rollRate, kq);
             output = Mathf.MoveTowards(output, nextOutput, Time.fixedDeltaTime * FDMoveSpeed);
             _FDRoll.Data = output;
             if (apswMode == AutoPilotSWMode.OFF) return;
@@ -163,7 +166,7 @@ namespace tech.gyoku.FDMi.avionics
                 else
                 {
                     rollErr = holdRoll - roll[0];
-                    nextOutput = Mathf.Clamp(PControl(rollErr - rollRate, kq), -1f, 1f);
+                    nextOutput = PControl(rollErr, kp) + PControl(-rollRate, kq);
                 }
                 APOutput.Data = Mathf.MoveTowards(APOutput.Data, nextOutput, Time.fixedDeltaTime * FDMoveSpeed);
             }
