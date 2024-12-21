@@ -23,9 +23,18 @@ namespace tech.gyoku.FDMi.avionics
         {
             return err * kp;
         }
+
         protected float IControl(float err, float prevOut, float ki)
         {
             return prevOut + ki * err * Time.fixedDeltaTime;
+        }
+        protected float IControl(float err, float prevErr, float prevOut, float ki)
+        {
+            return ki * (prevOut + (err + prevErr) * Time.fixedDeltaTime * 0.5f);
+        }
+        protected float DControl(float err, float prevErr, float kd)
+        {
+            return kd * (err - prevErr) / Time.fixedDeltaTime;
         }
         protected float PIControl(float err, float prevErr, float prevOut, float kp, float ki)
         {
