@@ -31,7 +31,7 @@ namespace tech.gyoku.FDMi.core
         {
             seatedPlayer = player;
             if (!player.isLocal) return;
-            if (player.isLocal && pilotPriority < 1) stationManager.TryTakePilot(pilotPriority);
+            if (player.isLocal && pilotPriority < 1 && stationManager) stationManager.TryTakePilot(pilotPriority);
             if (onlyInSeat) onlyInSeat.SetActive(true);
             foreach (UdonSharpBehaviour usb in InSeatBehaviours)
                 if (usb) usb.SendCustomEvent("FDMiOnSeatEnter");
