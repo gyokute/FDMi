@@ -14,7 +14,15 @@ namespace tech.gyoku.FDMi.sync
         {
             if (teleportFrom) teleportFrom.ExitLocalPlayer();
             if (teleportTarget) teleportTarget.TeleportLocalPlayer(teleportPosition);
-            else Networking.LocalPlayer.TeleportTo(teleportPosition.position, teleportPosition.rotation);
+            else
+            {
+                TeleportLocalPlayer();
+                SendCustomEventDelayedFrames(nameof(TeleportLocalPlayer), 5);
+            }
+        }
+        public void TeleportLocalPlayer()
+        {
+            Networking.LocalPlayer.TeleportTo(teleportPosition.position, teleportPosition.rotation);
         }
     }
 }
