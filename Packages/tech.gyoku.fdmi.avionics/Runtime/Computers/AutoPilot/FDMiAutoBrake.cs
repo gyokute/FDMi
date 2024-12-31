@@ -14,21 +14,18 @@ namespace tech.gyoku.FDMi.avionics
 
         public FDMiFloat AutoBrakeMode, Throttle, BrakeInput, GroundSpeed;
         public FDMiBool AnyIsGround;
-
-        [SerializeField] float ki, brakeAcc = -2.19456f;
+        [SerializeField] float ki, brakeAcc = -2.19456f, LPFTimeCoef = 5f;
         float[] bl, br, absMode, throttle, brake, gs;
         bool[] isground;
         public float acc, err, tgtAcc;
         private bool throttleLatch;
-        private float[] accQueue = new float[5];
-        private float prevGS, accSum = 0f;
-        private int currentAccFilterIndex = 0, maxAccQueueIndex = 5;
-        float AccFilter(float input)
+        private float pGS, tau;
+        float AccFilter()
         {
-            accSum += input - accQueue[currentAccFilterIndex];
-            accQueue[currentAccFilterIndex] = input;
-            currentAccFilterIndex = (currentAccFilterIndex + 1) % maxAccQueueIndex;
-            return accSum / maxAccQueueIndex;
+            float rawAcc = (gs[0] - pGS) / (Time.deltaTime);
+            acc = LPF(rawAcc, acc, tau);
+            pGS = gs[0];
+            return acc;
         }
 
         void Start()
@@ -40,6 +37,9 @@ namespace tech.gyoku.FDMi.avionics
             brake = BrakeInput.data;
             isground = AnyIsGround.data;
             gs = GroundSpeed.data;
+
+            tau = 2 * Mathf.PI / LPFTimeCoef;
+            tau = tau / (tau + Time.deltaTime);
             AutoBrakeMode.subscribe(this, nameof(OnChangeAutoBrakeMode));
         }
 
@@ -77,9 +77,16 @@ namespace tech.gyoku.FDMi.avionics
 
         void Update()
         {
-            if (!isground[0])
+            float manualBrakeInput = Mathf.Clamp01(bl[0] + br[0]);
+            if (manualBrakeInput > 0.1f) AutoBrakeMode.Data = (float)AutobrakeMode.OFF;
+            if (AutoBrakeMode.Data == (float)AutobrakeMode.OFF)
             {
-                brake[0] = 0f;
+                brake[0] = manualBrakeInput;
+                return;
+            }
+            if (!isground[0] || Mathf.Abs(gs[0]) < 0.01f)
+            {
+                brake[0] = Mathf.MoveTowards(brake[0], 0, ki * Time.deltaTime);
                 return;
             }
             if (Mathf.RoundToInt(absMode[0]) == (int)AutobrakeMode.RTO)
@@ -87,13 +94,10 @@ namespace tech.gyoku.FDMi.avionics
                 if (throttle[0] > 0.5f) throttleLatch = true;
                 if (throttle[0] < 0.02f && throttleLatch) tgtAcc = -4.2672f; // 14ft/sec
             }
-            acc = AccFilter((gs[0] - prevGS) / Time.deltaTime);
-            prevGS = gs[0];
-            err = Mathf.Min(tgtAcc, brakeAcc * Mathf.Clamp01(bl[0] + br[0]));
-            if (Mathf.Approximately(err, 0f)) { brake[0] = 0f; return; }
-            err -= acc;
+
+            err = AccFilter() - tgtAcc;
             brake[0] = Mathf.Clamp01(IControl(err, brake[0], ki));
-            // Debug.Log(acc + "," + brake[0]);
+            // Debug.Log(acc + "," + err + "," + brake[0]);
         }
     }
 }
