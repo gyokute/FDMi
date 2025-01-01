@@ -18,6 +18,15 @@ namespace tech.gyoku.FDMi.avionics
         {
             return Mathf.Lerp(prev, value, tau);
         }
+        protected float HPFTau(float T)
+        {
+            float omega = 2 * Mathf.PI / T;
+            return 1 / (1 + omega * Time.fixedDeltaTime);
+        }
+        protected float HPF(float pOutput, float input, float pInput, float tau)
+        {
+            return tau * (pOutput + input - pInput);
+        }
 
         protected float PControl(float err, float kp)
         {
@@ -34,7 +43,7 @@ namespace tech.gyoku.FDMi.avionics
         }
         protected float DControl(float err, float prevErr, float kd)
         {
-            return kd * (err - prevErr) / Time.fixedDeltaTime;
+            return kd / Time.fixedDeltaTime * (err - prevErr);
         }
         protected float PIControl(float err, float prevErr, float prevOut, float kp, float ki)
         {

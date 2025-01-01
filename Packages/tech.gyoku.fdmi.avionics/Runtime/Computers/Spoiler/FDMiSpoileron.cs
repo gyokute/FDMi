@@ -27,13 +27,13 @@ namespace tech.gyoku.FDMi.avionics
             // GroundSpoiler Active
             if (lever[0] > 1f)
             {
-                SpoilerL.Data = lever[0];
-                SpoilerR.Data = lever[0];
+                sl[0] = lever[0];
+                sr[0] = lever[0];
                 return;
             }
             movedt = moveSpeed * Time.deltaTime;
-            SpoilerL.Data = Mathf.MoveTowards(sl[0], Mathf.Clamp01(lever[0] - roll[0]), movedt);
-            SpoilerR.Data = Mathf.MoveTowards(sr[0], Mathf.Clamp01(lever[0] + roll[0]), movedt);
+            sl[0] = Mathf.MoveTowards(sl[0], Mathf.Clamp01(lever[0] - roll[0]), movedt);
+            sr[0] = Mathf.MoveTowards(sr[0], Mathf.Clamp01(lever[0] + roll[0]), movedt);
         }
     }
 }
