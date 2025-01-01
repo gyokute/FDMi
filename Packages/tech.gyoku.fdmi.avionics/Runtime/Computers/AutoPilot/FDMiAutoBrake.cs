@@ -78,7 +78,8 @@ namespace tech.gyoku.FDMi.avionics
         void Update()
         {
             float manualBrakeInput = Mathf.Clamp01(bl[0] + br[0]);
-            if (manualBrakeInput > 0.1f) AutoBrakeMode.Data = (float)AutobrakeMode.OFF;
+            if (manualBrakeInput > 0.1f && AutoBrakeMode.Data > (float)AutobrakeMode.OFF)
+                AutoBrakeMode.Data = (float)AutobrakeMode.OFF;
             if (AutoBrakeMode.Data == (float)AutobrakeMode.OFF)
             {
                 brake[0] = manualBrakeInput;
