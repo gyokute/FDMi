@@ -98,6 +98,7 @@ namespace tech.gyoku.FDMi.avionics
 
             err = AccFilter() - tgtAcc;
             brake[0] = Mathf.Clamp01(IControl(err, brake[0], ki));
+            if (err < 0) brake[0] = 0f;
             // Debug.Log(acc + "," + err + "," + brake[0]);
         }
     }
