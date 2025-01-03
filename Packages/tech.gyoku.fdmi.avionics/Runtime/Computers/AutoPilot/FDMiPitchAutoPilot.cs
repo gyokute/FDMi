@@ -119,7 +119,7 @@ namespace tech.gyoku.FDMi.avionics
                     break;
                 case PitchAutoPilotMode.ALTHOLD:
                 case PitchAutoPilotMode.GSCAP:
-                    vscmd[0] = 0f;
+                    VSCommand.Data = 0f;
                     // if vert speed is high, ease target altitude
                     if (Mathf.Abs(vs[0]) > 2.54f) holdAlt = alt[0];
                     altErr = PControl(holdAlt - alt[0], kpalt);
@@ -127,7 +127,7 @@ namespace tech.gyoku.FDMi.avionics
                     break;
                 case PitchAutoPilotMode.ALTCAP:
                     altErr = altcmd[0] * 0.3048f - alt[0];
-                    vscmd[0] = PControl(altErr, kpalt);
+                    VSCommand.Data = PControl(altErr, kpalt);
                     pitchCmd = vscmd[0] * 0.508f / (tas[0] * Mathf.Deg2Rad);
                     break;
                 case PitchAutoPilotMode.VS:
@@ -146,7 +146,7 @@ namespace tech.gyoku.FDMi.avionics
             vsLPF = LPF(vs[0], vsLPF, omega);
             if (Mathf.RoundToInt(mode[0]) < (int)PitchAutoPilotMode.VS || Mathf.RoundToInt(mode[0]) > (int)PitchAutoPilotMode.ALTHOLD)
             {
-                vscmd[0] = vsLPF * 1.9685039f;
+                VSCommand.Data = vsLPF * 1.9685039f;
             }
 
             float pitchErr = pitchCommand() + alpha[0] - pitch[0];
