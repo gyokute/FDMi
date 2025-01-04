@@ -125,6 +125,7 @@ namespace tech.gyoku.FDMi.avionics
         float rollErr, pRollErr, output;
         void FixedUpdate()
         {
+            if (!IsPilot.data[0]) return;
             rollRate = LPF((roll[0] - prevRoll) / Time.fixedDeltaTime, rollRate, tau);
             prevRoll = roll[0];
 

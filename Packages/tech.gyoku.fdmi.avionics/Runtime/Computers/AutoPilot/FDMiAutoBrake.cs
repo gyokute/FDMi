@@ -14,7 +14,7 @@ namespace tech.gyoku.FDMi.avionics
 
         public FDMiFloat AutoBrakeMode, Throttle, BrakeInput, GroundSpeed;
         public FDMiBool AnyIsGround;
-        [SerializeField] float ki, brakeAcc = -2.19456f, LPFTimeCoef = 5f;
+        [SerializeField] float ki, brakeAcc = -2.19456f, LPFTimeCoef = 5f, throttleLatchPercent = 0.7f;
         float[] bl, br, absMode, throttle, brake, gs;
         bool[] isground;
         public float acc, err, tgtAcc;
@@ -92,8 +92,13 @@ namespace tech.gyoku.FDMi.avionics
             }
             if (Mathf.RoundToInt(absMode[0]) == (int)AutobrakeMode.RTO)
             {
-                if (throttle[0] > 0.5f) throttleLatch = true;
+                if (throttle[0] > throttleLatchPercent) throttleLatch = true;
                 if (throttle[0] < 0.02f && throttleLatch) tgtAcc = -4.2672f; // 14ft/sec
+                else
+                {
+                    brake[0] = manualBrakeInput;
+                    return;
+                }
             }
 
             err = AccFilter() - tgtAcc;
