@@ -124,15 +124,15 @@ namespace tech.gyoku.FDMi.avionics
             return rollCmd;
         }
         float rollErr, pRollErr, rollOutput;
-        void FixedUpdate()
+        void Update()
         {
             if (!IsPilot.data[0]) return;
-            rollRate = LPF((roll[0] - prevRoll) / Time.fixedDeltaTime, rollRate, tau);
+            rollRate = LPF((roll[0] - prevRoll) / Time.deltaTime, rollRate, tau);
             prevRoll = roll[0];
 
             pRollErr = rollErr;
             rollErr = rollCommand() - roll[0];
-            _FDRoll.Data = Mathf.MoveTowards(_FDRoll.Data, rollErr, FDMoveSpeed * Time.fixedDeltaTime);
+            _FDRoll.Data = Mathf.MoveTowards(_FDRoll.Data, rollErr, FDMoveSpeed * Time.deltaTime);
 
             if (apswMode == AutoPilotSWMode.OFF) return;
 
@@ -151,7 +151,7 @@ namespace tech.gyoku.FDMi.avionics
             }
             rollOutput = PIControl(rollErr, pRollErr, rollOutput, kp / Mathf.Max(ias[0], 1), ki / Mathf.Max(ias[0], 1));
             rollOutput = Mathf.Clamp(rollOutput, -1f, 1f);
-            APOutput.Data = Mathf.MoveTowards(apOutput[0], rollOutput, yokeSpeedLimit * Time.fixedDeltaTime);
+            APOutput.Data = Mathf.MoveTowards(apOutput[0], rollOutput, yokeSpeedLimit * Time.deltaTime);
         }
     }
 }

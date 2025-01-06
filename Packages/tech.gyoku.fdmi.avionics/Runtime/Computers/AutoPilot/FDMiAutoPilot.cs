@@ -12,7 +12,7 @@ namespace tech.gyoku.FDMi.avionics
         protected float LPFTau(float T)
         {
             float omega = 2 * Mathf.PI / T;
-            return omega / (omega + Time.fixedDeltaTime);
+            return omega / (omega + Time.deltaTime);
         }
         protected float LPF(float value, float prev, float tau)
         {
@@ -21,7 +21,7 @@ namespace tech.gyoku.FDMi.avionics
         protected float HPFTau(float T)
         {
             float omega = 2 * Mathf.PI / T;
-            return 1 / (1 + omega * Time.fixedDeltaTime);
+            return 1 / (1 + omega * Time.deltaTime);
         }
         protected float HPF(float pOutput, float input, float pInput, float tau)
         {
@@ -35,19 +35,19 @@ namespace tech.gyoku.FDMi.avionics
 
         protected float IControl(float err, float prevOut, float ki)
         {
-            return prevOut + ki * err * Time.fixedDeltaTime;
+            return prevOut + ki * err * Time.deltaTime;
         }
         protected float IControl(float err, float prevErr, float prevOut, float ki)
         {
-            return ki * (prevOut + (err + prevErr) * Time.fixedDeltaTime * 0.5f);
+            return ki * (prevOut + (err + prevErr) * Time.deltaTime * 0.5f);
         }
         protected float DControl(float err, float prevErr, float kd)
         {
-            return kd / Time.fixedDeltaTime * (err - prevErr);
+            return kd / Time.deltaTime * (err - prevErr);
         }
         protected float PIControl(float err, float prevErr, float prevOut, float kp, float ki)
         {
-            float output = kp * (err - prevErr) + ki * err * Time.fixedDeltaTime;
+            float output = kp * (err - prevErr) + ki * err * Time.deltaTime;
             return prevOut + output;
         }
     }

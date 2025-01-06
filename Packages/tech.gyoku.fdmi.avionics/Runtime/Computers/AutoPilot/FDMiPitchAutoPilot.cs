@@ -138,10 +138,10 @@ namespace tech.gyoku.FDMi.avionics
         }
         float pitchRate, prevPitch, prevPitchRate, prevPitchErr, pitchRateErr;
 
-        void FixedUpdate()
+        void Update()
         {
             float output = 0f;
-            pitchRate = LPF((pitch[0] - prevPitch) / Time.fixedDeltaTime, pitchRate, omega);
+            pitchRate = LPF((pitch[0] - prevPitch) / Time.deltaTime, pitchRate, omega);
             prevPitch = pitch[0];
             vsLPF = LPF(vs[0], vsLPF, omega);
             if (Mathf.RoundToInt(mode[0]) < (int)PitchAutoPilotMode.VS || Mathf.RoundToInt(mode[0]) > (int)PitchAutoPilotMode.ALTHOLD)
@@ -152,7 +152,7 @@ namespace tech.gyoku.FDMi.avionics
 
             if (!isPilot[0]) return;
 
-            _FDPitch.Data = Mathf.MoveTowards(_FDPitch.Data, pitchErr, Time.fixedDeltaTime * FDMoveSpeed);
+            _FDPitch.Data = Mathf.MoveTowards(_FDPitch.Data, pitchErr, Time.deltaTime * FDMoveSpeed);
 
             if (apswMode == AutoPilotSWMode.OFF) return;
             // if (apswMode == AutoPilotSWMode.CMD) APOutput.Data = output;
@@ -181,7 +181,7 @@ namespace tech.gyoku.FDMi.avionics
 
             APOutput.Data = output;
             // autotrim
-            if (Mathf.Abs(output) > autoTrimThreshold) TrimCommand.Data += output * autoTrimGain * Time.fixedDeltaTime;
+            if (Mathf.Abs(output) > autoTrimThreshold) TrimCommand.Data += output * autoTrimGain * Time.deltaTime;
         }
     }
 }
