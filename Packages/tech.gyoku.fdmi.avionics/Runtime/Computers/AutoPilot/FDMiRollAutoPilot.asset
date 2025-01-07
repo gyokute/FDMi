@@ -427,13 +427,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: APOutput
+      Data: APRoll
     - Name: $v
       Entry: 7
       Data: 23|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: APOutput
+      Data: APRoll
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 19
@@ -571,13 +571,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: _FDRoll
+      Data: FDRoll
     - Name: $v
       Entry: 7
       Data: 29|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: _FDRoll
+      Data: FDRoll
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 19
@@ -1555,13 +1555,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: apOutput
+      Data: apRoll
     - Name: $v
       Entry: 7
       Data: 73|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: apOutput
+      Data: apRoll
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 53

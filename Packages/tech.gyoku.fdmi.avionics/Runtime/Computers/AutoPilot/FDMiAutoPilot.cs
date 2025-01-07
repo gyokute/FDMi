@@ -50,5 +50,12 @@ namespace tech.gyoku.FDMi.avionics
             float output = kp * (err - prevErr) + ki * err * Time.deltaTime;
             return prevOut + output;
         }
+        protected float PIDControl(float err, float pErr, float ppErr, float prevOut, float kp, float ki, float kd)
+        {
+            float errDiff = err - pErr;
+            float pErrDiff = pErr - ppErr;
+            float output = kp * errDiff + ki * err * Time.deltaTime + kd * (errDiff - pErrDiff);
+            return prevOut + output;
+        }
     }
 }
