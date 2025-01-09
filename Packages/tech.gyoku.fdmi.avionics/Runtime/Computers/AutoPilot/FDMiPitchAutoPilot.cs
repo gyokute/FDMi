@@ -17,9 +17,9 @@ namespace tech.gyoku.FDMi.avionics
         private AutoPilotSWMode apswMode = AutoPilotSWMode.OFF;
         private float[] mode, inL, inR, pitch, roll, vs, alt, tas, alpha, vscmd, altcmd, gs, loc, fdPitch;
         private bool[] isPilot;
-        [SerializeField] float kp, ki, kd, a = 1f, FDMoveSpeed = 2f, pitchRateLimit = 2.5f;
+        [SerializeField] float kp, kq, a = 1f, FDMoveSpeed = 2f, pitchRateLimit = 2.5f;
         [SerializeField] float kpGS, kiGS, GSbias = 2.54f;
-        [SerializeField] float kpalt;
+        [SerializeField] float kpalt, kialt;
         [SerializeField] float autoTrimThreshold = 0.05f, autoTrimGain = 0.5f;
         float cmd, err, omega, vsLPF;
         void Start()
@@ -48,8 +48,8 @@ namespace tech.gyoku.FDMi.avionics
         }
         public void OnChangeAPSW()
         {
-            output_i = 0f;
             pitchErr = 0f;
+            pitchCmd_i = 0f;
             if (Mathf.Approximately(APSW.data[0], 0f))
             {
                 apswMode = AutoPilotSWMode.OFF;
@@ -77,8 +77,8 @@ namespace tech.gyoku.FDMi.avionics
         }
         public void OnChange_PitchMode()
         {
-            output_i = 0f;
             pitchErr = 0f;
+            pitchCmd_i = 0f;
             switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
             {
                 case PitchAutoPilotMode.CWS:
@@ -87,31 +87,36 @@ namespace tech.gyoku.FDMi.avionics
                 case PitchAutoPilotMode.ALTHOLD:
                 case PitchAutoPilotMode.GSCAP:
                     holdAlt = alt[0];
+                    holdAlt = Mathf.Abs(altcmd[0] * 0.3048f - alt[0]) < 5f ? altcmd[0] * 0.3048f : alt[0];
+                    altErr = holdAlt - alt[0];
                     break;
-                case PitchAutoPilotMode.GSTRK:
-                    gs_i = 0f;
+                case PitchAutoPilotMode.ALTCAP:
+                    altErr = altcmd[0] * 0.3048f - alt[0];
                     break;
             }
         }
 
         float holdPitch, holdAlt;
-        float altErr, pGSErr, gs_i;
+        float altErr, pAltErr, pGSErr, pitchCmd_i;
         float pitchCommand()
         {
             float pitchCmd = 0f;
-            switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
+            if (isPilot[0])
             {
-                case PitchAutoPilotMode.GSCAP:
-                    if (!Mathf.Approximately(gs[0], 0f) && Mathf.Abs(loc[0]) < 8f && Mathf.Abs(gs[0]) < 0.075f) _PitchMode.Data = (int)PitchAutoPilotMode.GSTRK;
-                    break;
-                case PitchAutoPilotMode.ALTCAP:
-                    if (Mathf.Abs(altErr) < 3f) _PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
-                    break;
-                case PitchAutoPilotMode.VS:
-                    altErr = altcmd[0] * 0.3048f - alt[0];
-                    if (Mathf.Abs(altErr) * kpalt < Mathf.Abs(vscmd[0]) && altErr * vscmd[0] > 0)
-                        _PitchMode.Data = (int)PitchAutoPilotMode.ALTCAP;
-                    break;
+                switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
+                {
+                    case PitchAutoPilotMode.GSCAP:
+                        if (!Mathf.Approximately(gs[0], 0f) && Mathf.Abs(loc[0]) < 8f && Mathf.Abs(gs[0]) < 0.075f) _PitchMode.Data = (int)PitchAutoPilotMode.GSTRK;
+                        break;
+                    case PitchAutoPilotMode.ALTCAP:
+                        if (Mathf.Abs(altErr) < 3f) _PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
+                        break;
+                    case PitchAutoPilotMode.VS:
+                        altErr = altcmd[0] * 0.3048f - alt[0];
+                        if (Mathf.Abs(altErr) * kpalt < Mathf.Abs(vscmd[0]) && altErr * vscmd[0] > 0)
+                            _PitchMode.Data = (int)PitchAutoPilotMode.ALTCAP;
+                        break;
+                }
             }
 
             switch ((PitchAutoPilotMode)Mathf.RoundToInt(mode[0]))
@@ -119,8 +124,8 @@ namespace tech.gyoku.FDMi.avionics
                 case PitchAutoPilotMode.CWS:
                     return pitch[0] - alpha[0];
                 case PitchAutoPilotMode.GSTRK:
-                    gs_i = IControl(gs[0], pGSErr, gs_i, kiGS);
-                    pitchCmd = PControl(gs[0], kpGS) + gs_i + GSbias;
+                    pitchCmd_i = IControl(gs[0], pGSErr, pitchCmd_i, kiGS);
+                    pitchCmd = PControl(gs[0], kpGS) + pitchCmd_i + GSbias;
                     pGSErr = gs[0];
                     break;
                 case PitchAutoPilotMode.ALTHOLD:
@@ -128,35 +133,39 @@ namespace tech.gyoku.FDMi.avionics
                     vscmd[0] = 0f;
                     // if vert speed is high, ease target altitude
                     if (Mathf.Abs(vs[0]) > 2.54f) holdAlt = alt[0];
-                    altErr = PControl(holdAlt - alt[0], kpalt);
-                    pitchCmd = altErr * 0.508f / (tas[0] * Mathf.Deg2Rad);
+                    pAltErr = altErr;
+                    altErr = holdAlt - alt[0];
+                    pitchCmd_i = Mathf.Clamp(IControl(altErr, pAltErr, pitchCmd_i, kialt), -1, 1);
+                    pitchCmd = PControl(altErr, kpalt) + pitchCmd_i;
+                    pitchCmd = pitchCmd * 0.508f / (tas[0] * Mathf.Deg2Rad);
                     break;
                 case PitchAutoPilotMode.ALTCAP:
+                    pAltErr = altErr;
                     altErr = altcmd[0] * 0.3048f - alt[0];
-                    vscmd[0] = PControl(altErr, kpalt);
+                    pitchCmd_i = Mathf.Clamp(IControl(altErr, pAltErr, pitchCmd_i, kialt), -1, 1);
+                    vscmd[0] = PControl(altErr, kpalt) + pitchCmd_i;
                     pitchCmd = vscmd[0] * 0.508f / (tas[0] * Mathf.Deg2Rad);
                     break;
                 case PitchAutoPilotMode.VS:
                     pitchCmd = vscmd[0] * 0.508f / (tas[0] * Mathf.Deg2Rad);
                     break;
             }
-            return pitchCmd;
+            float rollRad = Mathf.Abs(roll[0]) * Mathf.Deg2Rad;
+            return pitchCmd + (rollRad * rollRad * 0.5f);
         }
-        float pitchRate, prevPitch, prevPitchRate, pitchErr, prevPitchErr, output_i;
+        float pitchRate, prevPitch, pitchErr, output;
 
         void Update()
         {
-            float output = 0f;
-            pitchRate = LPF((pitch[0] - prevPitch) / Time.deltaTime, pitchRate, omega);
+            // pitchRate = LPF((pitch[0] - prevPitch) / Time.deltaTime, pitchRate, omega);
+            pitchRate = Mathf.Lerp(pitchRate, (pitch[0] - prevPitch) / Time.deltaTime, Time.deltaTime / a);
             prevPitch = pitch[0];
-            prevPitchErr = pitchErr;
 
             vsLPF = LPF(vs[0], vsLPF, omega);
             if (Mathf.RoundToInt(mode[0]) < (int)PitchAutoPilotMode.VS || Mathf.RoundToInt(mode[0]) > (int)PitchAutoPilotMode.ALTHOLD)
             {
                 vscmd[0] = vsLPF * 1.9685039f;
             }
-
             pitchErr = pitchCommand() + alpha[0] - pitch[0];
             FDPitch.Data = Mathf.MoveTowards(FDPitch.Data, pitchErr, Time.deltaTime * FDMoveSpeed);
 
@@ -168,20 +177,18 @@ namespace tech.gyoku.FDMi.avionics
                 if (Mathf.Abs(pitchInput) > 0.05f)
                 {
                     holdPitch = pitch[0];
-                    output = 0f;
                     APPitch.Data = 0f;
+                    output = 0f;
                     return;
                 }
                 pitchErr = holdPitch - pitch[0];
             }
 
             pitchErr = Mathf.Clamp(pitchErr, -pitchRateLimit, pitchRateLimit);
-            output_i = Mathf.Clamp(IControl(pitchErr, prevPitchErr, output_i, ki), -0.2f, 0.2f);
-            output = PControl(pitchErr, kp) + output_i + DControl(pitchErr, prevPitchErr, kd);
-
+            output = PControl(pitchErr, kp) + PControl(-pitchRate, kq);
             output = Mathf.Clamp(output, -1f, 1f);
-
             APPitch.Data = output;
+
             // autotrim
             if (Mathf.Abs(output) > autoTrimThreshold) TrimCommand.Data += output * autoTrimGain * Time.deltaTime;
         }
