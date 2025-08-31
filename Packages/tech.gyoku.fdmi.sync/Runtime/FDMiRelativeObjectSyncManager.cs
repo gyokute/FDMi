@@ -19,9 +19,9 @@ namespace tech.gyoku.FDMi.sync
             _rotation = Quaternion.identity;
             localRootRefPoint = this;
             ParentIndex = -1;
-            for (int i = 0; i < refPoints.Length; i++)
+            for (short i = 0; i < refPoints.Length; i++)
                 refPoints[i].index = i;
-            for (int i = 0; i < refPoints.Length; i++)
+            for (short i = 0; i < refPoints.Length; i++)
                 refPoints[i].initReferencePoint();
         }
         public Quaternion localRotation;

@@ -1,3 +1,4 @@
+using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -10,12 +11,12 @@ namespace tech.gyoku.FDMi.sync
     public class FDMiReferencePoint : FDMiBehaviour
     {
 
-        [HideInInspector] public int index; // use in FDMiRelativeObjectSyncManager.Identify FDMiReferencePoint.
+        [NonSerialized] public short index; // use in FDMiRelativeObjectSyncManager.Identify FDMiReferencePoint.
         public bool parentIsRoot;// use in FDMiRelativeObjectSyncManager.
         public FDMiRelativeObjectSyncManager syncManager;
         public Rigidbody body;
-        [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] protected int _parentIndex;
-        public int ParentIndex
+        [UdonSynced, FieldChangeCallback(nameof(ParentIndex))] protected short _parentIndex;
+        public short ParentIndex
         {
             get => _parentIndex;
             set { handleParentIndex(value); }
@@ -84,7 +85,7 @@ namespace tech.gyoku.FDMi.sync
             RequestSerialization();
         }
 
-        public virtual void handleParentIndex(int value)
+        public virtual void handleParentIndex(short value)
         {
             _parentIndex = value;
             if (value >= 0)

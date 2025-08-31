@@ -22,7 +22,7 @@ namespace tech.gyoku.FDMi.sync
             station.UseStation(localPlayer);
         }
 
-        public override void handleParentIndex(int value)
+        public override void handleParentIndex(short value)
         {
             FDMiReferencePoint prevPRP = parentRefPoint;
             base.handleParentIndex(value);
