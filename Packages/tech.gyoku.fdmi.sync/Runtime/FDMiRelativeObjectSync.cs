@@ -119,7 +119,7 @@ namespace tech.gyoku.FDMi.sync
 
         public void Update()
         {
-            if (!isInit || stopUpdate) return;
+            if (!isInit) return;
             if (Networking.IsOwner(gameObject))
             {
                 Quaternion btr = body.transform.rotation;

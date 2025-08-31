@@ -32,13 +32,13 @@ namespace tech.gyoku.FDMi.sync
             if (!Networking.IsOwner(gameObject)) _rotation = syncedRot;
             return _rotation;
         }
-        public override Vector3 getViewPositionInterpolated()
+        public Vector3 getViewPositionInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewPosition();
             _position = Vector3.Lerp(_position, 1000f * syncedKmPos + syncedPos, Time.deltaTime * 10);
             return _position;
         }
-        public override Quaternion getViewRotationInterpolated()
+        public Quaternion getViewRotationInterpolated()
         {
             if (Networking.IsOwner(gameObject)) return getViewRotation();
             _rotation = Quaternion.Slerp(_rotation, syncedRot, Time.deltaTime * 10);

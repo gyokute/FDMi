@@ -58,9 +58,6 @@ namespace tech.gyoku.FDMi.sync
         protected Quaternion prevRot;
 
         #region RelativePosition
-        public bool careIsKinematic = true;
-        [HideInInspector] public bool stopUpdate = true;
-        bool kinematicFlag = false;
         public virtual void initReferencePoint()
         {
             if (!parentRefPoint) parentRefPoint = syncManager;
@@ -71,45 +68,13 @@ namespace tech.gyoku.FDMi.sync
                 respawnPos = transform.InverseTransformPoint(respawnPoint.position);
                 respawnRot = Quaternion.Inverse(transform.rotation) * respawnPoint.rotation;
             }
-            if (body) kinematicFlag = body.isKinematic;
-            stopUpdate = false;
-            waitUpdate();
             isInit = true;
-        }
-        public virtual void waitUpdate()
-        {
-            if (!body) return;
-            turnOnStopUpdate();
-        }
-        public void turnOnStopUpdate()
-        {
-            if (stopUpdate) return;
-            setKinematic();
-            SendCustomEventDelayedFrames(nameof(turnOffStopUpdate), 5);
-            stopUpdate = true;
-        }
-
-        public void turnOffStopUpdate()
-        {
-            unsetKinematic();
-            stopUpdate = false;
-        }
-        public void setKinematic()
-        {
-            if (!body || !careIsKinematic || !isInit) return;
-            body.isKinematic = true;
-        }
-        public void unsetKinematic()
-        {
-            if (!body || !careIsKinematic) return;
-            body.isKinematic = body.isKinematic && (kinematicFlag || (!isRoot && !parentIsRoot));
         }
 
         public void onChangeRootRefPoint(FDMiReferencePoint refPoint)
         {
             rootRefPoint = refPoint;
             parentIsRoot = (parentRefPoint.index == refPoint.index);
-            waitUpdate();
             windupPositionAndRotation();
         }
         public void changeParentRefPoint(FDMiReferencePoint refPoint)
@@ -121,7 +86,6 @@ namespace tech.gyoku.FDMi.sync
 
         public virtual void handleParentIndex(int value)
         {
-            turnOnStopUpdate();
             _parentIndex = value;
             if (value >= 0)
             {
@@ -150,23 +114,11 @@ namespace tech.gyoku.FDMi.sync
             // diff += 1000f * kmDiff;
             return dir * diff;
         }
-        public virtual Vector3 getViewPositionInterpolated()
-        {
-            // if (Networking.IsOwner(gameObject)) return getViewPosition();
-            // prevPos = Vector3.Lerp(prevPos, getViewPosition(), Time.deltaTime * 10);
-            return getViewPosition();
-        }
         public virtual Quaternion getViewRotation()
         {
             if (isRoot) return Quaternion.identity;
             if (!rootRefPoint) return _rotation;
             return (Quaternion.Inverse(rootRefPoint._rotation) * _rotation).normalized;
-        }
-        public virtual Quaternion getViewRotationInterpolated()
-        {
-            // if (Networking.IsOwner(gameObject)) return getViewRotation();
-            // prevRot = Quaternion.Slerp(prevRot, getViewRotation(), Time.deltaTime * 10);
-            return getViewRotation();
         }
         public virtual void windupPositionAndRotation()
         {

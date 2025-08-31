@@ -40,7 +40,6 @@ namespace tech.gyoku.FDMi.sync
         {
             for (int i = 0; i < refPoints.Length; i++)
             {
-                refPoints[i].waitUpdate();
                 refPoints[i].windupPositionAndRotation();
             }
         }
@@ -58,8 +57,6 @@ namespace tech.gyoku.FDMi.sync
             Transform tgtTransform = target.transform;
             Transform prevTransform = prevRoot.transform;
 
-            prevRoot.waitUpdate();
-            target.waitUpdate();
 
             prevRoot.isRoot = false;
             if (prevRoot.index != index)
