@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiPlayerPosition
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 3f36432127185ce4283378a6af5f7f7e, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 60a8d0a82aba7b14bb4b971b35f3859b, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: a588d9aabb63e1947a6b1de9f50924d1, type: 3}

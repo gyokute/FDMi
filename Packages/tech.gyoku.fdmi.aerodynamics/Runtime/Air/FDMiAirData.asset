@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiAirData
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: f6d3a3a9b7eadcd4db49fb38b8af1ba4, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: f620ec3383c7d9b4a991a4450bb284de, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 12f73a259896bb7498911a2ae6f21f48, type: 3}

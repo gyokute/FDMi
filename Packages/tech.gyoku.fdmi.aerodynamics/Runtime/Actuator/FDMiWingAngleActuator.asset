@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiWingAngleActuator
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: e16979eb563e82e4abe21e51aa404e2a, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: c370f21fcde251a48b4e56b464ddf2c7, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 21883d80857cc47409edc2bd0b7efc7d, type: 3}

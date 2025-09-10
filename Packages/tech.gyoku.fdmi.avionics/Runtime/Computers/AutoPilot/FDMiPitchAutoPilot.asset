@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiPitchAutoPilot
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 7f59a3d4fb96a7b41991032b920c22d8, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: f6ac71426adc0b64b8d4a0046f096b3d, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: b0c27d7b29e83d44db4658ebbae25c67, type: 3}
@@ -43,7 +43,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 66
+      Data: 65
     - Name: 
       Entry: 7
       Data: 
@@ -2053,13 +2053,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: ki
+      Data: kq
     - Name: $v
       Entry: 7
       Data: 96|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: ki
+      Data: kq
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2107,13 +2107,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: kd
+      Data: a
     - Name: $v
       Entry: 7
       Data: 99|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: kd
+      Data: a
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2162,13 +2162,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: a
+      Data: FDMoveSpeed
     - Name: $v
       Entry: 7
       Data: 102|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: a
+      Data: FDMoveSpeed
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2217,13 +2217,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: FDMoveSpeed
+      Data: pitchRateLimit
     - Name: $v
       Entry: 7
       Data: 105|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: FDMoveSpeed
+      Data: pitchRateLimit
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2272,13 +2272,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: pitchRateLimit
+      Data: kpGS
     - Name: $v
       Entry: 7
       Data: 108|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: pitchRateLimit
+      Data: kpGS
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2327,13 +2327,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: kpGS
+      Data: kiGS
     - Name: $v
       Entry: 7
       Data: 111|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: kpGS
+      Data: kiGS
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2382,13 +2382,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: kiGS
+      Data: GSbias
     - Name: $v
       Entry: 7
       Data: 114|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: kiGS
+      Data: GSbias
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2437,13 +2437,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: GSbias
+      Data: kpalt
     - Name: $v
       Entry: 7
       Data: 117|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: GSbias
+      Data: kpalt
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -2492,13 +2492,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: kpalt
+      Data: kialt
     - Name: $v
       Entry: 7
       Data: 120|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: kpalt
+      Data: kialt
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -3000,13 +3000,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: pGSErr
+      Data: pAltErr
     - Name: $v
       Entry: 7
       Data: 143|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: pGSErr
+      Data: pAltErr
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -3049,13 +3049,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: gs_i
+      Data: pGSErr
     - Name: $v
       Entry: 7
       Data: 145|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: gs_i
+      Data: pGSErr
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -3098,13 +3098,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: pitchRate
+      Data: pitchCmd_i
     - Name: $v
       Entry: 7
       Data: 147|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: pitchRate
+      Data: pitchCmd_i
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -3147,13 +3147,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: prevPitch
+      Data: pitchRate
     - Name: $v
       Entry: 7
       Data: 149|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: prevPitch
+      Data: pitchRate
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -3196,13 +3196,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: prevPitchRate
+      Data: prevPitch
     - Name: $v
       Entry: 7
       Data: 151|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: prevPitchRate
+      Data: prevPitch
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -3294,13 +3294,13 @@ MonoBehaviour:
       Data: 
     - Name: $k
       Entry: 1
-      Data: prevPitchErr
+      Data: output
     - Name: $v
       Entry: 7
       Data: 155|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
     - Name: <Name>k__BackingField
       Entry: 1
-      Data: prevPitchErr
+      Data: output
     - Name: <UserType>k__BackingField
       Entry: 9
       Data: 93
@@ -3322,55 +3322,6 @@ MonoBehaviour:
     - Name: _fieldAttributes
       Entry: 7
       Data: 156|System.Collections.Generic.List`1[[System.Attribute, mscorlib]],
-        mscorlib
-    - Name: 
-      Entry: 12
-      Data: 0
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 7
-      Data: 
-    - Name: $k
-      Entry: 1
-      Data: output_i
-    - Name: $v
-      Entry: 7
-      Data: 157|UdonSharp.Compiler.FieldDefinition, UdonSharp.Editor
-    - Name: <Name>k__BackingField
-      Entry: 1
-      Data: output_i
-    - Name: <UserType>k__BackingField
-      Entry: 9
-      Data: 93
-    - Name: <SystemType>k__BackingField
-      Entry: 9
-      Data: 93
-    - Name: <SyncMode>k__BackingField
-      Entry: 7
-      Data: System.Nullable`1[[UdonSharp.UdonSyncMode, UdonSharp.Runtime]], mscorlib
-    - Name: 
-      Entry: 6
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: <IsSerialized>k__BackingField
-      Entry: 5
-      Data: false
-    - Name: _fieldAttributes
-      Entry: 7
-      Data: 158|System.Collections.Generic.List`1[[System.Attribute, mscorlib]],
         mscorlib
     - Name: 
       Entry: 12

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiHeadPositionAdjuster
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: dc7e47797a790a04ebfaa42ec5057c47, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: a4a8a360b5f462143a4c665c14ca42f3, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: c58193db425bed149b9603c68f4c1046, type: 3}

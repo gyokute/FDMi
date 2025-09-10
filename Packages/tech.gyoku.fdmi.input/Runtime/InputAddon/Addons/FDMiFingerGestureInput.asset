@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFingerGestureInput
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 81103e2dbf1cac0479330ab09eeac09f, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 69eb9390dd741e44097a7f7efbffc9de, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: f1305b5c2993d8c47adf459cacdbad5f, type: 3}

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFuselage
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 0a1e6735d6f390044b44330b2bd75381, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: dac2f70af2c0fc449af6c8c0374d5ef4, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 88a3f341553379344bccbc1d7a7542f9, type: 3}

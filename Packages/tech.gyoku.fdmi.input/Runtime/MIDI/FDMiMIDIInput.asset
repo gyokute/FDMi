@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiMIDIInput
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: a221782fce04df5449e7e6730a2466f5, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: f353ef3f08eca0647b5adc721b7eb87b, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 5c5f625924f36ad4d8474215125f6ed7, type: 3}

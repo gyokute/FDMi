@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiFingerTracker
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 9b255ba51f98f704b9f3b771962a0955, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 1e717a2db755650458d41d92c9620a75, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 08b35fc0acbf45f4bb8916a9a57043ec, type: 3}

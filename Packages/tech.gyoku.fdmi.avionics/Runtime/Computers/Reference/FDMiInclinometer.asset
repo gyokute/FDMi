@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiInclinometer
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: d663799163df1314580d7c57f0c2c24c, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 1569fa6058f1bdf41b962add358d34e0, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 156a1db8558ddbb4386af8a42609b6fc, type: 3}

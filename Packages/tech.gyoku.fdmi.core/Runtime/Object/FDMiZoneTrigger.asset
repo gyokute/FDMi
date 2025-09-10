@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: FDMiZoneTrigger
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: a9670087b5a991f45aa1fa6436404461, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 035e8c694cb902c4b87fa17d0dd52ab5, type: 2}
   udonAssembly: 
   assemblyError: 
   sourceCsScript: {fileID: 11500000, guid: 577fe10fd21434a4cb0d3d2ca1deb1bd, type: 3}
