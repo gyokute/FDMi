@@ -10,11 +10,13 @@ namespace tech.gyoku.FDMi.avionics
     public enum RollAutoPilotMode { CWS, HDGHOLD, HDGSEL, FMSCAP, FMSTRK, LOCCAP, LOCTRK, ILSCAP, ILSTRK };
     public class FDMiRollAutoPilot : FDMiAutoPilot
     {
-        public FDMiFloat APSW, _RollMode, APRoll, RollInputL, RollInputR, FDRoll;
+        public FDMiSByte APRoll, RollInputL, RollInputR;
+        public FDMiFloat APSW, _RollMode, FDRoll;
         public FDMiFloat Roll, HDG, IAS, HDGCommand, RollLimit, _LOC, _CRS;
         public FDMiBool IsPilot;
         private AutoPilotSWMode apswMode;
-        private float[] mode, inL, inR, roll, hdg, ias, hdgcmd, rollLim, loc, crs, apRoll;
+        private float[] mode, roll, hdg, ias, hdgcmd, rollLim, loc, crs;
+        private sbyte[] apRoll, inL, inR;
         [SerializeField] float kpHDG;
         [SerializeField] float kpLOC;
         [SerializeField] float locTRKTransition = 10f, ilsTRKTransition = 2f;
@@ -25,9 +27,9 @@ namespace tech.gyoku.FDMi.avionics
         void Start()
         {
             mode = _RollMode.data;
+            roll = Roll.data;
             inL = RollInputL.data;
             inR = RollInputR.data;
-            roll = Roll.data;
             hdg = HDG.data;
             ias = IAS.data;
             hdgcmd = HDGCommand.data;
@@ -49,7 +51,7 @@ namespace tech.gyoku.FDMi.avionics
             if (Mathf.Approximately(APSW.data[0], 0f))
             {
                 apswMode = AutoPilotSWMode.OFF;
-                APRoll.Data = 0f;
+                apRoll[0] = 0;
             }
             if (Mathf.Approximately(APSW.data[0], 0.5f))
             {
@@ -140,21 +142,21 @@ namespace tech.gyoku.FDMi.avionics
 
             if (apswMode == AutoPilotSWMode.OFF) return;
 
-            float rollInput = Mathf.Clamp(inL[0] + inR[0], -1, 1);
+            float rollInput = inL[0] + inR[0];
             if (apswMode == AutoPilotSWMode.CWS || mode[0] == (float)RollAutoPilotMode.CWS)
             {
                 rollErr = holdRoll - roll[0];
-                if (Mathf.Abs(rollInput) > 0.05f)
+                if (Mathf.Abs(rollInput) > 5)
                 {
                     holdRoll = Mathf.Abs(roll[0]) <= 5f ? 0f : roll[0];
                     rollOutput = 0f;
-                    APRoll.Data = 0f;
+                    apRoll[0] = 0;
                     return;
                 }
             }
             rollOutput = PIControl(rollErr, pRollErr, rollOutput, kp / Mathf.Max(ias[0], 1), ki / Mathf.Max(ias[0], 1));
             rollOutput = Mathf.Clamp(rollOutput, -1f, 1f);
-            APRoll.Data = Mathf.MoveTowards(apRoll[0], rollOutput, yokeSpeedLimit * Time.deltaTime);
+            apRoll[0] = (sbyte)Mathf.MoveTowards(apRoll[0], rollOutput * 127, yokeSpeedLimit * 127 * Time.deltaTime);
         }
     }
 }

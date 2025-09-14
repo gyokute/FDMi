@@ -12,26 +12,39 @@ namespace tech.gyoku.FDMi.input
     {
         public YokeControlType pitchType, rollType, yawType;
         public LeverAxis pitchAxis, rollAxis, yawAxis;
+        public FDMiSByte PitchInput, RollInput, YawInput, BrakeInput, TrimInput;
+        [SerializeField] private float pitchMul, rollMul, yawMul, brakeMul, trimMul;
 
-        public FDMiSByte PitchInput, RollInput, YawInput;
-        [SerializeField] private float pitchMul, rollMul, yawMul;
+        private sbyte[] pitch, roll, yaw, brake, trim;
 
+        void Start()
+        {
+            pitch = PitchInput.data;
+            roll = RollInput.data;
+            yaw = YawInput.data;
+            brake = BrakeInput.data;
+            trim = TrimInput.data;
+        }
 
         public override void whileGrab()
         {
             base.whileGrab();
             if (grabAxis == null) return;
-            PitchInput.set(yokeMove(pitchType, pitchMul, (int)pitchAxis));
-            RollInput.set(yokeMove(rollType, rollMul, (int)rollAxis));
-            YawInput.set(yokeMove(yawType, yawMul, (int)yawAxis));
+            pitch[0] = yokeMove(pitchType, pitchMul, (int)pitchAxis);
+            roll[0] = yokeMove(rollType, rollMul, (int)rollAxis);
+            yaw[0] = yokeMove(yawType, yawMul, (int)yawAxis);
+            brake[0] = AxisMove(grabAxis[(int)FingerInputType.Trigger], brakeMul);
+            trim[0] = AxisMove(grabAxis[(int)FingerInputType.PadV], trimMul);
         }
         // TODO: fix when Released
         public override void OnRelease(FDMiFingerTracker finger)
         {
             base.OnRelease(finger);
-            PitchInput.set(0);
-            RollInput.set(0);
-            YawInput.set(0);
+            pitch[0] = 0;
+            roll[0] = 0;
+            yaw[0] = 0;
+            brake[0] = 0;
+            trim[0] = 0;
         }
 
         private sbyte yokeMove(YokeControlType control, float inputMul, int axis)
@@ -55,5 +68,9 @@ namespace tech.gyoku.FDMi.input
             return (sbyte)(Mathf.Clamp(rawInput * inputMul, -1, 1) * 127);
         }
 
+        private static sbyte AxisMove(float axisValue, float inputMul)
+        {
+            return (sbyte)(Mathf.Clamp(axisValue * inputMul, -1, 1) * 127);
+        }
     }
 }

@@ -10,12 +10,14 @@ namespace tech.gyoku.FDMi.avionics
     public enum AutobrakeMode { RTO, OFF, ONE, TWO, THREE, MAX }
     public class FDMiAutoBrake : FDMiAutoPilot
     {
-        public FDMiFloat BrakeInputL, BrakeInputR;
+        public FDMiSByte BrakeInputL, BrakeInputR;
+        public FDMiSByte AutoBrakeMode;
 
-        public FDMiFloat AutoBrakeMode, Throttle, BrakeInput, GroundSpeed;
+        public FDMiFloat Throttle, BrakeInput, GroundSpeed;
         public FDMiBool AnyIsGround;
         [SerializeField] float ki, brakeAcc = -2.19456f, LPFTimeCoef = 5f, throttleLatchPercent = 0.7f;
-        float[] bl, br, absMode, throttle, brake, gs;
+        sbyte[] bl, br, absMode;
+        float[] throttle, brake, gs;
         bool[] isground;
         public float acc, err, tgtAcc;
         private bool throttleLatch;
@@ -45,7 +47,7 @@ namespace tech.gyoku.FDMi.avionics
 
         public void OnChangeAutoBrakeMode()
         {
-            switch ((AutobrakeMode)Mathf.RoundToInt(absMode[0]))
+            switch ((AutobrakeMode)absMode[0])
             {
                 case AutobrakeMode.OFF:
                     throttleLatch = false;
@@ -77,10 +79,11 @@ namespace tech.gyoku.FDMi.avionics
 
         void Update()
         {
-            float manualBrakeInput = Mathf.Clamp01(bl[0] + br[0]);
-            if (manualBrakeInput > 0.1f && AutoBrakeMode.Data > (float)AutobrakeMode.OFF)
-                AutoBrakeMode.Data = (float)AutobrakeMode.OFF;
-            if (AutoBrakeMode.Data == (float)AutobrakeMode.OFF)
+            float manualBrakeInput = bl[0] + br[0];
+            manualBrakeInput = Mathf.Clamp01(manualBrakeInput / 255.0f);
+            if (manualBrakeInput > 0.1f && absMode[0] > (sbyte)AutobrakeMode.OFF)
+                AutoBrakeMode.Data = (sbyte)AutobrakeMode.OFF;
+            if (absMode[0] == (sbyte)AutobrakeMode.OFF)
             {
                 brake[0] = manualBrakeInput;
                 return;
@@ -90,7 +93,7 @@ namespace tech.gyoku.FDMi.avionics
                 brake[0] = Mathf.MoveTowards(brake[0], 0, ki * Time.deltaTime);
                 return;
             }
-            if (Mathf.RoundToInt(absMode[0]) == (int)AutobrakeMode.RTO)
+            if (absMode[0] == (sbyte)AutobrakeMode.RTO)
             {
                 if (throttle[0] > throttleLatchPercent) throttleLatch = true;
                 if (throttle[0] < 0.02f && throttleLatch) tgtAcc = -4.2672f; // 14ft/sec

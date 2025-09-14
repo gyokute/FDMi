@@ -10,12 +10,16 @@ namespace tech.gyoku.FDMi.avionics
     public enum PitchAutoPilotMode { CWS, IASHOLD, MACHHOLD, TURB, VS, ALTCAP, ALTHOLD, GSCAP, GSTRK, GA, TAKEOFF };
     public class FDMiPitchAutoPilot : FDMiAutoPilot
     {
-        public FDMiFloat APSW, _PitchMode, APPitch, PitchInputL, PitchInputR, FDPitch, TrimCommand;
+        public FDMiSByte PitchInputL, PitchInputR, APPitch;
+        public FDMiFloat APSW, _PitchMode, FDPitch, TrimCommand;
         public FDMiFloat VSCommand, AltCommand, _GS, _LOC;
         public FDMiFloat Pitch, Roll, VerticalSpeed, Altitude, TAS, Alpha;
         public FDMiBool IsPilot;
         private AutoPilotSWMode apswMode = AutoPilotSWMode.OFF;
-        private float[] mode, inL, inR, pitch, roll, vs, alt, tas, alpha, vscmd, altcmd, gs, loc, fdPitch;
+
+        private sbyte[] inL, inR, apPitch;
+
+        private float[] mode, pitch, roll, vs, alt, tas, alpha, vscmd, altcmd, gs, loc, fdPitch;
         private bool[] isPilot;
         [SerializeField] float kp, kq, a = 1f, FDMoveSpeed = 2f, pitchRateLimit = 2.5f;
         [SerializeField] float kpGS, kiGS, GSbias = 2.54f;
@@ -27,6 +31,7 @@ namespace tech.gyoku.FDMi.avionics
             mode = _PitchMode.data;
             inL = PitchInputL.data;
             inR = PitchInputR.data;
+            apPitch = APPitch.data;
             pitch = Pitch.data;
             roll = Roll.data;
             vs = VerticalSpeed.data;
@@ -53,7 +58,7 @@ namespace tech.gyoku.FDMi.avionics
             if (Mathf.Approximately(APSW.data[0], 0f))
             {
                 apswMode = AutoPilotSWMode.OFF;
-                APPitch.Data = 0f;
+                apPitch[0] = 0;
             }
             if (Mathf.Approximately(APSW.data[0], 0.5f))
             {
@@ -173,11 +178,11 @@ namespace tech.gyoku.FDMi.avionics
             // if (apswMode == AutoPilotSWMode.CMD) APPitch.Data = output;
             if (apswMode == AutoPilotSWMode.CWS || Mathf.RoundToInt(mode[0]) == (int)PitchAutoPilotMode.CWS)
             {
-                float pitchInput = Mathf.Clamp(inL[0] + inR[0], -1, 1);
-                if (Mathf.Abs(pitchInput) > 0.05f)
+                float pitchInput = inL[0] + inR[0];
+                if (Mathf.Abs(pitchInput) > 5)
                 {
                     holdPitch = pitch[0];
-                    APPitch.Data = 0f;
+                    apPitch[0] = 0;
                     output = 0f;
                     return;
                 }
@@ -187,7 +192,7 @@ namespace tech.gyoku.FDMi.avionics
             pitchErr = Mathf.Clamp(pitchErr, -pitchRateLimit, pitchRateLimit);
             output = PControl(pitchErr, kp) + PControl(-pitchRate, kq);
             output = Mathf.Clamp(output, -1f, 1f);
-            APPitch.Data = output;
+            apPitch[0] = (sbyte)Mathf.RoundToInt(output * 127f);
 
             // autotrim
             if (Mathf.Abs(output) > autoTrimThreshold) TrimCommand.Data += output * autoTrimGain * Time.deltaTime;
