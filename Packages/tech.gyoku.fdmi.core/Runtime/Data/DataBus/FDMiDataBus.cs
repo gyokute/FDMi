@@ -10,6 +10,7 @@ namespace tech.gyoku.FDMi.core
     {
         FDMiData, FDMiBool, FDMiInt, FDMiFloat, FDMiVector3, FDMiQuaternion,
         FDMiSyncedBool, FDMiSyncedInt, FDMiSyncedFloat, FDMiSyncedVector3, FDMiSyncedQuaternion,
+        FDMiSByte, FDMiSyncedSByte, FDMiByte, FDMiSyncedByte
     }
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class FDMiDataBus : UdonSharpBehaviour

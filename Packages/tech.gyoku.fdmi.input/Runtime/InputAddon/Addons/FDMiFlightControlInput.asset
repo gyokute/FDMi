@@ -1279,7 +1279,7 @@ MonoBehaviour:
       Data: 62|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: tech.gyoku.FDMi.core.FDMiFloat, tech.gyoku.FDMi.core
+      Data: tech.gyoku.FDMi.core.FDMiSByte, tech.gyoku.FDMi.core
     - Name: 
       Entry: 8
       Data: 

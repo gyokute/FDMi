@@ -18,11 +18,13 @@ namespace tech.gyoku.FDMi.core.editor
             switch (T)
             {
                 case FDMiDataType.FDMiBool: return typeof(FDMiBool);
+                case FDMiDataType.FDMiSByte: return typeof(FDMiSByte);
                 case FDMiDataType.FDMiInt: return typeof(FDMiInt);
                 case FDMiDataType.FDMiFloat: return typeof(FDMiFloat);
                 case FDMiDataType.FDMiVector3: return typeof(FDMiVector3);
                 case FDMiDataType.FDMiQuaternion: return typeof(FDMiQuaternion);
                 case FDMiDataType.FDMiSyncedBool: return typeof(FDMiSyncedBool);
+                case FDMiDataType.FDMiSyncedSByte: return typeof(FDMiSyncedSByte);
                 case FDMiDataType.FDMiSyncedInt: return typeof(FDMiSyncedInt);
                 case FDMiDataType.FDMiSyncedFloat: return typeof(FDMiSyncedFloat);
                 case FDMiDataType.FDMiSyncedVector3: return typeof(FDMiSyncedVector3);

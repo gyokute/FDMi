@@ -13,7 +13,7 @@ namespace tech.gyoku.FDMi.input
         public YokeControlType pitchType, rollType, yawType;
         public LeverAxis pitchAxis, rollAxis, yawAxis;
 
-        public FDMiFloat PitchInput, RollInput, YawInput;
+        public FDMiSByte PitchInput, RollInput, YawInput;
         [SerializeField] private float pitchMul, rollMul, yawMul;
 
 
@@ -29,12 +29,12 @@ namespace tech.gyoku.FDMi.input
         public override void OnRelease(FDMiFingerTracker finger)
         {
             base.OnRelease(finger);
-            PitchInput.set(0f);
-            RollInput.set(0f);
-            YawInput.set(0f);
+            PitchInput.set(0);
+            RollInput.set(0);
+            YawInput.set(0);
         }
 
-        private float yokeMove(YokeControlType control, float inputMul, int axis)
+        private sbyte yokeMove(YokeControlType control, float inputMul, int axis)
         {
             float rawInput = 0f;
             if (control == YokeControlType.pull)
@@ -52,7 +52,7 @@ namespace tech.gyoku.FDMi.input
                 Vector3 eular = (Quaternion.Inverse(handStartAxis) * handAxis).eulerAngles;
                 rawInput = eular[axis] - Mathf.Floor(eular[axis] / 180.1f) * 360;
             }
-            return Mathf.Clamp(rawInput * inputMul, -1, 1);
+            return (sbyte)(Mathf.Clamp(rawInput * inputMul, -1, 1) * 127);
         }
 
     }
