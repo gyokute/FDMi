@@ -15,36 +15,25 @@ namespace tech.gyoku.FDMi.input
         public FDMiSByte PitchInput, RollInput, YawInput, BrakeInput, TrimInput;
         [SerializeField] private float pitchMul, rollMul, yawMul, brakeMul, trimMul;
 
-        private sbyte[] pitch, roll, yaw, brake, trim;
-
-        void Start()
-        {
-            pitch = PitchInput.data;
-            roll = RollInput.data;
-            yaw = YawInput.data;
-            brake = BrakeInput.data;
-            trim = TrimInput.data;
-        }
-
         public override void whileGrab()
         {
             base.whileGrab();
             if (grabAxis == null) return;
-            pitch[0] = yokeMove(pitchType, pitchMul, (int)pitchAxis);
-            roll[0] = yokeMove(rollType, rollMul, (int)rollAxis);
-            yaw[0] = yokeMove(yawType, yawMul, (int)yawAxis);
-            brake[0] = AxisMove(grabAxis[(int)FingerInputType.Trigger], brakeMul);
-            trim[0] = AxisMove(grabAxis[(int)FingerInputType.PadV], trimMul);
+            PitchInput.Data = yokeMove(pitchType, pitchMul, (int)pitchAxis);
+            RollInput.Data = yokeMove(rollType, rollMul, (int)rollAxis);
+            YawInput.Data = yokeMove(yawType, yawMul, (int)yawAxis);
+            BrakeInput.Data = AxisMove(grabAxis[(int)FingerInputType.Trigger], brakeMul);
+            TrimInput.Data = AxisMove(grabAxis[(int)FingerInputType.PadV], trimMul);
         }
         // TODO: fix when Released
         public override void OnRelease(FDMiFingerTracker finger)
         {
             base.OnRelease(finger);
-            pitch[0] = 0;
-            roll[0] = 0;
-            yaw[0] = 0;
-            brake[0] = 0;
-            trim[0] = 0;
+            PitchInput.Data = 0;
+            RollInput.Data = 0;
+            YawInput.Data = 0;
+            BrakeInput.Data = 0;
+            TrimInput.Data = 0;
         }
 
         private sbyte yokeMove(YokeControlType control, float inputMul, int axis)
