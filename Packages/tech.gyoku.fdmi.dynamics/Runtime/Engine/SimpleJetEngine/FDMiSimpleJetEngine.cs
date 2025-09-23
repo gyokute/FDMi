@@ -10,8 +10,8 @@ namespace tech.gyoku.FDMi.dynamics
     public class FDMiSimpleJetEngine : FDMiAttribute
     {
         public FDMiBool InZone, IsPilot;
-        public FDMiFloat EngineStatus;
-        public FDMiFloat FuelSW, AirSW, Throttle, Reverser;
+        public FDMiSByte EngineStatus, FuelSW, AirSW;
+        public FDMiFloat Throttle, Reverser;
         public FDMiFloat Mach, Pressure, SAT;
         public FDMiFloat FuelFlow, EGT;
         public FDMiFloat N1, N2;
@@ -24,7 +24,8 @@ namespace tech.gyoku.FDMi.dynamics
         [SerializeField] AnimationCurve thrustMachMultiplier;
         [SerializeField] AnimationCurve thrustPressureMultiplier;
         private bool[] inZone, isPilot;
-        float[] status, sw, airsw, input, rev, mach, pressure, ff, egt, sat, n1, n2;
+        private sbyte[] status, sw, airsw;
+        float[] input, rev, mach, pressure, ff, egt, sat, n1, n2;
         float thrust;
         void Start()
         {
@@ -59,11 +60,11 @@ namespace tech.gyoku.FDMi.dynamics
             float N2Acc = N2dt;
             switch (status[0])
             {
-                case (float)EngineState.STARTUP:
+                case (sbyte)EngineState.STARTUP:
                     N2Tgt = maxAirN2 * airsw[0];
                     N2Acc = N2Airdt;
                     break;
-                case (float)EngineState.RUNNING:
+                case (sbyte)EngineState.RUNNING:
                     N2Tgt = Mathf.Lerp(N2min, N2max, input[0]);
                     break;
             }
@@ -82,25 +83,25 @@ namespace tech.gyoku.FDMi.dynamics
             }
             if (isPilot[0])
             {
-                bool isFuelEn = (sw[0] > 0.5f) && (n2[0] > N2FuelThreshold);
+                bool isFuelEn = (sw[0] > 0) && (n2[0] > N2FuelThreshold);
                 switch (status[0])
                 {
-                    case (float)EngineState.OFF:
-                        if (isFuelEn) EngineStatus.Data = (float)EngineState.RUNNING;
-                        else if (airsw[0] > 0.5f) EngineStatus.Data = (float)EngineState.STARTUP;
+                    case (sbyte)EngineState.OFF:
+                        if (isFuelEn) EngineStatus.Data = (sbyte)EngineState.RUNNING;
+                        else if (airsw[0] > 0) EngineStatus.Data = (sbyte)EngineState.STARTUP;
                         break;
-                    case (float)EngineState.STARTUP:
-                        if (isFuelEn) EngineStatus.Data = (float)EngineState.RUNNING;
-                        if (airsw[0] < 0.5f) EngineStatus.Data = (float)EngineState.OFF;
+                    case (sbyte)EngineState.STARTUP:
+                        if (isFuelEn) EngineStatus.Data = (sbyte)EngineState.RUNNING;
+                        if (airsw[0] == 0) EngineStatus.Data = (sbyte)EngineState.OFF;
                         break;
-                    case (float)EngineState.RUNNING:
-                        if (sw[0] < 0.5f) EngineStatus.Data = (float)EngineState.OFF;
+                    case (sbyte)EngineState.RUNNING:
+                        if (sw[0] == 0) EngineStatus.Data = (sbyte)EngineState.OFF;
                         break;
                 }
                 // N2.Data = Mathf.Max(n2[0], Mathf.MoveTowards(n2[0], maxAirN2 * airsw[0] * noise, N2FuelThreshold * theta));
-                if (airsw[0] > 0.5f && n2[0] > maxAirN2)
+                if (airsw[0] > 0 && n2[0] > maxAirN2)
                 {
-                    AirSW.Data = 0f;
+                    AirSW.Data = 0;
                 }
                 thrust = Mathf.Lerp(1f, N1ReverserRatio, rev[0]) * n1[0] * n1[0] * N1StaticThrust;
                 thrust += Mathf.Lerp(1f, N2ReverserRatio, rev[0]) * n2[0] * n2[0] * N2StaticThrust;

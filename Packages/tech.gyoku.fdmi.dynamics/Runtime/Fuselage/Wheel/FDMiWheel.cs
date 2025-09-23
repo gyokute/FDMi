@@ -10,7 +10,8 @@ namespace tech.gyoku.FDMi.dynamics
     public class FDMiWheel : FDMiAttribute
     {
         public WheelCollider wheel;
-        public FDMiFloat TillerInput, TorqueInput, BrakeInput, ParkBrakeInput, Retract;
+        public FDMiFloat TillerInput, TorqueInput, BrakeInput, Retract;
+        public FDMiSByte ParkBrakeInput;
         public FDMiFloat SuspensionMove, WheelRotate;
         public FDMiBool IsGround;
         public float brakePressure = 3000f, parkBrakePressure = 3000f, absKi = 0.05f, absTgt = 0.35f;
@@ -22,7 +23,8 @@ namespace tech.gyoku.FDMi.dynamics
         [SerializeField] private Vector3 retractDirection;
         [SerializeField] private AnimationCurve retractCurve;
         private Vector3 wheelOriginPos = Vector3.zero;
-        private float[] tiller, torque, brake, parkbrake, susmove, wheelRot = { 0f };
+        private float[] tiller, torque, brake, susmove, wheelRot = { 0f };
+        private sbyte[] parkbrake;
         private bool[] isground;
         private Ray groundRay;
         private float rayMaxLen, wheelCircumference;
@@ -69,11 +71,12 @@ namespace tech.gyoku.FDMi.dynamics
 
             if (isOwner)
             {
+                float parkBrakeFloat = parkbrake[0] / 127;
                 float slipRate = Mathf.Abs(body.velocity.z);
-                if (TorqueInput) wheel.motorTorque = Mathf.Clamp01(1f - parkbrake[0] - parkbrake[0]) * torque[0];
-                else wheel.motorTorque = Mathf.Clamp01(0.1f - slipRate) * Mathf.Clamp01(1f - parkbrake[0] - parkbrake[0]) * preLoadTorque;
+                if (TorqueInput) wheel.motorTorque = Mathf.Clamp01(1f - parkBrakeFloat - parkBrakeFloat) * torque[0];
+                else wheel.motorTorque = Mathf.Clamp01(0.1f - slipRate) * Mathf.Clamp01(1f - parkBrakeFloat - parkBrakeFloat) * preLoadTorque;
                 wheel.steerAngle = tiller[0] * rotateAngle;
-                wheel.brakeTorque = parkbrake[0] * parkBrakePressure + brake[0] * brakePressure;
+                wheel.brakeTorque = parkBrakeFloat * parkBrakePressure + brake[0] * brakePressure;
             }
         }
     }
