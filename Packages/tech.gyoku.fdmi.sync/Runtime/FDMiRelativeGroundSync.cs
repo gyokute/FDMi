@@ -12,8 +12,8 @@ namespace tech.gyoku.FDMi.sync
         public float disableKmPos = 9999f;
         void Start()
         {
-            setPosition(transform.position);
-            _rotation = transform.rotation;
+            // setPosition(transform.position);
+            // _rotation = transform.rotation;
         }
         public void Update()
         {
