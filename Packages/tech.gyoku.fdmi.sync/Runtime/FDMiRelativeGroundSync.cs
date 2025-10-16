@@ -12,13 +12,14 @@ namespace tech.gyoku.FDMi.sync
         public float disableKmPos = 9999f;
         void Start()
         {
+            transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
             // setPosition(transform.position);
             // _rotation = transform.rotation;
         }
         public void Update()
         {
             Vector3 relativePos = getViewPosition();
-            transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
+            // transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
 
         public override void windupPositionAndRotation()
