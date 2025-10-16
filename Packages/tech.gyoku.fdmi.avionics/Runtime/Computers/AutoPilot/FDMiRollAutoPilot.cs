@@ -20,7 +20,7 @@ namespace tech.gyoku.FDMi.avionics
         [SerializeField] float kpHDG;
         [SerializeField] float kpLOC;
         [SerializeField] float locTRKTransition = 10f, ilsTRKTransition = 2f;
-        [SerializeField] float kp, ki, a = 1f, FDMoveSpeed = 2f, rollRateLimit = 7.5f, yokeSpeedLimit = 1f;
+        [SerializeField] float kp, ki, kd, a = 1f, FDMoveSpeed = 2f, rollRateLimit = 7.5f, yokeSpeedLimit = 1f;
         float tau, rollRate, prevRoll;
         float holdHDG, holdRoll;
 
@@ -154,7 +154,7 @@ namespace tech.gyoku.FDMi.avionics
                     return;
                 }
             }
-            rollOutput = PIControl(rollErr, pRollErr, rollOutput, kp / Mathf.Max(ias[0], 1), ki / Mathf.Max(ias[0], 1));
+            rollOutput = PIControl(rollErr - kd * rollRate, pRollErr, rollOutput, kp / Mathf.Max(ias[0], 1), ki / Mathf.Max(ias[0], 1));
             rollOutput = Mathf.Clamp(rollOutput, -1f, 1f);
             apRoll[0] = (sbyte)Mathf.MoveTowards(apRoll[0], rollOutput * 127, yokeSpeedLimit * 127 * Time.deltaTime);
         }
