@@ -13,15 +13,15 @@ namespace tech.gyoku.FDMi.avionics
         public FDMiSByte PitchInputL, PitchInputR, APPitch;
         public FDMiFloat APSW, _PitchMode, FDPitch, TrimCommand;
         public FDMiFloat VSCommand, AltCommand, _GS, _LOC;
-        public FDMiFloat Pitch, Roll, VerticalSpeed, Altitude, TAS, Alpha;
+        public FDMiFloat Pitch, Roll, VerticalSpeed, Altitude, TAS, Alpha, IAS;
         public FDMiBool IsPilot;
         private AutoPilotSWMode apswMode = AutoPilotSWMode.OFF;
 
         private sbyte[] inL, inR, apPitch;
 
-        private float[] mode, pitch, roll, vs, alt, tas, alpha, vscmd, altcmd, gs, loc, fdPitch;
+        private float[] mode, pitch, roll, vs, alt, tas, alpha, ias, vscmd, altcmd, gs, loc, fdPitch;
         private bool[] isPilot;
-        [SerializeField] float kp, kq, a = 1f, FDMoveSpeed = 2f, pitchRateLimit = 2.5f;
+        [SerializeField] float kp, kd, a = 1f, FDMoveSpeed = 2f, pitchRateLimit = 2.5f;
         [SerializeField] float kpGS, kiGS, GSbias = 2.54f;
         [SerializeField] float kpalt, kialt;
         [SerializeField] float autoTrimThreshold = 0.05f, autoTrimGain = 0.5f;
@@ -38,6 +38,7 @@ namespace tech.gyoku.FDMi.avionics
             alt = Altitude.data;
             tas = TAS.data;
             alpha = Alpha.data;
+            ias = IAS.data;
             gs = _GS.data;
             loc = _LOC.data;
             vscmd = VSCommand.data;
@@ -152,7 +153,7 @@ namespace tech.gyoku.FDMi.avionics
                     pitchCmd = vscmd[0] * 0.508f / (tas[0] * Mathf.Deg2Rad);
                     break;
                 case PitchAutoPilotMode.VS:
-                    pitchCmd = vscmd[0] * 0.508f / (tas[0] * Mathf.Deg2Rad);
+                    pitchCmd = vscmd[0] * 0.508f / (ias[0] * Mathf.Deg2Rad);
                     break;
             }
             float rollRad = Mathf.Abs(roll[0]) * Mathf.Deg2Rad;
@@ -162,8 +163,9 @@ namespace tech.gyoku.FDMi.avionics
 
         void Update()
         {
+            pitchRate = (pitch[0] - prevPitch) / Time.deltaTime;
             // pitchRate = LPF((pitch[0] - prevPitch) / Time.deltaTime, pitchRate, omega);
-            pitchRate = Mathf.Lerp(pitchRate, (pitch[0] - prevPitch) / Time.deltaTime, Time.deltaTime / a);
+            // pitchRate = Mathf.Lerp(pitchRate, (pitch[0] - prevPitch) / Time.deltaTime, Time.deltaTime / a);
             prevPitch = pitch[0];
 
             vsLPF = LPF(vs[0], vsLPF, omega);
@@ -189,8 +191,9 @@ namespace tech.gyoku.FDMi.avionics
                 pitchErr = holdPitch - pitch[0];
             }
 
-            pitchErr = Mathf.Clamp(pitchErr, -pitchRateLimit, pitchRateLimit);
-            output = PControl(pitchErr, kp) + PControl(-pitchRate, kq);
+            pitchErr = pitchErr - pitchRate * kd;
+            float iasFactor = Mathf.Max(ias[0], 1f);
+            output = PControl(pitchErr, kp / iasFactor);
             output = Mathf.Clamp(output, -1f, 1f);
             apPitch[0] = (sbyte)Mathf.RoundToInt(output * 127f);
 

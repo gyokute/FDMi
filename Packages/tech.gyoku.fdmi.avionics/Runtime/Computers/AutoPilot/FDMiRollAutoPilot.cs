@@ -154,7 +154,9 @@ namespace tech.gyoku.FDMi.avionics
                     return;
                 }
             }
-            rollOutput = PIControl(rollErr - kd * rollRate, pRollErr, rollOutput, kp / Mathf.Max(ias[0], 1), ki / Mathf.Max(ias[0], 1));
+
+            rollErr -= kd * rollRate;
+            rollOutput = PIControl(rollErr, pRollErr, rollOutput, kp / Mathf.Max(ias[0], 1), ki / Mathf.Max(ias[0], 1));
             rollOutput = Mathf.Clamp(rollOutput, -1f, 1f);
             apRoll[0] = (sbyte)Mathf.MoveTowards(apRoll[0], rollOutput * 127, yokeSpeedLimit * 127 * Time.deltaTime);
         }
