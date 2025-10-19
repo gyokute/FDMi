@@ -13,6 +13,7 @@ namespace tech.gyoku.FDMi.core
     {
         [UdonSynced, HideInInspector] public uint syncedData;
         public FDMiSByte[] data = new FDMiSByte[4];
+        [SerializeField] bool triggerOnChange = false;
         private sbyte[][] _data = new sbyte[4][];
         private int dataLength = 0;
 
@@ -64,6 +65,10 @@ namespace tech.gyoku.FDMi.core
         {
             isDeserialized = true;
             UnpackBytes(dataLength, syncedData, ref _data);
+            if (triggerOnChange)
+            {
+                for (int i = 0; i < dataLength; i++) data[i].trigger();
+            }
             isDeserialized = false;
         }
         #endregion
