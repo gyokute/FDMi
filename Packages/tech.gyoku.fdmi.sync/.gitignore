@@ -1,3 +1,6 @@
 #ignore Script/*.asset
 /[Ss]cripts/**/*.asset
 /[Ss]cript/**/*.asset
+
+**/Runtime/**/*.asset.meta
+**/Runtime/**/*.asset
