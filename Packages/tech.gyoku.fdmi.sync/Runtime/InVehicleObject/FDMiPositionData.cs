@@ -25,7 +25,7 @@ namespace tech.gyoku.FDMi.sync
         void Update()
         {
             pos[0] = refPoint._position;
-            kmPos[0] = refPoint.syncedKmPos;
+            kmPos[0] = refPoint._kmPosition;
             vel[0] = refPoint._velocity;
             rot[0] = refPoint._rotation;
         }

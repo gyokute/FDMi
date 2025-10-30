@@ -9,7 +9,6 @@ namespace tech.gyoku.FDMi.sync
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiReferencePoint : FDMiBehaviour
     {
-
         [HideInInspector] public int index; // use in FDMiRelativeObjectSyncManager.Identify FDMiReferencePoint.
         public bool parentIsRoot;// use in FDMiRelativeObjectSyncManager.
         public FDMiRelativeObjectSyncManager syncManager;
@@ -21,22 +20,8 @@ namespace tech.gyoku.FDMi.sync
             set { handleParentIndex(value); }
         }
 
-        [UdonSynced] public Vector3 syncedPos;
-        [UdonSynced] public Quaternion syncedRot = Quaternion.identity;
-        [UdonSynced, FieldChangeCallback(nameof(SyncedKmPos))] public Vector3 syncedKmPos;
-        public Vector3 SyncedKmPos
-        {
-            get => syncedKmPos;
-            set
-            {
-                syncedKmPos = value;
-                handleChangeKmPosition(value);
-            }
-        }
         public Vector3 _position, _velocity, _kmPosition;
         public Quaternion _rotation = Quaternion.identity;
-
-
 
         public bool _isRoot = false;
         public bool isRoot
@@ -215,19 +200,35 @@ namespace tech.gyoku.FDMi.sync
         {
             ServerTimeDiff = Networking.GetServerTimeInSeconds() - Time.time;
             nextUpdateTime = Time.time + (double)updateInterval;
-
         }
         protected virtual void TrySerialize()
         {
             // Try Serialize.
-            if (Time.time > nextUpdateTime && !Networking.IsClogged)
-            {
-                syncedPos = _position;
-                syncedRot = _rotation;
-                syncedKmPos = _kmPosition;
-                RequestSerialization();
-                nextUpdateTime = Time.time + updateInterval;
-            }
+            // if (Time.time > nextUpdateTime && !Networking.IsClogged)
+            // {
+            //     syncedPos = _position;
+            //     syncedRot = _rotation;
+            //     syncedKmPos = _kmPosition;
+            //     RequestSerialization();
+            //     nextUpdateTime = Time.time + updateInterval;
+            // }
+        }
+        #endregion
+
+        #region Quaternion Unility
+        public static short[] PackQuaternion(Quaternion q)
+        {
+            short[] q_array = new short[4];
+            q_array[0] = (short)(q.x * 32767f);
+            q_array[1] = (short)(q.y * 32767f);
+            q_array[2] = (short)(q.z * 32767f);
+            q_array[3] = (short)(q.w * 32767f);
+            return q_array;
+        }
+
+        public static Quaternion UnpackQuaternion(short[] data)
+        {
+            return new Quaternion(data[0] / 32767f, data[1] / 32767f, data[2] / 32767f, data[3] / 32767f);
         }
         #endregion
     }

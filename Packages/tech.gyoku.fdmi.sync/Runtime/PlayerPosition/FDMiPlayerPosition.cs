@@ -10,6 +10,19 @@ namespace tech.gyoku.FDMi.sync
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiPlayerPosition : FDMiReferencePoint
     {
+        [UdonSynced] public Vector3 syncedPos;
+        [UdonSynced] public Quaternion syncedRot = Quaternion.identity;
+        [UdonSynced, FieldChangeCallback(nameof(SyncedKmPos))] public Vector3 syncedKmPos;
+        public Vector3 SyncedKmPos
+        {
+            get => syncedKmPos;
+            set
+            {
+                syncedKmPos = value;
+                handleChangeKmPosition(value);
+            }
+        }
+
         public VRCStation station;
         public VRCPlayerApi localPlayer;
         [SerializeField] public bool isMine;
@@ -191,6 +204,19 @@ namespace tech.gyoku.FDMi.sync
             }
             transform.localPosition = getViewPositionInterpolated();
             transform.localRotation = getViewRotationInterpolated();
+        }
+
+        protected override void TrySerialize()
+        {
+            // Try Serialize.
+            if (Time.time > nextUpdateTime && !Networking.IsClogged)
+            {
+                syncedPos = _position;
+                syncedRot = _rotation;
+                syncedKmPos = _kmPosition;
+                RequestSerialization();
+                nextUpdateTime = Time.time + updateInterval;
+            }
         }
     }
 }

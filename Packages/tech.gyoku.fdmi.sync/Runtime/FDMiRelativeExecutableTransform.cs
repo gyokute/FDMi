@@ -10,6 +10,19 @@ namespace tech.gyoku.FDMi.sync
 {
     public class FDMiRelativeExecutableTransform : FDMiReferencePoint
     {
+        [UdonSynced] public Vector3 syncedPos;
+        [UdonSynced] public Quaternion syncedRot = Quaternion.identity;
+        [UdonSynced, FieldChangeCallback(nameof(SyncedKmPos))] public Vector3 syncedKmPos;
+        public Vector3 SyncedKmPos
+        {
+            get => syncedKmPos;
+            set
+            {
+                syncedKmPos = value;
+                handleChangeKmPosition(value);
+            }
+        }
+        
         public override void initReferencePoint()
         {
             base.initReferencePoint();
