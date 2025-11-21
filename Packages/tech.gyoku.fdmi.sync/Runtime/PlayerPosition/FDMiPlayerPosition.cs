@@ -11,7 +11,20 @@ namespace tech.gyoku.FDMi.sync
     public class FDMiPlayerPosition : FDMiReferencePoint
     {
         [UdonSynced] public Vector3 syncedPos;
-        [UdonSynced] public Quaternion syncedRot = Quaternion.identity;
+        [UdonSynced, FieldChangeCallback(nameof(SyncedHDG))] public ushort _syncedHDG;
+        private Quaternion syncedRot = Quaternion.identity;
+
+        public ushort SyncedHDG
+        {
+            get => _syncedHDG;
+            set
+            {
+                _syncedHDG = value;
+                syncedRot = Quaternion.Euler(0, _syncedHDG * 0.01f, 0);
+
+            }
+        }
+
         [UdonSynced, FieldChangeCallback(nameof(SyncedKmPos))] public Vector3 syncedKmPos;
         public Vector3 SyncedKmPos
         {
@@ -212,7 +225,7 @@ namespace tech.gyoku.FDMi.sync
             if (Time.time > nextUpdateTime && !Networking.IsClogged)
             {
                 syncedPos = _position;
-                syncedRot = _rotation;
+                SyncedHDG = (ushort)(_rotation.eulerAngles.y * 100f);
                 syncedKmPos = _kmPosition;
                 RequestSerialization();
                 nextUpdateTime = Time.time + updateInterval;
