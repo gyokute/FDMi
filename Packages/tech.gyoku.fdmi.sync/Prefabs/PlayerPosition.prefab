@@ -121,9 +121,6 @@ MonoBehaviour:
   parentIsRoot: 0
   syncManager: {fileID: 0}
   body: {fileID: 0}
-  syncedPos: {x: 0, y: 0, z: 0}
-  syncedRot: {x: 0, y: 0, z: 0, w: 1}
-  syncedKmPos: {x: 0, y: 0, z: 0}
   _position: {x: 0, y: 0, z: 0}
   _velocity: {x: 0, y: 0, z: 0}
   _kmPosition: {x: 0, y: 0, z: 0}
@@ -139,6 +136,9 @@ MonoBehaviour:
   updateInterval: 0.25
   IdleMovementRange: 0.35
   IdleRotationRange: 5
+  syncedPos: {x: 0, y: 0, z: 0}
+  syncedRot: {x: 0, y: 0, z: 0, w: 1}
+  syncedKmPos: {x: 0, y: 0, z: 0}
   station: {fileID: 5942648957956689949}
   isMine: 0
   playerLocalLayer:
