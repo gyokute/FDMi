@@ -180,7 +180,7 @@ namespace tech.gyoku.FDMi.sync
         protected override void TrySerialize()
         {
             // Try Serialize.
-            if (Time.time > nextUpdateTime && !Networking.IsClogged)
+            if (Time.time > nextUpdateTime)
             {
                 syncedPos = _position;
                 syncedRot = PackQuaternion(_rotation);
@@ -234,8 +234,10 @@ namespace tech.gyoku.FDMi.sync
             // position
             lastVel = _velocity;
             lastPos = _position;
+            Vector3 lastKmPos = _kmPosition;
+            _kmPosition = syncedKmPos;
+            lastPos -= (syncedKmPos - lastKmPos) * 1000f;
         }
-
 
         #endregion
     }
