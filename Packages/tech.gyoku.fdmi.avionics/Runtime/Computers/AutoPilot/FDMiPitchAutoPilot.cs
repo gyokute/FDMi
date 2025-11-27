@@ -198,7 +198,10 @@ namespace tech.gyoku.FDMi.avionics
             apPitch[0] = (sbyte)Mathf.RoundToInt(output * 127f);
 
             // autotrim
-            if (Mathf.Abs(output) > autoTrimThreshold) TrimCommand.Data += output * autoTrimGain * Time.deltaTime;
+            if (isPilot[0])
+            {
+                if (Mathf.Abs(output) > autoTrimThreshold) TrimCommand.Data += output * autoTrimGain * Time.deltaTime;
+            }
         }
     }
 }
