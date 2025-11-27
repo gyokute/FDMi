@@ -4,13 +4,17 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
+using VRC.SDK3.UdonNetworkCalling;
+using VRC.Udon.Common.Interfaces;
+
 namespace tech.gyoku.FDMi.core
 {
+    [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class FDMiStationAdjuster : FDMiBehaviour
     {
         public FDMiVector3 SeatOffset;
         [SerializeField] Transform SeatPosition;
-        public float seatAdjustStep = 0.1f;
+        [SerializeField] float seatAdjustStep = 0.1f;
         Vector3 initialSeatPos;
         void Start()
         {
@@ -19,7 +23,14 @@ namespace tech.gyoku.FDMi.core
         }
         public void OffsetSeat()
         {
-            SeatPosition.localPosition = initialSeatPos + SeatOffset.data[0];
+            this.SendCustomNetworkEvent(NetworkEventTarget.All, nameof(ReceiveOffset), SeatOffset.Data);
+        }
+
+        [NetworkCallable]
+        public void ReceiveOffset(Vector3 offset)
+        {
+            SeatOffset.data[0] = offset;
+            SeatPosition.localPosition = initialSeatPos + offset;
         }
         public void FDMiOnSeatExit()
         {
