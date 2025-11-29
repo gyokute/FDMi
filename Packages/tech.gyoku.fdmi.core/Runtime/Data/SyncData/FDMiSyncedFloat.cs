@@ -25,7 +25,7 @@ namespace tech.gyoku.FDMi.core
         {
             if (Mathf.Approximately(SyncedData, src))
             {
-                if (!syncedLatch) SendCustomEventDelayedSeconds("TrySerialize", updateInterval);
+                if (syncedLatch) return;
                 syncedLatch = true;
             }
             else syncedLatch = false;
