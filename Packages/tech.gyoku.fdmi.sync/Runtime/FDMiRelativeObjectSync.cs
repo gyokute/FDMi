@@ -232,11 +232,11 @@ namespace tech.gyoku.FDMi.sync
             _syncedRot = UnpackQuaternion(syncedRot);
             qdiff = Quaternion.Slerp(Quaternion.identity, Quaternion.Inverse(_prevSyncedRot) * _syncedRot, Time.deltaTime / syncedInterval);
             // position
-            lastVel = _velocity;
-            lastPos = _position;
             Vector3 lastKmPos = _kmPosition;
             _kmPosition = syncedKmPos;
-            lastPos -= (syncedKmPos - lastKmPos) * 1000f;
+            lastVel = _velocity;
+            _position -= (syncedKmPos - lastKmPos) * 1000f;
+            lastPos = _position;
         }
 
         #endregion
