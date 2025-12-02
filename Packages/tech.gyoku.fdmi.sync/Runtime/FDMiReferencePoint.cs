@@ -215,22 +215,6 @@ namespace tech.gyoku.FDMi.sync
         }
         #endregion
 
-        #region Quaternion Unility
-        public static short[] PackQuaternion(Quaternion q)
-        {
-            Quaternion qin = q.normalized;
-            short[] q_array = new short[4];
-            q_array[0] = (short)(qin.x * 32767f);
-            q_array[1] = (short)(qin.y * 32767f);
-            q_array[2] = (short)(qin.z * 32767f);
-            q_array[3] = (short)(qin.w * 32767f);
-            return q_array;
-        }
 
-        public static Quaternion UnpackQuaternion(short[] data)
-        {
-            return new Quaternion(data[0] / 32767f, data[1] / 32767f, data[2] / 32767f, data[3] / 32767f);
-        }
-        #endregion
     }
 }
