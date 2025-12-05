@@ -19,6 +19,7 @@ namespace tech.gyoku.FDMi.core
             {
                 if (updateMode == DriverUpdateMode.OnValueChange)
                     Input[i].subscribe(this, "OnChange" + i.ToString());
+                OnChange(i);
             }
             gameObject.SetActive(updateMode == DriverUpdateMode.OnUpdate);
         }
