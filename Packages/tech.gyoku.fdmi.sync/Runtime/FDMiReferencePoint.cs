@@ -125,7 +125,7 @@ namespace tech.gyoku.FDMi.sync
             Vector3 localKmPos = syncManager.localPlayerPosition ? syncManager.localPlayerPosition._kmPosition : Vector3.zero;
             if (isRoot) return -1000f * localKmPos;
             // localRootRefPoint
-            Vector3 rootKmPos = rootRefPoint ? 1000f * rootRefPoint._kmPosition : Vector3.zero;
+            Vector3 rootKmPos = rootRefPoint ? rootRefPoint._kmPosition : Vector3.zero;
             Vector3 rootPos = rootRefPoint ? rootRefPoint._position : Vector3.zero;
             Vector3 kmDiff = _kmPosition;
             Vector3 diff = _position;

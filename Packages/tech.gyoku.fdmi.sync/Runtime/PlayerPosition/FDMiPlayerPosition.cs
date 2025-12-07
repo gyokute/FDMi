@@ -52,6 +52,9 @@ namespace tech.gyoku.FDMi.sync
         {
             FDMiReferencePoint prevPRP = parentRefPoint;
             base.handleParentIndex(value);
+            if (value >= 0) transform.SetParent(parentRefPoint.transform);
+            else transform.SetParent(null);
+
             if (!gameObject.activeSelf || !isMine)
             {
                 SendCustomEventDelayedFrames("windupPositionAndRotation", 2);
