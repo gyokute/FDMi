@@ -178,10 +178,8 @@ namespace tech.gyoku.FDMi.sync
         #region Interpolated
         protected override void TrySerialize()
         {
-            bool isMoved = _velocity.magnitude > 0.01f;
-            isMoved = isMoved || body.angularVelocity.magnitude > 0.001f;
             // Try Serialize.
-            if (isMoved && Time.time > nextUpdateTime)
+            if (Time.time > nextUpdateTime)
             {
                 syncedPos = _position;
                 syncedRot = PackQuaternion(_rotation);
