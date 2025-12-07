@@ -62,14 +62,14 @@ namespace tech.gyoku.FDMi.sync
             target.waitUpdate();
 
             prevRoot.isRoot = false;
-            if (prevRoot.index != index)
-                prevTransform.SetParent(prevRoot.parentRefPoint.transform);
+            // if (prevRoot.index != index)
+                // prevTransform.SetParent(prevRoot.parentRefPoint.transform);
 
             target.isRoot = true;
-            if (target.index != index)
-            {
-                tgtTransform.SetParent(null);
-            }
+            // if (target.index != index)
+            // {
+                // tgtTransform.SetParent(null);
+            // }
             target.windupPositionAndRotation();
             prevRoot.windupPositionAndRotation();
             localRootRefPoint = target;

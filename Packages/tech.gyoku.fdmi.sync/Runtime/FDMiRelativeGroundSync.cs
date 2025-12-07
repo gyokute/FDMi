@@ -18,30 +18,31 @@ namespace tech.gyoku.FDMi.sync
         }
         public void Update()
         {
-            Vector3 relativePos = getViewPosition();
-            if (relativePos.magnitude * 0.001f < disableKmPos - 1)
-            {
-                gameObject.SetActive(true);
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
-            // transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
+            // Vector3 relativePos = getViewPosition();
+            // if (relativePos.magnitude * 0.001f < disableKmPos - 1)
+            // {
+            //     gameObject.SetActive(true);
+            // }
+            // else
+            // {
+            //     gameObject.SetActive(false);
+            // }
+            transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
 
         public override void windupPositionAndRotation()
         {
             // base.windupPositionAndRotation();
-            Vector3 relativePos = getViewPosition();
-            if (relativePos.magnitude * 0.001f < disableKmPos - 1)
-            {
-                gameObject.SetActive(true);
-            }
-            else
-            {
-                gameObject.SetActive(false);
-            }
+            // Vector3 relativePos = getViewPosition();
+            // if (relativePos.magnitude * 0.001f < disableKmPos - 1)
+            // {
+            //     gameObject.SetActive(true);
+            // }
+            // else
+            // {
+            //     gameObject.SetActive(false);
+            // }
+            transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
     }
 }

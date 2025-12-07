@@ -36,6 +36,7 @@ namespace tech.gyoku.FDMi.sync
             setPosition(body.position);
             setRotation(body.rotation);
             ResetSyncStuff();
+            transform.SetParent(null);
         }
         public override void OnPlayerJoined(VRCPlayerApi player)
         {

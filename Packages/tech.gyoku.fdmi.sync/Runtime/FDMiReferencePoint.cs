@@ -111,27 +111,32 @@ namespace tech.gyoku.FDMi.sync
             if (value >= 0)
             {
                 parentRefPoint = syncManager.refPoints[value];
-                transform.SetParent(parentRefPoint.transform);
+                // transform.SetParent(parentRefPoint.transform);
             }
-            else
-            {
-                transform.SetParent(null);
-            }
+            // else
+            // {
+            // transform.SetParent(null);
+            // }
         }
 
         public virtual Vector3 getViewPosition()
         {
-            if (isRoot) return (syncManager.localPlayerPosition ? -1000f * syncManager.localPlayerPosition._kmPosition : Vector3.zero);
+            // localPlayerPosition
+            Vector3 localKmPos = syncManager.localPlayerPosition ? syncManager.localPlayerPosition._kmPosition : Vector3.zero;
+            if (isRoot) return -1000f * localKmPos;
+            // localRootRefPoint
+            Vector3 rootKmPos = rootRefPoint ? 1000f * rootRefPoint._kmPosition : Vector3.zero;
+            Vector3 rootPos = rootRefPoint ? rootRefPoint._position : Vector3.zero;
             Vector3 kmDiff = _kmPosition;
             Vector3 diff = _position;
             Quaternion dir = Quaternion.identity;
             if (rootRefPoint)
             {
-                kmDiff -= rootRefPoint._kmPosition;
-                diff -= rootRefPoint._position;
+                kmDiff -= rootKmPos;
+                diff -= rootPos;
                 dir = Quaternion.Inverse(rootRefPoint._rotation);
             }
-            diff += 1000f * (kmDiff - (syncManager.localPlayerPosition ? syncManager.localPlayerPosition._kmPosition : Vector3.zero));
+            diff += 1000f * (kmDiff - localKmPos);
             // diff += 1000f * kmDiff;
             return dir * diff;
         }
