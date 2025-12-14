@@ -158,11 +158,16 @@ namespace tech.gyoku.FDMi.sync
                 // Serialize
 
                 TrySerialize();
+
+                if(Networking.IsOwner(body.gameObject) && isRoot && body.isKinematic) body.isKinematic = false;
             }
             if (!Networking.IsOwner(gameObject))
             {
                 ExtrapolationAndSmoothing();
                 if (Networking.IsOwner(body.gameObject)) Networking.SetOwner(Networking.LocalPlayer, gameObject);
+                if(!Networking.IsOwner(body.gameObject)){
+                    if(!body.isKinematic) body.isKinematic = true;
+                }
             }
             transform.position = getViewPosition();
             transform.rotation = getViewRotation();
