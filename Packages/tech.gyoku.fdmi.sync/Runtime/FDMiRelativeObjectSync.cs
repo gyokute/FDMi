@@ -294,9 +294,9 @@ namespace tech.gyoku.FDMi.sync
         {
             // 0.0005rad/s, 0.0286deg/s per 1 input
             short[] input = new short[3];
-            input[0] = (short)(omega.x * 2000f);
-            input[1] = (short)(omega.y * 2000f);
-            input[2] = (short)(omega.z * 2000f);
+            input[0] = (short)Mathf.Clamp(omega.x * 2000f, -32767, 32767);
+            input[1] = (short)Mathf.Clamp(omega.y * 2000f, -32767, 32767);
+            input[2] = (short)Mathf.Clamp(omega.z * 2000f, -32767, 32767);
             return input;
         }
 
