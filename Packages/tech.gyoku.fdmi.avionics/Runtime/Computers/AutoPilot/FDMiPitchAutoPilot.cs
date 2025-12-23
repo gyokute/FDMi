@@ -24,6 +24,7 @@ namespace tech.gyoku.FDMi.avionics
         [SerializeField] float kp, kd, a = 1f, FDMoveSpeed = 2f, pitchRateLimit = 2.5f;
         [SerializeField] float kpGS, kiGS, GSbias = 2.54f;
         [SerializeField] float kpalt, kialt;
+        [SerializeField] float kpVS, kdVS;
         [SerializeField] float autoTrimThreshold = 0.05f, autoTrimGain = 0.5f;
         float cmd, err, omega, vsLPF;
         void Start()
@@ -100,11 +101,16 @@ namespace tech.gyoku.FDMi.avionics
                 case PitchAutoPilotMode.ALTCAP:
                     altErr = altcmd[0] * 0.3048f - alt[0];
                     break;
+                case PitchAutoPilotMode.VS:
+                    vserr = vscmd[0] * 0.508f - vs[0];
+                    pvserr = vserr;
+                    break;
             }
         }
 
         float holdPitch, holdAlt;
         float altErr, pAltErr, pGSErr, pitchCmd_i;
+        float vserr, pvserr;
         float pitchCommand()
         {
             float pitchCmd = 0f;
@@ -155,9 +161,13 @@ namespace tech.gyoku.FDMi.avionics
                     break;
                 case PitchAutoPilotMode.VS:
                     // 1m/s = 196.85fpm
-                    pitchCmd = vscmd[0] * 0.508f / (ias[0] * Mathf.Deg2Rad);
-                    // float vserr = vs[0] - vscmd[0] * 0.508f;
-                    // pitchCmd = PControl(vserr, kpalt );
+                    float iasFactor = 1 / Mathf.Max(ias[0], 1f);
+                    pitchCmd = vscmd[0] * 0.508f * iasFactor / Mathf.Deg2Rad;
+                    pvserr = vserr;
+                    vserr = vscmd[0] * 0.508f - vs[0];
+                    float pitchAdjustCmd = PControl(vserr, kpVS * iasFactor);
+                    pitchAdjustCmd += DControl(vserr, pvserr, kdVS * iasFactor);
+                    pitchCmd += Mathf.Clamp(pitchAdjustCmd,-2, 2);
                     break;
             }
             float rollRad = Mathf.Abs(roll[0]) * Mathf.Deg2Rad;
