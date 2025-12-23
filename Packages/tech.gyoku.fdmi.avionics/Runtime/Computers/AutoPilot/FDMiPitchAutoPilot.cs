@@ -73,6 +73,7 @@ namespace tech.gyoku.FDMi.avionics
         }
         public void OnChangeVSCommand()
         {
+            if (!isPilot[0]) return;
             if (Mathf.Approximately(vscmd[0], 0f))
             {
                 if (_PitchMode.Data != (int)PitchAutoPilotMode.ALTHOLD) _PitchMode.Data = (int)PitchAutoPilotMode.ALTHOLD;
@@ -153,7 +154,10 @@ namespace tech.gyoku.FDMi.avionics
                     pitchCmd = vscmd[0] * 0.508f / (tas[0] * Mathf.Deg2Rad);
                     break;
                 case PitchAutoPilotMode.VS:
+                    // 1m/s = 196.85fpm
                     pitchCmd = vscmd[0] * 0.508f / (ias[0] * Mathf.Deg2Rad);
+                    // float vserr = vs[0] - vscmd[0] * 0.508f;
+                    // pitchCmd = PControl(vserr, kpalt );
                     break;
             }
             float rollRad = Mathf.Abs(roll[0]) * Mathf.Deg2Rad;

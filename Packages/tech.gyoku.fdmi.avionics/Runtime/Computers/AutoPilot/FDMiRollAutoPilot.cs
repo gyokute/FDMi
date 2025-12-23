@@ -17,6 +17,7 @@ namespace tech.gyoku.FDMi.avionics
         private AutoPilotSWMode apswMode;
         private float[] mode, roll, hdg, ias, hdgcmd, rollLim, loc, crs;
         private sbyte[] apRoll, inL, inR;
+        private bool[] isPilot;
         [SerializeField] float kpHDG;
         [SerializeField] float kpLOC;
         [SerializeField] float locTRKTransition = 10f, ilsTRKTransition = 2f;
@@ -37,6 +38,7 @@ namespace tech.gyoku.FDMi.avionics
             loc = _LOC.data;
             crs = _CRS.data;
             apRoll = APRoll.data;
+            isPilot = IsPilot.data;
 
             APSW.subscribe(this, "OnChangeAPSW");
             _RollMode.subscribe(this, "OnChange_RollMode");
@@ -91,18 +93,19 @@ namespace tech.gyoku.FDMi.avionics
         float rollCmd, hdgErr, pHdgErr, locErr, prevLoc, dLoc, iLoc;
         float rollCommand()
         {
-
-            switch ((RollAutoPilotMode)Mathf.RoundToInt(mode[0]))
-            {
-                case RollAutoPilotMode.LOCCAP:
-                    locErr = PControl(loc[0], kpLOC);
-                    if (Mathf.Abs(loc[0]) < locTRKTransition)
-                        _RollMode.Data = (float)RollAutoPilotMode.LOCTRK;
-                    break;
-                case RollAutoPilotMode.ILSCAP:
-                    locErr = PControl(loc[0], kpLOC);
-                    if (Mathf.Abs(loc[0]) < ilsTRKTransition) _RollMode.Data = (float)RollAutoPilotMode.ILSTRK;
-                    break;
+            if(isPilot[0]){
+                switch ((RollAutoPilotMode)Mathf.RoundToInt(mode[0]))
+                {
+                    case RollAutoPilotMode.LOCCAP:
+                        locErr = PControl(loc[0], kpLOC);
+                        if (Mathf.Abs(loc[0]) < locTRKTransition)
+                            _RollMode.Data = (float)RollAutoPilotMode.LOCTRK;
+                        break;
+                    case RollAutoPilotMode.ILSCAP:
+                        locErr = PControl(loc[0], kpLOC);
+                        if (Mathf.Abs(loc[0]) < ilsTRKTransition) _RollMode.Data = (float)RollAutoPilotMode.ILSTRK;
+                        break;
+                }
             }
 
             switch ((RollAutoPilotMode)Mathf.RoundToInt(mode[0]))
