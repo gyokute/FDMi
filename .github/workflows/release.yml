@@ -32,7 +32,7 @@ jobs:
     steps:
       # Checkout Local Repository
       - name: Checkout
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       # Get the Package version based on the package.json file
       - name: Get Version
@@ -85,7 +85,7 @@ jobs:
 
       # Publish the Release to GitHub
       - name: Make Release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
           files: |
             *.zip
