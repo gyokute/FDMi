@@ -37,11 +37,7 @@ jobs:
         working-directory: ./docs~
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: docs~/build        
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: './docs~/build'
+          path: docs~/build
           
   deploy:
     name: Deploy to GitHub Pages
