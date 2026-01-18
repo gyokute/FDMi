@@ -20,6 +20,7 @@ updates:
     cooldown:
       default-days: 5
     groups:
-      npm:
-        patterns:
-          - "*"
+      dependencies:
+        dependency-type: production
+      dependencies:
+        dependency-type: development
