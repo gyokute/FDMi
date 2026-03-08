@@ -1,0 +1,3 @@
+*.asset filter=vrc eol=lf text=auto
+*.prefab filter=vrc eol=lf text=auto
+*.unity filter=vrc eol=lf text=auto
