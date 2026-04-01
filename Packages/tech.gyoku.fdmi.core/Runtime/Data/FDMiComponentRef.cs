@@ -6,7 +6,7 @@ using VRC.Udon;
 
 namespace tech.gyoku.FDMi.core
 {
-    public class FDMiComponentData : FDMiData
+    public class FDMiComponentRef : FDMiData
     {
         public Component[] data = new Component[1];
         public Component Data
@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.core
         public virtual void set(Component src)
         { 
             data[0] = src; 
-            trigger();
+            TriggerCallbacks();
         }
 
     }
