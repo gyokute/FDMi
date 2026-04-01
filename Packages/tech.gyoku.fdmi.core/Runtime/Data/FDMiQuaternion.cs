@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.core
         public virtual void set(Quaternion src)
         { 
             data[0] = src; 
-            trigger();
+            TriggerCallbacks();
         }
     }
 }

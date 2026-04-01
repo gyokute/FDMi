@@ -18,7 +18,7 @@ namespace tech.gyoku.FDMi.core
         public virtual void set(int src)
         { 
             data[0] = src; 
-            trigger();
+            TriggerCallbacks();
         }
     }
 }

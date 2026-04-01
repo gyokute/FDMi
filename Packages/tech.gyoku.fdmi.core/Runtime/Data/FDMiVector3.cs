@@ -17,7 +17,7 @@ namespace tech.gyoku.FDMi.core
         public virtual void set(Vector3 src)
         { 
             data[0] = src; 
-            trigger();
+            TriggerCallbacks();
         }
     }
 }
