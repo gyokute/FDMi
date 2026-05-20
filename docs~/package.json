@@ -23,8 +23,8 @@
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.9.2",
-    "@docusaurus/types": "3.9.2"
+    "@docusaurus/module-type-aliases": "3.10.1",
+    "@docusaurus/types": "3.10.1"
   },
   "browserslist": {
     "production": [
