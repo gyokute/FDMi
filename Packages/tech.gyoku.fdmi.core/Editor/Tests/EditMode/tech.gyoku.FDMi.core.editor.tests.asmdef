@@ -2,8 +2,10 @@
     "name": "tech.gyoku.FDMi.core.editor.tests",
     "rootNamespace": "",
     "references": [
+        "tech.gyoku.FDMi.core",
         "tech.gyoku.FDMi.core.editor",
         "tech.gyoku.FDMi.core.editor.attributes",
+        "UdonSharp.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
