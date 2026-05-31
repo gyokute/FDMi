@@ -6,11 +6,11 @@ using tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories;
 namespace tech.gyoku.FDMi.core.Editor.Inspector
 {
     /// <summary>
-    /// すべての MonoBehaviour に適用される汎用 CustomEditor。
+    /// すべての FDMiBehaviour に適用される汎用 CustomEditor。
     /// [FDMiDataPathAttribute] 付きフィールドを OnEnable 時に解決する。
     /// 将来の他ドメインロジックもここに追加する。
     /// </summary>
-    [CustomEditor(typeof(MonoBehaviour), true)]
+    [CustomEditor(typeof(FDMiBehaviour), true)]
     public class FDMiBehaviourEditor : UnityEditor.Editor
     {
         ResolveDataPathsUseCase _useCase;
@@ -20,6 +20,7 @@ namespace tech.gyoku.FDMi.core.Editor.Inspector
         /// </summary>
         void OnEnable()
         {
+            Debug.Log($"[FDMi] Resolving FDMiDataPaths for {target.name} ({target.GetType().Name})");
             _useCase = new ResolveDataPathsUseCase(new SceneFDMiDataRepository());
             _useCase.Execute(target);
         }
