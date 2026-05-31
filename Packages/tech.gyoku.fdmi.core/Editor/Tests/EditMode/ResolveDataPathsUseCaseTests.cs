@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using tech.gyoku.FDMi.core.Editor.Application.UseCases;
-using tech.gyoku.FDMi.core.Editor.Attributes;
+using tech.gyoku.FDMi.core.Attributes;
 using tech.gyoku.FDMi.core.Editor.Domain.Entities;
 using tech.gyoku.FDMi.core.Editor.Domain.Repositories;
 

@@ -4,10 +4,10 @@
     "references": [
         "tech.gyoku.FDMi.core",
         "tech.gyoku.FDMi.core.editor",
-        "tech.gyoku.FDMi.core.editor.attributes",
         "UdonSharp.Runtime",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "tech.gyoku.FDMi.core.attributes"
     ],
     "includePlatforms": [
         "Editor"

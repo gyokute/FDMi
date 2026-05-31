@@ -1,6 +1,6 @@
 using System;
 
-namespace tech.gyoku.FDMi.core.Editor.Attributes
+namespace tech.gyoku.FDMi.core.Attributes
 {
     /// <summary>
     /// 指定したパスからFDMi変数を解決する属性。

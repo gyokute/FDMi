@@ -1,13 +1,10 @@
 {
-    "name": "tech.gyoku.FDMi.core",
+    "name": "tech.gyoku.FDMi.core.attributes",
     "rootNamespace": "",
-    "references": [
-        "VRC.Udon",
-        "UdonSharp.Runtime",
-        "UdonSharp.Editor",
-        "tech.gyoku.FDMi.core.attributes"
+    "references": [],
+    "includePlatforms": [
+        "Editor"
     ],
-    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
