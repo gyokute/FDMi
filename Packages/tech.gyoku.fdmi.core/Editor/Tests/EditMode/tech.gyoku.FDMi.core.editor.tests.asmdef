@@ -1,0 +1,23 @@
+{
+    "name": "tech.gyoku.FDMi.core.editor.tests",
+    "rootNamespace": "",
+    "references": [
+        "tech.gyoku.FDMi.core.editor",
+        "tech.gyoku.FDMi.core.editor.attributes",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
