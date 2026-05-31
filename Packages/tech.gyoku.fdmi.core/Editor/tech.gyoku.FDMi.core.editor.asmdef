@@ -9,7 +9,8 @@
         "GUID:84265b35cca3905448e623ef3903f0ff",
         "GUID:6490804aa441dfe4b88eb56cccbdf081",
         "GUID:42e902da7d990e044bc9d3bf13382464",
-        "GUID:0ca91862ea55397418bf7946fccd3f10"
+        "GUID:0ca91862ea55397418bf7946fccd3f10",
+        "VRC.SDKBase.Editor.BuildPipeline"
     ],
     "includePlatforms": [
         "Editor"
