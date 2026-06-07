@@ -35,6 +35,13 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         public FDMiData notAnnotated;
     }
 
+    // テスト用 MonoBehaviour: [FDMiDataPath] 付き配列フィールドあり
+    class BehaviourWithArrayDataPath : MonoBehaviour
+    {
+        [FDMiDataPathAttribute("sample")]
+        public FDMiBool[] targetArray;
+    }
+
     public class ResolveDataPathsUseCaseTests
     {
         readonly List<GameObject> _created = new List<GameObject>();
@@ -119,6 +126,79 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
 
             Assert.AreEqual(1, stub.ReceivedPaths.Count);
             Assert.AreEqual("myData", stub.ReceivedPaths[0].DataName);
+        }
+
+        [Test]
+        public void Execute_ArrayField_MultipleMatches_AssignsAllToArray()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithArrayDataPath>();
+            var dataGoA = NewGO("dataA");
+            var dataA = dataGoA.AddComponent<FDMiBool>();
+            var dataGoB = NewGO("dataB");
+            var dataB = dataGoB.AddComponent<FDMiBool>();
+
+            var stub = new StubRepository { ReturnValues = new FDMiData[] { dataA, dataB } };
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mb);
+
+            Assert.AreEqual(2, mb.targetArray.Length);
+            Assert.AreEqual(dataA, mb.targetArray[0]);
+            Assert.AreEqual(dataB, mb.targetArray[1]);
+        }
+
+        [Test]
+        public void Execute_ArrayField_SingleMatch_AssignsSingleElementArray()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithArrayDataPath>();
+            var dataGo = NewGO("dataA");
+            var data = dataGo.AddComponent<FDMiBool>();
+
+            var stub = new StubRepository { ReturnValues = new FDMiData[] { data } };
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mb);
+
+            Assert.AreEqual(1, mb.targetArray.Length);
+            Assert.AreEqual(data, mb.targetArray[0]);
+        }
+
+        [Test]
+        public void Execute_ArrayField_NoMatches_LeavesArrayUnchanged()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithArrayDataPath>();
+            var dataGo = NewGO("previous");
+            var previous = dataGo.AddComponent<FDMiBool>();
+            mb.targetArray = new[] { previous };
+
+            var stub = new StubRepository(); // ReturnValues = 空配列
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mb);
+
+            Assert.AreEqual(1, mb.targetArray.Length);
+            Assert.AreEqual(previous, mb.targetArray[0]);
+        }
+
+        [Test]
+        public void Execute_NonArrayField_MultipleMatches_AssignsFirst()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithDataPath>();
+            var dataGoA = NewGO("dataA");
+            var dataA = dataGoA.AddComponent<FDMiBool>();
+            var dataGoB = NewGO("dataB");
+            var dataB = dataGoB.AddComponent<FDMiBool>();
+
+            var stub = new StubRepository { ReturnValues = new FDMiData[] { dataA, dataB } };
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mb);
+
+            Assert.AreEqual(dataA, mb.targetField);
         }
     }
 }
