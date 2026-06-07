@@ -30,7 +30,8 @@ namespace tech.gyoku.FDMi.core.Editor.Application.UseCases
 
         /// <summary>
         /// 対象オブジェクトの [FDMiDataPathAttribute] 付きフィールドを解決して代入する。
-        /// 解決できないフィールドはスキップする。
+        /// 配列フィールドには一致した FDMiData を全件、非配列フィールドには先頭の1件を割り当てる。
+        /// 解決できないフィールド（該当0件）はスキップし、前回値を維持する。
         /// </summary>
         /// <param name="target">解決対象の Unity オブジェクト。</param>
         public void Execute(UnityEngine.Object target)
