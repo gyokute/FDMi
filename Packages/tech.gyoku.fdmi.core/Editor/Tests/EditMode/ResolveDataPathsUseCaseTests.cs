@@ -86,7 +86,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         }
 
         [Test]
-        public void Execute_RepositoryReturnsNull_FieldRemainsNull()
+        public void Execute_RepositoryReturnsEmpty_FieldRemainsNull()
         {
             var go = NewGO();
             var mb = go.AddComponent<BehaviourWithDataPath>();
