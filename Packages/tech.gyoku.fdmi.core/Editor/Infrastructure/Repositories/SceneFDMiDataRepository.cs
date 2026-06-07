@@ -11,18 +11,19 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
     public class SceneFDMiDataRepository : IFDMiDataRepository
     {
         /// <summary>
-        /// 指定したコンテキストとパスに基づいて FDMiData コンポーネントを検索する。
-        /// 見つからない場合は null を返す。
+        /// 指定したコンテキストとパスに一致する FDMiData をすべて検索する。
+        /// 一致が無ければ空配列を返す。
         /// </summary>
         /// <param name="context">属性を持つ MonoBehaviour の GameObject。</param>
         /// <param name="path">解決するパス。</param>
-        /// <param name="fieldType">フィールドの宣言型（FDMiBool 等）。</param>
-        public FDMiData Find(GameObject context, FDMiDataPath path, Type fieldType)
+        /// <param name="fieldType">フィールドの宣言型（配列の場合は要素型。FDMiBool 等）。</param>
+        public FDMiData[] FindAll(GameObject context, FDMiDataPath path, Type fieldType)
         {
-            if (context == null || string.IsNullOrEmpty(path.DataName)) return null;
-            return path.IsAbsolute
+            if (context == null || string.IsNullOrEmpty(path.DataName)) return new FDMiData[0];
+            var found = path.IsAbsolute
                 ? FindAbsolute(path, fieldType)
                 : FindRelative(context, path, fieldType);
+            return found != null ? new[] { found } : new FDMiData[0];
         }
 
         /// <summary>

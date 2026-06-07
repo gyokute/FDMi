@@ -37,7 +37,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         // --- 相対パス（IsAbsolute = false）テスト ---
 
         [Test]
-        public void Find_RelativePath_FindsSiblingData()
+        public void FindAll_RelativePath_FindsSiblingData()
         {
             var parent = Create("parent");
             var context = Create("context", parent.transform);
@@ -45,13 +45,14 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
             var data = dataGo.AddComponent<FDMiBool>();
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
 
-            Assert.AreEqual(data, result);
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
         }
 
         [Test]
-        public void Find_RelativePath_FindsDescendantData()
+        public void FindAll_RelativePath_FindsDescendantData()
         {
             var parent = Create("parent");
             var context = Create("context", parent.transform);
@@ -60,13 +61,14 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
             var data = dataGo.AddComponent<FDMiBool>();
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
 
-            Assert.AreEqual(data, result);
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
         }
 
         [Test]
-        public void Find_RelativePath_DoesNotCrossNamespaceBoundary()
+        public void FindAll_RelativePath_DoesNotCrossNamespaceBoundary()
         {
             var parent = Create("parent");
             var context = Create("context", parent.transform);
@@ -76,26 +78,27 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
             dataGo.AddComponent<FDMiBool>();
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
 
-            Assert.IsNull(result);
+            Assert.AreEqual(0, result.Length);
         }
 
         [Test]
-        public void Find_RelativePath_NullParent_SearchesOwnChildren()
+        public void FindAll_RelativePath_NullParent_SearchesOwnChildren()
         {
             var context = Create("context"); // parent = null (シーンルート)
             var dataGo = Create("myBool", context.transform);
             var data = dataGo.AddComponent<FDMiBool>();
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("myBool"), typeof(FDMiBool));
 
-            Assert.AreEqual(data, result);
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
         }
 
         [Test]
-        public void Find_RelativePath_WrongType_ReturnsNull()
+        public void FindAll_RelativePath_WrongType_ReturnsNull()
         {
             var parent = Create("parent");
             var context = Create("context", parent.transform);
@@ -103,15 +106,15 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
             dataGo.AddComponent<FDMiBool>(); // BoolではなくFloatを期待
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("myData"), typeof(FDMiFloat));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("myData"), typeof(FDMiFloat));
 
-            Assert.IsNull(result);
+            Assert.AreEqual(0, result.Length);
         }
 
         // --- 絶対パス（IsAbsolute = true）テスト ---
 
         [Test]
-        public void Find_AbsolutePath_FindsDataInRootNamespace()
+        public void FindAll_AbsolutePath_FindsDataInRootNamespace()
         {
             var nsGo = Create("NS_A");
             AddNamespace(nsGo, "NS_A", isRoot: true);
@@ -120,13 +123,14 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
             var context = Create("context");
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("NS_A/myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/myBool"), typeof(FDMiBool));
 
-            Assert.AreEqual(data, result);
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
         }
 
         [Test]
-        public void Find_AbsolutePath_TraversesNestedNamespaces()
+        public void FindAll_AbsolutePath_TraversesNestedNamespaces()
         {
             var nsAGo = Create("NS_A");
             AddNamespace(nsAGo, "NS_A", isRoot: true);
@@ -137,50 +141,51 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
             var context = Create("context");
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("NS_A/NS_B/myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/NS_B/myBool"), typeof(FDMiBool));
 
-            Assert.AreEqual(data, result);
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
         }
 
         [Test]
-        public void Find_AbsolutePath_RootNamespaceMissing_ReturnsNull()
+        public void FindAll_AbsolutePath_RootNamespaceMissing_ReturnsNull()
         {
             var context = Create("context");
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("NS_MISSING/myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_MISSING/myBool"), typeof(FDMiBool));
 
-            Assert.IsNull(result);
+            Assert.AreEqual(0, result.Length);
         }
 
         [Test]
-        public void Find_AbsolutePath_ChildNamespaceMissing_ReturnsNull()
+        public void FindAll_AbsolutePath_ChildNamespaceMissing_ReturnsNull()
         {
             var nsAGo = Create("NS_A");
             AddNamespace(nsAGo, "NS_A", isRoot: true);
             var context = Create("context");
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("NS_A/NS_MISSING/myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/NS_MISSING/myBool"), typeof(FDMiBool));
 
-            Assert.IsNull(result);
+            Assert.AreEqual(0, result.Length);
         }
 
         [Test]
-        public void Find_AbsolutePath_DataNotFoundInNamespace_ReturnsNull()
+        public void FindAll_AbsolutePath_DataNotFoundInNamespace_ReturnsNull()
         {
             var nsGo = Create("NS_A");
             AddNamespace(nsGo, "NS_A", isRoot: true);
             var context = Create("context");
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse("NS_A/missing"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/missing"), typeof(FDMiBool));
 
-            Assert.IsNull(result);
+            Assert.AreEqual(0, result.Length);
         }
 
         [Test]
-        public void Find_AbsolutePath_DoesNotCrossNestedNamespaceBoundary()
+        public void FindAll_AbsolutePath_DoesNotCrossNestedNamespaceBoundary()
         {
             var nsAGo = Create("NS_A");
             AddNamespace(nsAGo, "NS_A", isRoot: true);
@@ -192,20 +197,20 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
 
             var repo = new SceneFDMiDataRepository();
             // NS_A/myBool を探す。NS_C の中は境界を越えるので見つからないはず
-            var result = repo.Find(context, FDMiDataPath.Parse("NS_A/myBool"), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/myBool"), typeof(FDMiBool));
 
-            Assert.IsNull(result);
+            Assert.AreEqual(0, result.Length);
         }
 
         [Test]
-        public void Find_EmptyDataName_ReturnsNull()
+        public void FindAll_EmptyDataName_ReturnsNull()
         {
             var context = Create("context");
 
             var repo = new SceneFDMiDataRepository();
-            var result = repo.Find(context, FDMiDataPath.Parse(string.Empty), typeof(FDMiBool));
+            var result = repo.FindAll(context, FDMiDataPath.Parse(string.Empty), typeof(FDMiBool));
 
-            Assert.IsNull(result);
+            Assert.AreEqual(0, result.Length);
         }
     }
 }

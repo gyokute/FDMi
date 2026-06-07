@@ -45,12 +45,12 @@ namespace tech.gyoku.FDMi.core.Editor.Application.UseCases
             foreach (var (field, attr) in entries)
             {
                 var path = FDMiDataPath.Parse(attr.Path);
-                var found = _repository.Find(mb.gameObject, path, field.FieldType);
-                if (found == null) continue;
+                var found = _repository.FindAll(mb.gameObject, path, field.FieldType);
+                if (found.Length == 0) continue;
 
                 var sp = so.FindProperty(field.Name);
                 if (sp == null) continue;
-                sp.objectReferenceValue = found;
+                sp.objectReferenceValue = found[0];
             }
             so.ApplyModifiedPropertiesWithoutUndo();
         }

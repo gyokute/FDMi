@@ -12,13 +12,13 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
     // テスト用スタブ: IFDMiDataRepository の手書きモック
     class StubRepository : IFDMiDataRepository
     {
-        public FDMiData ReturnValue;
+        public FDMiData[] ReturnValues = new FDMiData[0];
         public List<FDMiDataPath> ReceivedPaths = new List<FDMiDataPath>();
 
-        public FDMiData Find(GameObject context, FDMiDataPath path, Type fieldType)
+        public FDMiData[] FindAll(GameObject context, FDMiDataPath path, Type fieldType)
         {
             ReceivedPaths.Add(path);
-            return ReturnValue;
+            return ReturnValues;
         }
     }
 
@@ -83,7 +83,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         {
             var go = NewGO();
             var mb = go.AddComponent<BehaviourWithDataPath>();
-            var stub = new StubRepository { ReturnValue = null };
+            var stub = new StubRepository();
             var useCase = new ResolveDataPathsUseCase(stub);
 
             useCase.Execute(mb);
@@ -99,7 +99,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
             var dataGo = NewGO("dataObj");
             var data = dataGo.AddComponent<FDMiBool>();
 
-            var stub = new StubRepository { ReturnValue = data };
+            var stub = new StubRepository { ReturnValues = new FDMiData[] { data } };
             var useCase = new ResolveDataPathsUseCase(stub);
 
             useCase.Execute(mb);
@@ -112,7 +112,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         {
             var go = NewGO();
             var mb = go.AddComponent<BehaviourWithDataPath>();
-            var stub = new StubRepository { ReturnValue = null };
+            var stub = new StubRepository();
             var useCase = new ResolveDataPathsUseCase(stub);
 
             useCase.Execute(mb);
