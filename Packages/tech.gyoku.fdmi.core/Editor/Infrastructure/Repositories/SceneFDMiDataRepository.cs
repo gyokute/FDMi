@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using tech.gyoku.FDMi.core.Editor.Domain.Entities;
 using tech.gyoku.FDMi.core.Editor.Domain.Repositories;
@@ -21,26 +22,28 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
         {
             if (context == null || string.IsNullOrEmpty(path.DataName)) return new FDMiData[0];
             var found = path.IsAbsolute
-                ? FindAbsolute(path, fieldType)
-                : FindRelative(context, path, fieldType);
-            return found != null ? new[] { found } : new FDMiData[0];
+                ? FindAllAbsolute(path, fieldType)
+                : FindAllRelative(context, path, fieldType);
+            return found.ToArray();
         }
 
         /// <summary>
-        /// 相対パス解決。context の親（または context 自身）を起点に FDMiNamespace 境界まで探索する。
+        /// 相対パス解決。context の親（または context 自身）を起点に FDMiNamespace 境界まで探索し、全件を収集する。
         /// </summary>
-        FDMiData FindRelative(GameObject context, FDMiDataPath path, Type fieldType)
+        List<FDMiData> FindAllRelative(GameObject context, FDMiDataPath path, Type fieldType)
         {
             var root = context.transform.parent != null
                 ? context.transform.parent
                 : context.transform;
-            return SearchInScope(root, path.DataName, fieldType);
+            var results = new List<FDMiData>();
+            CollectInScope(root, path.DataName, fieldType, results);
+            return results;
         }
 
         /// <summary>
-        /// 絶対パス解決。isNamespaceRoot=true の FDMiNamespace から名前空間を順に辿り、最終スコープで探索する。
+        /// 絶対パス解決。isNamespaceRoot=true の FDMiNamespace から名前空間を順に辿り、最終スコープで全件を収集する。
         /// </summary>
-        FDMiData FindAbsolute(FDMiDataPath path, Type fieldType)
+        List<FDMiData> FindAllAbsolute(FDMiDataPath path, Type fieldType)
         {
             var allNamespaces = UnityEngine.Object.FindObjectsByType<FDMiNamespace>(FindObjectsSortMode.None);
 
@@ -53,15 +56,17 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
                     break;
                 }
             }
-            if (current == null) return null;
+            if (current == null) return new List<FDMiData>();
 
             for (int i = 1; i < path.Namespaces.Count; i++)
             {
                 current = FindChildNamespace(current.transform, path.Namespaces[i]);
-                if (current == null) return null;
+                if (current == null) return new List<FDMiData>();
             }
 
-            return SearchInScope(current.transform, path.DataName, fieldType);
+            var results = new List<FDMiData>();
+            CollectInScope(current.transform, path.DataName, fieldType, results);
+            return results;
         }
 
         /// <summary>
@@ -86,10 +91,10 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// root の子孫を深さ優先で探索し、名前と型が一致する FDMiData を返す。
+        /// root の子孫を深さ優先で探索し、名前と型が一致する FDMiData をすべて results に追加する。
         /// FDMiNamespace を持つ子の子孫には入らない（境界）。
         /// </summary>
-        FDMiData SearchInScope(Transform root, string dataName, Type fieldType)
+        void CollectInScope(Transform root, string dataName, Type fieldType, List<FDMiData> results)
         {
             for (int i = 0; i < root.childCount; i++)
             {
@@ -99,13 +104,11 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
                 if (child.name == dataName)
                 {
                     var component = child.GetComponent(fieldType) as FDMiData;
-                    if (component != null) return component;
+                    if (component != null) results.Add(component);
                 }
 
-                var found = SearchInScope(child, dataName, fieldType);
-                if (found != null) return found;
+                CollectInScope(child, dataName, fieldType, results);
             }
-            return null;
         }
     }
 }

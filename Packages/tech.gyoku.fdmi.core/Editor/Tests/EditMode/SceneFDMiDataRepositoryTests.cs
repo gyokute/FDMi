@@ -203,6 +203,45 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         }
 
         [Test]
+        public void FindAll_RelativePath_MultipleMatches_ReturnsAllInScope()
+        {
+            var parent = Create("parent");
+            var context = Create("context", parent.transform);
+            var dataGoA = Create("sample", parent.transform);
+            var dataA = dataGoA.AddComponent<FDMiBool>();
+            var middle = Create("middle", parent.transform);
+            var dataGoB = Create("sample", middle.transform);
+            var dataB = dataGoB.AddComponent<FDMiBool>();
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("sample"), typeof(FDMiBool));
+
+            Assert.AreEqual(2, result.Length);
+            CollectionAssert.Contains(result, dataA);
+            CollectionAssert.Contains(result, dataB);
+        }
+
+        [Test]
+        public void FindAll_AbsolutePath_MultipleMatchesInNamespace_ReturnsAll()
+        {
+            var nsGo = Create("NS_A");
+            AddNamespace(nsGo, "NS_A", isRoot: true);
+            var dataGoA = Create("sample", nsGo.transform);
+            var dataA = dataGoA.AddComponent<FDMiBool>();
+            var middle = Create("middle", nsGo.transform);
+            var dataGoB = Create("sample", middle.transform);
+            var dataB = dataGoB.AddComponent<FDMiBool>();
+            var context = Create("context");
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/sample"), typeof(FDMiBool));
+
+            Assert.AreEqual(2, result.Length);
+            CollectionAssert.Contains(result, dataA);
+            CollectionAssert.Contains(result, dataB);
+        }
+
+        [Test]
         public void FindAll_EmptyDataName_ReturnsEmpty()
         {
             var context = Create("context");
