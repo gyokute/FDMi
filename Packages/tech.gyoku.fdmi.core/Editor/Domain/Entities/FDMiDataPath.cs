@@ -59,5 +59,47 @@ namespace tech.gyoku.FDMi.core.Editor.Domain.Entities
             foreach (var ns in Namespaces) hash ^= ns?.GetHashCode() ?? 0;
             return hash;
         }
+
+        /// <summary>
+        /// 与えられた名前空間連鎖（ルートから順）がこのパスのパターンに一致するかを判定する。
+        /// "*" は任意のちょうど1セグメント、"**" は任意の0個以上のセグメントにマッチする。
+        /// それ以外のセグメントはリテラル文字列として完全一致が必要。
+        /// 純粋な文字列比較のみで完結し、Unity API に依存しない。
+        /// </summary>
+        /// <param name="candidate">照合する名前空間連鎖（ルートから順の文字列配列）。</param>
+        public bool MatchesNamespaceChain(IReadOnlyList<string> candidate)
+        {
+            return MatchesFrom(Namespaces, 0, candidate, 0);
+        }
+
+        /// <summary>
+        /// pattern[pi..] と candidate[ci..] が一致するかを再帰的に判定する。
+        /// "**" は 0 個以上のセグメント消費をバックトラッキングで試す。
+        /// </summary>
+        static bool MatchesFrom(IReadOnlyList<string> pattern, int pi, IReadOnlyList<string> candidate, int ci)
+        {
+            while (pi < pattern.Count)
+            {
+                var segment = pattern[pi];
+
+                if (segment == "**")
+                {
+                    for (int skip = 0; ci + skip <= candidate.Count; skip++)
+                    {
+                        if (MatchesFrom(pattern, pi + 1, candidate, ci + skip))
+                            return true;
+                    }
+                    return false;
+                }
+
+                if (ci >= candidate.Count) return false;
+
+                if (segment != "*" && segment != candidate[ci]) return false;
+
+                pi++;
+                ci++;
+            }
+            return ci == candidate.Count;
+        }
     }
 }
