@@ -21,10 +21,10 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
         public FDMiData[] FindAll(GameObject context, FDMiDataPath path, Type fieldType)
         {
             if (context == null || string.IsNullOrEmpty(path.DataName)) return new FDMiData[0];
-            var found = path.IsAbsolute
+            var results = path.IsAbsolute
                 ? FindAllAbsolute(path, fieldType)
                 : FindAllRelative(context, path, fieldType);
-            return found.ToArray();
+            return results.ToArray();
         }
 
         /// <summary>
