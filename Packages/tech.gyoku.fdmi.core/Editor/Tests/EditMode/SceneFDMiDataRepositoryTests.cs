@@ -98,7 +98,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         }
 
         [Test]
-        public void FindAll_RelativePath_WrongType_ReturnsNull()
+        public void FindAll_RelativePath_WrongType_ReturnsEmpty()
         {
             var parent = Create("parent");
             var context = Create("context", parent.transform);
@@ -148,7 +148,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         }
 
         [Test]
-        public void FindAll_AbsolutePath_RootNamespaceMissing_ReturnsNull()
+        public void FindAll_AbsolutePath_RootNamespaceMissing_ReturnsEmpty()
         {
             var context = Create("context");
 
@@ -159,7 +159,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         }
 
         [Test]
-        public void FindAll_AbsolutePath_ChildNamespaceMissing_ReturnsNull()
+        public void FindAll_AbsolutePath_ChildNamespaceMissing_ReturnsEmpty()
         {
             var nsAGo = Create("NS_A");
             AddNamespace(nsAGo, "NS_A", isRoot: true);
@@ -172,7 +172,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         }
 
         [Test]
-        public void FindAll_AbsolutePath_DataNotFoundInNamespace_ReturnsNull()
+        public void FindAll_AbsolutePath_DataNotFoundInNamespace_ReturnsEmpty()
         {
             var nsGo = Create("NS_A");
             AddNamespace(nsGo, "NS_A", isRoot: true);
@@ -203,7 +203,7 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
         }
 
         [Test]
-        public void FindAll_EmptyDataName_ReturnsNull()
+        public void FindAll_EmptyDataName_ReturnsEmpty()
         {
             var context = Create("context");
 
