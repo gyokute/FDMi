@@ -251,5 +251,91 @@ namespace tech.gyoku.FDMi.core.Editor.Tests
 
             Assert.AreEqual(0, result.Length);
         }
+
+        [Test]
+        public void FindAll_SingleWildcard_MatchesMultipleNamespaceBranches()
+        {
+            var nsAGo = Create("NS_A");
+            AddNamespace(nsAGo, "NS_A", isRoot: true);
+
+            var nsXGo = Create("NS_X", nsAGo.transform);
+            AddNamespace(nsXGo, "NS_X");
+            var dataGoX = Create("target", nsXGo.transform);
+            var dataX = dataGoX.AddComponent<FDMiBool>();
+
+            var nsYGo = Create("NS_Y", nsAGo.transform);
+            AddNamespace(nsYGo, "NS_Y");
+            var dataGoY = Create("target", nsYGo.transform);
+            var dataY = dataGoY.AddComponent<FDMiBool>();
+
+            var context = Create("context");
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/*/target"), typeof(FDMiBool));
+
+            Assert.AreEqual(2, result.Length);
+            CollectionAssert.Contains(result, dataX);
+            CollectionAssert.Contains(result, dataY);
+        }
+
+        [Test]
+        public void FindAll_DoubleWildcard_MatchesAcrossDepths()
+        {
+            var nsAGo = Create("NS_A");
+            AddNamespace(nsAGo, "NS_A", isRoot: true);
+
+            var dataGoDirect = Create("target", nsAGo.transform);
+            var dataDirect = dataGoDirect.AddComponent<FDMiBool>();
+
+            var nsBGo = Create("NS_B", nsAGo.transform);
+            AddNamespace(nsBGo, "NS_B");
+            var dataGoNested = Create("target", nsBGo.transform);
+            var dataNested = dataGoNested.AddComponent<FDMiBool>();
+
+            var context = Create("context");
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/**/target"), typeof(FDMiBool));
+
+            Assert.AreEqual(2, result.Length);
+            CollectionAssert.Contains(result, dataDirect);
+            CollectionAssert.Contains(result, dataNested);
+        }
+
+        [Test]
+        public void FindAll_WildcardNoMatch_ReturnsEmptyArray()
+        {
+            var nsAGo = Create("NS_A");
+            AddNamespace(nsAGo, "NS_A", isRoot: true);
+            var context = Create("context");
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/*/target"), typeof(FDMiBool));
+
+            Assert.AreEqual(0, result.Length);
+        }
+
+        [Test]
+        public void FindAll_WildcardFirstSegment_OnlyMatchesNamespaceRoots()
+        {
+            var nsAGo = Create("NS_A");
+            AddNamespace(nsAGo, "NS_A", isRoot: true);
+            var dataGo = Create("target", nsAGo.transform);
+            var data = dataGo.AddComponent<FDMiBool>();
+
+            // isNamespaceRoot = false の名前空間（マッチしてはいけない）
+            var nsNonRootGo = Create("NS_NotRoot");
+            AddNamespace(nsNonRootGo, "NS_NotRoot", isRoot: false);
+            var otherDataGo = Create("target", nsNonRootGo.transform);
+            otherDataGo.AddComponent<FDMiBool>();
+
+            var context = Create("context");
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("*/target"), typeof(FDMiBool));
+
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
+        }
     }
 }

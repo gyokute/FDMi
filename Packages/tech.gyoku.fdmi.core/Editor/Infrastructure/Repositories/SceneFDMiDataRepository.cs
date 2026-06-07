@@ -42,9 +42,13 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
 
         /// <summary>
         /// 絶対パス解決。isNamespaceRoot=true の FDMiNamespace から名前空間を順に辿り、最終スコープで全件を収集する。
+        /// パスにワイルドカード（"*" / "**"）が含まれる場合は <see cref="FindAllAbsoluteWildcard"/> に委譲する。
         /// </summary>
         List<FDMiData> FindAllAbsolute(FDMiDataPath path, Type fieldType)
         {
+            if (ContainsWildcardSegment(path.Namespaces))
+                return FindAllAbsoluteWildcard(path, fieldType);
+
             var allNamespaces = UnityEngine.Object.FindObjectsByType<FDMiNamespace>(FindObjectsSortMode.None);
 
             FDMiNamespace current = null;
@@ -88,6 +92,70 @@ namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
                 if (found != null) return found;
             }
             return null;
+        }
+
+        /// <summary>
+        /// 名前空間セグメント列にワイルドカード（"*" または "**"）が含まれるかを判定する。
+        /// </summary>
+        bool ContainsWildcardSegment(IReadOnlyList<string> namespaces)
+        {
+            foreach (var ns in namespaces)
+                if (ns == "*" || ns == "**") return true;
+            return false;
+        }
+
+        /// <summary>
+        /// parent の子孫の FDMiNamespace をすべて収集する（境界規則は FindChildNamespace と同じ:
+        /// FDMiNamespace に到達したらそれ自身を結果に加え、その中へは入らない）。
+        /// </summary>
+        void CollectChildNamespaces(Transform parent, List<FDMiNamespace> results)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                var child = parent.GetChild(i);
+                var ns = child.GetComponent<FDMiNamespace>();
+                if (ns != null)
+                {
+                    results.Add(ns);
+                    continue;
+                }
+                CollectChildNamespaces(child, results);
+            }
+        }
+
+        /// <summary>
+        /// node を起点に、chain（ルートから node までの名前空間連鎖）が path のパターンに一致する場合は
+        /// そのスコープ内の FDMiData を全件収集する。さらに子の名前空間へ chain を伸ばして再帰する。
+        /// </summary>
+        void CollectMatchingScopes(FDMiNamespace node, List<string> chain, FDMiDataPath path, Type fieldType, List<FDMiData> results)
+        {
+            if (path.MatchesNamespaceChain(chain))
+                CollectInScope(node.transform, path.DataName, fieldType, results);
+
+            var children = new List<FDMiNamespace>();
+            CollectChildNamespaces(node.transform, children);
+            foreach (var child in children)
+            {
+                chain.Add(child.nameSpace);
+                CollectMatchingScopes(child, chain, path, fieldType, results);
+                chain.RemoveAt(chain.Count - 1);
+            }
+        }
+
+        /// <summary>
+        /// ワイルドカードを含む絶対パス解決。isNamespaceRoot=true の各 FDMiNamespace を起点に
+        /// 名前空間連鎖を列挙し、パターンに一致した全スコープから FDMiData を全件収集する。
+        /// </summary>
+        List<FDMiData> FindAllAbsoluteWildcard(FDMiDataPath path, Type fieldType)
+        {
+            var results = new List<FDMiData>();
+            var allNamespaces = UnityEngine.Object.FindObjectsByType<FDMiNamespace>(FindObjectsSortMode.None);
+            foreach (var ns in allNamespaces)
+            {
+                if (!ns.isNamespaceRoot) continue;
+                CollectMatchingScopes(ns, new List<string> { ns.nameSpace }, path, fieldType, results);
+            }
+            return results;
         }
 
         /// <summary>
