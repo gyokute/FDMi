@@ -161,5 +161,32 @@ namespace FDMi.core.Editor.Tests
             CollectionAssert.AreEqual(new[] { "~" }, path.Namespaces);
             Assert.IsTrue(path.IsAbsolute);
         }
+
+        [Test]
+        public void Matches_WithPatternOffset_SkipsLeadingSegments()
+        {
+            var path = FDMiDataPath.Parse("~/NS_B/myBool");
+            Assert.IsTrue(path.MatchesNamespaceChain(new[] { "NS_B" }, 1));
+            Assert.IsFalse(path.MatchesNamespaceChain(new[] { "NS_C" }, 1));
+        }
+
+        [Test]
+        public void Matches_WithPatternOffsetAndWildcard_MatchesRemainingPattern()
+        {
+            var path = FDMiDataPath.Parse("~/**/target");
+            Assert.IsTrue(path.MatchesNamespaceChain(new string[0], 1));
+            Assert.IsTrue(path.MatchesNamespaceChain(new[] { "NS_B" }, 1));
+            Assert.IsTrue(path.MatchesNamespaceChain(new[] { "NS_B", "NS_C" }, 1));
+        }
+
+        [Test]
+        public void Matches_DefaultPatternOffsetIsZero_BehavesLikeSingleArgumentOverload()
+        {
+            var path = FDMiDataPath.Parse("NS_A/NS_B/myBool");
+            Assert.IsTrue(path.MatchesNamespaceChain(new[] { "NS_A", "NS_B" }, 0));
+            Assert.AreEqual(
+                path.MatchesNamespaceChain(new[] { "NS_A", "NS_B" }),
+                path.MatchesNamespaceChain(new[] { "NS_A", "NS_B" }, 0));
+        }
     }
 }

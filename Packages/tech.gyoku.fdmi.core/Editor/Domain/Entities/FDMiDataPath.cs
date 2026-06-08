@@ -73,7 +73,20 @@ namespace FDMi.core.Editor.Domain.Entities
         /// <param name="candidate">照合する名前空間連鎖（ルートから順の文字列配列）。</param>
         public bool MatchesNamespaceChain(IReadOnlyList<string> candidate)
         {
-            return MatchesFrom(Namespaces, 0, candidate, 0);
+            return MatchesNamespaceChain(candidate, 0);
+        }
+
+        /// <summary>
+        /// パターンの先頭から patternOffset 個のセグメントを読み飛ばした残りのパターンが、
+        /// 与えられた名前空間連鎖に一致するかを判定する。
+        /// "~" 等の特殊な先頭セグメントを Repository 側で固有の起点に解決した後、
+        /// 残りのパターンだけを照合したい場合に用いる。
+        /// </summary>
+        /// <param name="candidate">照合する名前空間連鎖（解決済みの起点からの相対、順番通り）。</param>
+        /// <param name="patternOffset">パターンの先頭から読み飛ばすセグメント数。</param>
+        public bool MatchesNamespaceChain(IReadOnlyList<string> candidate, int patternOffset)
+        {
+            return MatchesFrom(Namespaces, patternOffset, candidate, 0);
         }
 
         /// <summary>
