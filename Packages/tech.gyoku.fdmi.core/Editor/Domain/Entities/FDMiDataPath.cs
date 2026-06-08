@@ -27,6 +27,7 @@ namespace FDMi.core.Editor.Domain.Entities
         /// <summary>
         /// パス文字列を解析して FDMiDataPath を生成する。
         /// 解析は失敗しない。空・null 入力は DataName="" の無効パスとして扱う。
+        /// 先頭の "/" は除去してから解析する（"/NS_A/myBool" は "NS_A/myBool" と同義）。
         /// </summary>
         /// <param name="raw">解析するパス文字列。</param>
         public static FDMiDataPath Parse(string raw)
