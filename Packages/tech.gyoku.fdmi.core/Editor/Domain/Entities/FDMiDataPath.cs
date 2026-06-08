@@ -34,6 +34,9 @@ namespace FDMi.core.Editor.Domain.Entities
             if (string.IsNullOrEmpty(raw))
                 return new FDMiDataPath(new string[0], string.Empty);
 
+            if (raw.StartsWith("/", StringComparison.Ordinal))
+                raw = raw.Substring(1);
+
             var segments = raw.Split('/');
             var dataName = segments[segments.Length - 1];
             var namespaces = new string[segments.Length - 1];

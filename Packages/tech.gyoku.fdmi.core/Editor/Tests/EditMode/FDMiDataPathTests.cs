@@ -134,5 +134,32 @@ namespace FDMi.core.Editor.Tests
             Assert.IsTrue(path.MatchesNamespaceChain(new string[0]));
             Assert.IsFalse(path.MatchesNamespaceChain(new[] { "NS_A" }));
         }
+
+        [Test]
+        public void Parse_LeadingSlashWithNamespace_StripsSlashBeforeParsing()
+        {
+            var path = FDMiDataPath.Parse("/NS_A/myBool");
+            Assert.AreEqual("myBool", path.DataName);
+            CollectionAssert.AreEqual(new[] { "NS_A" }, path.Namespaces);
+            Assert.IsTrue(path.IsAbsolute);
+        }
+
+        [Test]
+        public void Parse_LeadingSlashWithoutNamespace_BecomesRelativePath()
+        {
+            var path = FDMiDataPath.Parse("/myBool");
+            Assert.AreEqual("myBool", path.DataName);
+            Assert.AreEqual(0, path.Namespaces.Count);
+            Assert.IsFalse(path.IsAbsolute);
+        }
+
+        [Test]
+        public void Parse_LeadingTilde_StoresAsLiteralFirstSegment()
+        {
+            var path = FDMiDataPath.Parse("~/myBool");
+            Assert.AreEqual("myBool", path.DataName);
+            CollectionAssert.AreEqual(new[] { "~" }, path.Namespaces);
+            Assert.IsTrue(path.IsAbsolute);
+        }
     }
 }
