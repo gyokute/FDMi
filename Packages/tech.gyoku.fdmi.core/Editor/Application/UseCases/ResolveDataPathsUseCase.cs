@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using UnityEditor;
-using UnityEngine;
-using FDMi.core.Attributes;
 using FDMi.core.Editor.Domain.Entities;
 using FDMi.core.Editor.Domain.Repositories;
+using UnityEditor;
+using UnityEngine;
 
 namespace FDMi.core.Editor.Application.UseCases
 {
@@ -14,8 +13,8 @@ namespace FDMi.core.Editor.Application.UseCases
     /// </summary>
     public class ResolveDataPathsUseCase
     {
-        static readonly Dictionary<Type, (FieldInfo field, FDMiDataPathAttribute attr)[]> _cache
-            = new Dictionary<Type, (FieldInfo, FDMiDataPathAttribute)[]>();
+        static readonly Dictionary<Type, (FieldInfo field, FDMiDataPathAttribute attr)[]> _cache =
+            new Dictionary<Type, (FieldInfo, FDMiDataPathAttribute)[]>();
 
         readonly IFDMiDataRepository _repository;
 
@@ -38,10 +37,12 @@ namespace FDMi.core.Editor.Application.UseCases
         public void Execute(UnityEngine.Object target)
         {
             var mb = target as MonoBehaviour;
-            if (mb == null) return;
+            if (mb == null)
+                return;
 
             var entries = GetCachedEntries(mb.GetType());
-            if (entries.Length == 0) return;
+            if (entries.Length == 0)
+                return;
 
             var so = new SerializedObject(target);
             foreach (var (field, attr) in entries)
@@ -55,10 +56,12 @@ namespace FDMi.core.Editor.Application.UseCases
                 var elementType = isArray ? field.FieldType.GetElementType() : field.FieldType;
 
                 var found = _repository.FindAll(mb.gameObject, path, elementType);
-                if (found.Length == 0) continue;
+                if (found.Length == 0)
+                    continue;
 
                 var sp = so.FindProperty(field.Name);
-                if (sp == null) continue;
+                if (sp == null)
+                    continue;
 
                 if (isArray)
                 {
@@ -80,13 +83,19 @@ namespace FDMi.core.Editor.Application.UseCases
         /// </summary>
         static (FieldInfo, FDMiDataPathAttribute)[] GetCachedEntries(Type type)
         {
-            if (_cache.TryGetValue(type, out var cached)) return cached;
+            if (_cache.TryGetValue(type, out var cached))
+                return cached;
 
             var result = new List<(FieldInfo, FDMiDataPathAttribute)>();
-            foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            foreach (
+                var field in type.GetFields(
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
+                )
+            )
             {
                 var attr = field.GetCustomAttribute<FDMiDataPathAttribute>();
-                if (attr != null) result.Add((field, attr));
+                if (attr != null)
+                    result.Add((field, attr));
             }
             var entries = result.ToArray();
             _cache[type] = entries;

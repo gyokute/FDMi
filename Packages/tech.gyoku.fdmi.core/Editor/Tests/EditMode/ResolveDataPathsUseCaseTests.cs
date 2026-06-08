@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
-using UnityEngine;
 using FDMi.core.Editor.Application.UseCases;
-using FDMi.core.Attributes;
 using FDMi.core.Editor.Domain.Entities;
 using FDMi.core.Editor.Domain.Repositories;
+using NUnit.Framework;
+using UnityEngine;
 
 namespace FDMi.core.Editor.Tests
 {
@@ -73,7 +72,8 @@ namespace FDMi.core.Editor.Tests
         public void TearDown()
         {
             foreach (var go in _created)
-                if (go != null) UnityEngine.Object.DestroyImmediate(go);
+                if (go != null)
+                    UnityEngine.Object.DestroyImmediate(go);
             _created.Clear();
         }
 
