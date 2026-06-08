@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using tech.gyoku.FDMi.core.Attributes;
-using tech.gyoku.FDMi.core.Editor.Domain.Entities;
-using tech.gyoku.FDMi.core.Editor.Domain.Repositories;
+using FDMi.core.Attributes;
+using FDMi.core.Editor.Domain.Entities;
+using FDMi.core.Editor.Domain.Repositories;
 
-namespace tech.gyoku.FDMi.core.Editor.Application.UseCases
+namespace FDMi.core.Editor.Application.UseCases
 {
     /// <summary>
     /// [FDMiDataPathAttribute] 付きフィールドに FDMiData を解決して代入するユースケース。

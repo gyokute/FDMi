@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
-using tech.gyoku.FDMi.core.Editor.Domain.Entities;
-using tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories;
+using FDMi.core.Editor.Domain.Entities;
+using FDMi.core.Editor.Infrastructure.Repositories;
 
-namespace tech.gyoku.FDMi.core.Editor.Tests
+namespace FDMi.core.Editor.Tests
 {
     public class SceneFDMiDataRepositoryTests
     {

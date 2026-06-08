@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
-using tech.gyoku.FDMi.core.Editor.Application.UseCases;
-using tech.gyoku.FDMi.core.Attributes;
-using tech.gyoku.FDMi.core.Editor.Domain.Entities;
-using tech.gyoku.FDMi.core.Editor.Domain.Repositories;
+using FDMi.core.Editor.Application.UseCases;
+using FDMi.core.Attributes;
+using FDMi.core.Editor.Domain.Entities;
+using FDMi.core.Editor.Domain.Repositories;
 
-namespace tech.gyoku.FDMi.core.Editor.Tests
+namespace FDMi.core.Editor.Tests
 {
     // テスト用スタブ: IFDMiDataRepository の手書きモック
     class StubRepository : IFDMiDataRepository

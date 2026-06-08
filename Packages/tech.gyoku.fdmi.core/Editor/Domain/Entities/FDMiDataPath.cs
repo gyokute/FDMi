@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace tech.gyoku.FDMi.core.Editor.Domain.Entities
+namespace FDMi.core.Editor.Domain.Entities
 {
     /// <summary>
     /// FDMiData を解決する際のパスを表す不変値オブジェクト。

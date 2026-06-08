@@ -1,8 +1,8 @@
 using System;
 using UnityEngine;
-using tech.gyoku.FDMi.core.Editor.Domain.Entities;
+using FDMi.core.Editor.Domain.Entities;
 
-namespace tech.gyoku.FDMi.core.Editor.Domain.Repositories
+namespace FDMi.core.Editor.Domain.Repositories
 {
     /// <summary>
     /// シーン上の FDMiData コンポーネントを検索するリポジトリの抽象。

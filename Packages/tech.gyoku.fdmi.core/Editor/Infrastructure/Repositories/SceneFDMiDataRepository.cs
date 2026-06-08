@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using tech.gyoku.FDMi.core.Editor.Domain.Entities;
-using tech.gyoku.FDMi.core.Editor.Domain.Repositories;
+using FDMi.core.Editor.Domain.Entities;
+using FDMi.core.Editor.Domain.Repositories;
 
-namespace tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories
+namespace FDMi.core.Editor.Infrastructure.Repositories
 {
     /// <summary>
     /// Unity シーン上の GameObject 階層を探索して FDMiData を見つけるリポジトリ実装。

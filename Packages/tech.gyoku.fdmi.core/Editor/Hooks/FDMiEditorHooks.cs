@@ -1,9 +1,9 @@
 using UnityEditor;
 using UnityEngine;
-using tech.gyoku.FDMi.core.Editor.Application.UseCases;
-using tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories;
+using FDMi.core.Editor.Application.UseCases;
+using FDMi.core.Editor.Infrastructure.Repositories;
 
-namespace tech.gyoku.FDMi.core.Editor.Hooks
+namespace FDMi.core.Editor.Hooks
 {
     /// <summary>
     /// Menu・Play モード開始前の FDMiDataPath 解決トリガーを登録する静的フック。

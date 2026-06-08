@@ -1,13 +1,13 @@
 {
-    "name": "tech.gyoku.FDMi.core.editor.tests",
+    "name": "FDMi.core.editor.tests",
     "rootNamespace": "",
     "references": [
-        "tech.gyoku.FDMi.core",
-        "tech.gyoku.FDMi.core.editor",
+        "FDMi.core",
+        "FDMi.core.editor",
         "UdonSharp.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "tech.gyoku.FDMi.core.attributes"
+        "FDMi.core.attributes"
     ],
     "includePlatforms": [
         "Editor"

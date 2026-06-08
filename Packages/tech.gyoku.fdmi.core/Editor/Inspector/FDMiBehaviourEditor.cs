@@ -1,9 +1,9 @@
 using UnityEditor;
 using UnityEngine;
-using tech.gyoku.FDMi.core.Editor.Application.UseCases;
-using tech.gyoku.FDMi.core.Editor.Infrastructure.Repositories;
+using FDMi.core.Editor.Application.UseCases;
+using FDMi.core.Editor.Infrastructure.Repositories;
 
-namespace tech.gyoku.FDMi.core.Editor.Inspector
+namespace FDMi.core.Editor.Inspector
 {
     /// <summary>
     /// すべての FDMiBehaviour に適用される汎用 CustomEditor。

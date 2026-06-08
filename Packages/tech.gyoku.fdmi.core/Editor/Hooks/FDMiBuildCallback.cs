@@ -1,6 +1,6 @@
 using VRC.SDKBase.Editor.BuildPipeline;
 
-namespace tech.gyoku.FDMi.core.Editor.Hooks
+namespace FDMi.core.Editor.Hooks
 {
     /// <summary>
     /// VRChat SDK ビルド直前に FDMiDataPath を解決するコールバック。

@@ -1,5 +1,5 @@
 {
-    "name": "tech.gyoku.FDMi.core.editor",
+    "name": "FDMi.core.editor",
     "rootNamespace": "",
     "references": [
         "UnityEditor.UI",
@@ -8,8 +8,8 @@
         "UdonSharp.Runtime",
         "UdonSharp.Editor",
         "VRC.SDK3",
-        "tech.gyoku.FDMi.core",
-        "tech.gyoku.FDMi.core.attributes",
+        "FDMi.core",
+        "FDMi.core.attributes",
         "VRC.SDKBase.Editor.BuildPipeline"
     ],
     "includePlatforms": [

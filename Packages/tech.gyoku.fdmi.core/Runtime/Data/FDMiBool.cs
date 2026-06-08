@@ -1,10 +1,9 @@
-﻿
-using UdonSharp;
+﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
 
-namespace tech.gyoku.FDMi.core
+namespace FDMi.core
 {
     public class FDMiBool : FDMiData
     {
@@ -14,12 +13,11 @@ namespace tech.gyoku.FDMi.core
             get => data[0];
             set => set(value);
         }
-        
+
         public virtual void set(bool src)
-        { 
-            data[0] = src; 
+        {
+            data[0] = src;
             TriggerCallbacks();
         }
-
     }
 }

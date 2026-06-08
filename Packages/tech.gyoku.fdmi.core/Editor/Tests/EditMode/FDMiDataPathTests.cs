@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using tech.gyoku.FDMi.core.Editor.Domain.Entities;
+using FDMi.core.Editor.Domain.Entities;
 
-namespace tech.gyoku.FDMi.core.Editor.Tests
+namespace FDMi.core.Editor.Tests
 {
     public class FDMiDataPathTests
     {
