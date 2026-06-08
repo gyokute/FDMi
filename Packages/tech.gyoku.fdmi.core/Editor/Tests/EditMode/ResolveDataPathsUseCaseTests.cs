@@ -22,10 +22,12 @@ namespace FDMi.core.Editor.Tests
         }
     }
 
-    // テスト用 MonoBehaviour: [FDMiDataPath] 付きフィールドあり
+    // テスト用 MonoBehaviour: [FDMiDataPath] 付きフィールドあり（ペアの文字列フィールドを持つ）
     class BehaviourWithDataPath : MonoBehaviour
     {
-        [FDMiDataPathAttribute("myData")]
+        public string targetFieldPath = "myData";
+
+        [FDMiDataPathAttribute(nameof(targetFieldPath))]
         public FDMiData targetField;
     }
 
@@ -35,11 +37,29 @@ namespace FDMi.core.Editor.Tests
         public FDMiData notAnnotated;
     }
 
-    // テスト用 MonoBehaviour: [FDMiDataPath] 付き配列フィールドあり
+    // テスト用 MonoBehaviour: [FDMiDataPath] 付き配列フィールドあり（ペアの文字列フィールドを持つ）
     class BehaviourWithArrayDataPath : MonoBehaviour
     {
-        [FDMiDataPathAttribute("sample")]
+        public string targetArrayPath = "sample";
+
+        [FDMiDataPathAttribute(nameof(targetArrayPath))]
         public FDMiBool[] targetArray;
+    }
+
+    // テスト用 MonoBehaviour: 属性が指すペアフィールドが存在しない
+    class BehaviourWithMissingPairField : MonoBehaviour
+    {
+        [FDMiDataPathAttribute("doesNotExist")]
+        public FDMiData targetField;
+    }
+
+    // テスト用 MonoBehaviour: 属性が指すペアフィールドが string 型でない
+    class BehaviourWithNonStringPairField : MonoBehaviour
+    {
+        public int notAPathString = 42;
+
+        [FDMiDataPathAttribute(nameof(notAPathString))]
+        public FDMiData targetField;
     }
 
     public class ResolveDataPathsUseCaseTests
@@ -115,7 +135,7 @@ namespace FDMi.core.Editor.Tests
         }
 
         [Test]
-        public void Execute_ParsesPathFromAttribute()
+        public void Execute_ParsesPathFromPairedStringField()
         {
             var go = NewGO();
             var mb = go.AddComponent<BehaviourWithDataPath>();
@@ -199,6 +219,56 @@ namespace FDMi.core.Editor.Tests
             useCase.Execute(mb);
 
             Assert.AreEqual(dataA, mb.targetField);
+        }
+
+        [Test]
+        public void Execute_PathFieldValuePerInstance_ResolvesUsingCurrentValue()
+        {
+            var goA = NewGO("a");
+            var mbA = goA.AddComponent<BehaviourWithDataPath>();
+            mbA.targetFieldPath = "pathA";
+
+            var goB = NewGO("b");
+            var mbB = goB.AddComponent<BehaviourWithDataPath>();
+            mbB.targetFieldPath = "pathB";
+
+            var stub = new StubRepository();
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mbA);
+            useCase.Execute(mbB);
+
+            Assert.AreEqual(2, stub.ReceivedPaths.Count);
+            Assert.AreEqual("pathA", stub.ReceivedPaths[0].DataName);
+            Assert.AreEqual("pathB", stub.ReceivedPaths[1].DataName);
+        }
+
+        [Test]
+        public void Execute_PairedFieldDoesNotExist_DoesNotCallRepositoryAndFieldRemainsNull()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithMissingPairField>();
+            var stub = new StubRepository();
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mb);
+
+            Assert.AreEqual(0, stub.ReceivedPaths.Count);
+            Assert.IsNull(mb.targetField);
+        }
+
+        [Test]
+        public void Execute_PairedFieldIsNotString_DoesNotCallRepositoryAndFieldRemainsNull()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithNonStringPairField>();
+            var stub = new StubRepository();
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mb);
+
+            Assert.AreEqual(0, stub.ReceivedPaths.Count);
+            Assert.IsNull(mb.targetField);
         }
     }
 }

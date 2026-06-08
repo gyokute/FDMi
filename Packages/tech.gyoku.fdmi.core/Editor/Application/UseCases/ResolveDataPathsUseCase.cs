@@ -30,8 +30,9 @@ namespace FDMi.core.Editor.Application.UseCases
 
         /// <summary>
         /// 対象オブジェクトの [FDMiDataPathAttribute] 付きフィールドを解決して代入する。
+        /// パス文字列は属性が指す PathFieldName のフィールドの現在値（SerializedProperty 経由）から取得する。
         /// 配列フィールドには一致した FDMiData を全件、非配列フィールドには先頭の1件を割り当てる。
-        /// 解決できないフィールド（該当0件）はスキップし、前回値を維持する。
+        /// ペアフィールドが存在しない・string型でない、または解決結果が0件の場合は何もしない（前回値を維持し、ログも出力しない）。
         /// </summary>
         /// <param name="target">解決対象の Unity オブジェクト。</param>
         public void Execute(UnityEngine.Object target)
@@ -45,7 +46,11 @@ namespace FDMi.core.Editor.Application.UseCases
             var so = new SerializedObject(target);
             foreach (var (field, attr) in entries)
             {
-                var path = FDMiDataPath.Parse(attr.Path);
+                var pathProp = so.FindProperty(attr.PathFieldName);
+                if (pathProp == null || pathProp.propertyType != SerializedPropertyType.String)
+                    continue;
+
+                var path = FDMiDataPath.Parse(pathProp.stringValue);
                 var isArray = field.FieldType.IsArray;
                 var elementType = isArray ? field.FieldType.GetElementType() : field.FieldType;
 
