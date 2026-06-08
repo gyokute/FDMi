@@ -22,7 +22,7 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         {
             if (context == null || string.IsNullOrEmpty(path.DataName)) return new FDMiData[0];
             var results = path.IsAbsolute
-                ? FindAllAbsolute(path, fieldType)
+                ? FindAllAbsolute(context, path, fieldType)
                 : FindAllRelative(context, path, fieldType);
             return results.ToArray();
         }
@@ -41,11 +41,16 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// 絶対パス解決。isNamespaceRoot=true の FDMiNamespace から名前空間を順に辿り、最終スコープで全件を収集する。
-        /// パスにワイルドカード（"*" / "**"）が含まれる場合は <see cref="FindAllAbsoluteWildcard"/> に委譲する。
+        /// 絶対パス解決。先頭セグメントが "~" の場合は祖先方向の isNamespaceRoot=true な
+        /// FDMiNamespace を起点とする解決に委譲し、ワイルドカード（"*" / "**"）が含まれる場合は
+        /// FindAllAbsoluteWildcard に委譲する。それ以外は isNamespaceRoot=true の
+        /// FDMiNamespace から名前空間を順に辿り、最終スコープで全件を収集する。
         /// </summary>
-        List<FDMiData> FindAllAbsolute(FDMiDataPath path, Type fieldType)
+        List<FDMiData> FindAllAbsolute(GameObject context, FDMiDataPath path, Type fieldType)
         {
+            if (path.Namespaces[0] == "~")
+                return FindAllAbsoluteFromAnchor(context, path, fieldType);
+
             if (ContainsWildcardSegment(path.Namespaces))
                 return FindAllAbsoluteWildcard(path, fieldType);
 
@@ -68,6 +73,51 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
                 if (current == null) return new List<FDMiData>();
             }
 
+            var results = new List<FDMiData>();
+            CollectInScope(current.transform, path.DataName, fieldType, results);
+            return results;
+        }
+
+        /// <summary>
+        /// context から祖先方向へ辿り、最初に見つかる isNamespaceRoot=true の
+        /// FDMiNamespace を返す。isNamespaceRoot=false の FDMiNamespace はスキップして
+        /// さらに上を探す。見つからなければ null を返す。
+        /// </summary>
+        FDMiNamespace FindNearestAncestorRootNamespace(Transform context)
+        {
+            var current = context.parent;
+            while (current != null)
+            {
+                var ns = current.GetComponent<FDMiNamespace>();
+                if (ns != null && ns.isNamespaceRoot) return ns;
+                current = current.parent;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 先頭が "~" の絶対パスを解決する。FindNearestAncestorRootNamespace で起点を1つに
+        /// 確定させたあと、残りのセグメント（Namespaces[1..]）をワイルドカード有無で分岐して
+        /// 既存ロジック（リテラル子孫探索 or パターン照合探索）を再利用する。
+        /// </summary>
+        List<FDMiData> FindAllAbsoluteFromAnchor(GameObject context, FDMiDataPath path, Type fieldType)
+        {
+            var anchor = FindNearestAncestorRootNamespace(context.transform);
+            if (anchor == null) return new List<FDMiData>();
+
+            if (ContainsWildcardSegment(path.Namespaces))
+            {
+                var wildcardResults = new List<FDMiData>();
+                CollectMatchingScopes(anchor, new List<string>(), 1, path, fieldType, wildcardResults);
+                return wildcardResults;
+            }
+
+            var current = anchor;
+            for (int i = 1; i < path.Namespaces.Count; i++)
+            {
+                current = FindChildNamespace(current.transform, path.Namespaces[i]);
+                if (current == null) return new List<FDMiData>();
+            }
             var results = new List<FDMiData>();
             CollectInScope(current.transform, path.DataName, fieldType, results);
             return results;
@@ -124,12 +174,13 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         }
 
         /// <summary>
-        /// node を起点に、chain（ルートから node までの名前空間連鎖）が path のパターンに一致する場合は
+        /// node を起点に、chain（node までの名前空間連鎖。意味は呼び出し元の起点規約に依存する）が
+        /// path のパターン（先頭から patternOffset 個読み飛ばした残り）に一致する場合は
         /// そのスコープ内の FDMiData を全件収集する。さらに子の名前空間へ chain を伸ばして再帰する。
         /// </summary>
-        void CollectMatchingScopes(FDMiNamespace node, List<string> chain, FDMiDataPath path, Type fieldType, List<FDMiData> results)
+        void CollectMatchingScopes(FDMiNamespace node, List<string> chain, int patternOffset, FDMiDataPath path, Type fieldType, List<FDMiData> results)
         {
-            if (path.MatchesNamespaceChain(chain))
+            if (path.MatchesNamespaceChain(chain, patternOffset))
                 CollectInScope(node.transform, path.DataName, fieldType, results);
 
             var children = new List<FDMiNamespace>();
@@ -137,7 +188,7 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
             foreach (var child in children)
             {
                 chain.Add(child.nameSpace);
-                CollectMatchingScopes(child, chain, path, fieldType, results);
+                CollectMatchingScopes(child, chain, patternOffset, path, fieldType, results);
                 chain.RemoveAt(chain.Count - 1);
             }
         }
@@ -153,7 +204,7 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
             foreach (var ns in allNamespaces)
             {
                 if (!ns.isNamespaceRoot) continue;
-                CollectMatchingScopes(ns, new List<string> { ns.nameSpace }, path, fieldType, results);
+                CollectMatchingScopes(ns, new List<string> { ns.nameSpace }, 0, path, fieldType, results);
             }
             return results;
         }

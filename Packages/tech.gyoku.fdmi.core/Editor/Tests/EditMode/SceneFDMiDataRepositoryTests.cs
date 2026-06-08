@@ -337,5 +337,176 @@ namespace FDMi.core.Editor.Tests
             Assert.AreEqual(1, result.Length);
             Assert.AreEqual(data, result[0]);
         }
+
+        // --- "~"（祖先ルート起点）テスト ---
+
+        [Test]
+        public void FindAll_TildeAlone_ResolvesFromNearestAncestorRootNamespace()
+        {
+            var nsRootGo = Create("NS_ROOT");
+            AddNamespace(nsRootGo, "NS_ROOT", isRoot: true);
+            var container = Create("container", nsRootGo.transform);
+            var context = Create("context", container.transform);
+            var dataGo = Create("myBool", nsRootGo.transform);
+            var data = dataGo.AddComponent<FDMiBool>();
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("~/myBool"), typeof(FDMiBool));
+
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
+        }
+
+        [Test]
+        public void FindAll_TildeAnchor_SkipsNonRootNamespaceAncestors()
+        {
+            var nsRootGo = Create("NS_ROOT");
+            AddNamespace(nsRootGo, "NS_ROOT", isRoot: true);
+            var nsChildGo = Create("NS_CHILD", nsRootGo.transform);
+            AddNamespace(nsChildGo, "NS_CHILD", isRoot: false);
+            var context = Create("context", nsChildGo.transform);
+            var dataGo = Create("myBool", nsRootGo.transform);
+            var data = dataGo.AddComponent<FDMiBool>();
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("~/myBool"), typeof(FDMiBool));
+
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
+        }
+
+        [Test]
+        public void FindAll_TildeAnchor_NoRootNamespaceAncestor_ReturnsEmptyWithoutSceneWideFallback()
+        {
+            var nsOtherGo = Create("NS_OTHER");
+            AddNamespace(nsOtherGo, "NS_OTHER", isRoot: true);
+            var decoyGo = Create("myBool", nsOtherGo.transform);
+            decoyGo.AddComponent<FDMiBool>();
+
+            var parent = Create("parent");
+            var context = Create("context", parent.transform);
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("~/myBool"), typeof(FDMiBool));
+
+            Assert.AreEqual(0, result.Length);
+        }
+
+        [Test]
+        public void FindAll_TildeAnchor_WithLiteralChildNamespace_ResolvesNestedScope()
+        {
+            var nsRootGo = Create("NS_ROOT");
+            AddNamespace(nsRootGo, "NS_ROOT", isRoot: true);
+            var context = Create("context", nsRootGo.transform);
+            var nsBGo = Create("NS_B", nsRootGo.transform);
+            AddNamespace(nsBGo, "NS_B");
+            var dataGo = Create("myBool", nsBGo.transform);
+            var data = dataGo.AddComponent<FDMiBool>();
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("~/NS_B/myBool"), typeof(FDMiBool));
+
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
+        }
+
+        [Test]
+        public void FindAll_TildeAnchorWithSingleWildcard_MatchesImmediateChildNamespaces()
+        {
+            var nsRootGo = Create("NS_ROOT");
+            AddNamespace(nsRootGo, "NS_ROOT", isRoot: true);
+            var context = Create("context", nsRootGo.transform);
+
+            var nsXGo = Create("NS_X", nsRootGo.transform);
+            AddNamespace(nsXGo, "NS_X");
+            var dataGoX = Create("target", nsXGo.transform);
+            var dataX = dataGoX.AddComponent<FDMiBool>();
+
+            var nsYGo = Create("NS_Y", nsRootGo.transform);
+            AddNamespace(nsYGo, "NS_Y");
+            var dataGoY = Create("target", nsYGo.transform);
+            var dataY = dataGoY.AddComponent<FDMiBool>();
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("~/*/target"), typeof(FDMiBool));
+
+            Assert.AreEqual(2, result.Length);
+            CollectionAssert.Contains(result, dataX);
+            CollectionAssert.Contains(result, dataY);
+        }
+
+        [Test]
+        public void FindAll_TildeAnchorWithDoubleWildcard_MatchesAcrossDepthsIncludingAnchorItself()
+        {
+            var nsRootGo = Create("NS_ROOT");
+            AddNamespace(nsRootGo, "NS_ROOT", isRoot: true);
+            var context = Create("context", nsRootGo.transform);
+
+            var dataGoDirect = Create("target", nsRootGo.transform);
+            var dataDirect = dataGoDirect.AddComponent<FDMiBool>();
+
+            var nsBGo = Create("NS_B", nsRootGo.transform);
+            AddNamespace(nsBGo, "NS_B");
+            var dataGoNested = Create("target", nsBGo.transform);
+            var dataNested = dataGoNested.AddComponent<FDMiBool>();
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("~/**/target"), typeof(FDMiBool));
+
+            Assert.AreEqual(2, result.Length);
+            CollectionAssert.Contains(result, dataDirect);
+            CollectionAssert.Contains(result, dataNested);
+        }
+
+        [Test]
+        public void FindAll_TildeNotAtLeadingPosition_TreatedAsLiteralNamespaceName()
+        {
+            var nsAGo = Create("NS_A");
+            AddNamespace(nsAGo, "NS_A", isRoot: true);
+            var nsTildeGo = Create("NS_TILDE", nsAGo.transform);
+            AddNamespace(nsTildeGo, "~");
+            var dataGo = Create("myBool", nsTildeGo.transform);
+            var data = dataGo.AddComponent<FDMiBool>();
+            var context = Create("context");
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("NS_A/~/myBool"), typeof(FDMiBool));
+
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
+        }
+
+        // --- 先頭 "/" テスト ---
+
+        [Test]
+        public void FindAll_LeadingSlashWithNamespace_ResolvesSameAsWithoutSlash()
+        {
+            var nsGo = Create("NS_A");
+            AddNamespace(nsGo, "NS_A", isRoot: true);
+            var dataGo = Create("myBool", nsGo.transform);
+            var data = dataGo.AddComponent<FDMiBool>();
+            var context = Create("context");
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("/NS_A/myBool"), typeof(FDMiBool));
+
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
+        }
+
+        [Test]
+        public void FindAll_LeadingSlashWithoutNamespace_ResolvesAsRelativePath()
+        {
+            var parent = Create("parent");
+            var context = Create("context", parent.transform);
+            var dataGo = Create("myBool", parent.transform);
+            var data = dataGo.AddComponent<FDMiBool>();
+
+            var repo = new SceneFDMiDataRepository();
+            var result = repo.FindAll(context, FDMiDataPath.Parse("/myBool"), typeof(FDMiBool));
+
+            Assert.AreEqual(1, result.Length);
+            Assert.AreEqual(data, result[0]);
+        }
     }
 }
