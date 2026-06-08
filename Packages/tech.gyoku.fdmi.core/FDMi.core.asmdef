@@ -4,8 +4,7 @@
     "references": [
         "VRC.Udon",
         "UdonSharp.Runtime",
-        "UdonSharp.Editor",
-        "FDMi.core.attributes"
+        "UdonSharp.Editor"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

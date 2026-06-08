@@ -9,7 +9,6 @@
         "UdonSharp.Editor",
         "VRC.SDK3",
         "FDMi.core",
-        "FDMi.core.attributes",
         "VRC.SDKBase.Editor.BuildPipeline"
     ],
     "includePlatforms": [
