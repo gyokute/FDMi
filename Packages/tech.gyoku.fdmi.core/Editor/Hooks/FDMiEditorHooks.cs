@@ -5,42 +5,50 @@ using FDMi.core.Editor.Infrastructure.Repositories;
 
 namespace FDMi.core.Editor.Hooks
 {
-    /// <summary>
-    /// Menu・Play モード開始前の FDMiDataPath 解決トリガーを登録する静的フック。
-    /// [InitializeOnLoad] により Unity Editor 起動時に自動登録される。
-    /// </summary>
     [InitializeOnLoad]
     static class FDMiEditorHooks
     {
+        // OnHierarchyChanged でスケジュール済みの delayCall があるかどうかを追跡する
+        static bool _pendingResolve;
+
         static FDMiEditorHooks()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+            EditorApplication.hierarchyChanged     += OnHierarchyChanged;
         }
 
-        /// <summary>
-        /// Play モード状態変化ハンドラ。ExitingEditMode 時に全 MonoBehaviour を解決する。
-        /// </summary>
         static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
             if (state == PlayModeStateChange.ExitingEditMode)
-                ResolveAll();
+                ResolveAndRegisterAll();
         }
 
-        /// <summary>
-        /// メニュー "FDMi/Resolve All Data Paths" から手動で解決を実行する。
-        /// </summary>
-        [MenuItem("FDMi/Resolve All Data Paths")]
-        static void ResolveAllMenu() => ResolveAll();
+        // hierarchyChanged は短時間に複数回発火するため delayCall で集約する
+        static void OnHierarchyChanged()
+        {
+            if (_pendingResolve) return;
+            _pendingResolve = true;
+            EditorApplication.delayCall += () =>
+            {
+                _pendingResolve = false;
+                ResolveAndRegisterAll();
+            };
+        }
 
-        /// <summary>
-        /// シーン上のすべての MonoBehaviour に対して FDMiDataPath を解決する。
-        /// FDMiBuildCallback からも呼び出される。
-        /// </summary>
+        [MenuItem("FDMi/Resolve All Data Paths")]
+        static void ResolveAllMenu() => ResolveAndRegisterAll();
+
         internal static void ResolveAll()
         {
             var useCase = new ResolveDataPathsUseCase(new SceneFDMiDataRepository());
             foreach (var mb in Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
                 useCase.Execute(mb);
+        }
+
+        internal static void ResolveAndRegisterAll()
+        {
+            ResolveAll();
+            RegisterCallbacksUseCase.RegisterAll();
         }
     }
 }

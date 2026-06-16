@@ -5,32 +5,28 @@ using FDMi.core.Editor.Infrastructure.Repositories;
 
 namespace FDMi.core.Editor.Inspector
 {
-    /// <summary>
-    /// すべての FDMiBehaviour に適用される汎用 CustomEditor。
-    /// [FDMiDataPathAttribute] 付きフィールドを OnEnable 時に解決する。
-    /// 将来の他ドメインロジックもここに追加する。
-    /// </summary>
     [CustomEditor(typeof(FDMiBehaviour), true)]
     public class FDMiBehaviourEditor : UnityEditor.Editor
     {
-        ResolveDataPathsUseCase _useCase;
+        ResolveDataPathsUseCase  _resolveUseCase;
+        RegisterCallbacksUseCase _registerUseCase;
 
-        /// <summary>
-        /// 選択変更時に呼ばれる。UseCase を初期化して FDMiDataPath を解決する。
-        /// </summary>
         void OnEnable()
         {
-            Debug.Log($"[FDMi] Resolving FDMiDataPaths for {target.name} ({target.GetType().Name})");
-            _useCase = new ResolveDataPathsUseCase(new SceneFDMiDataRepository());
-            _useCase.Execute(target);
+            _resolveUseCase  = new ResolveDataPathsUseCase(new SceneFDMiDataRepository());
+            _registerUseCase = new RegisterCallbacksUseCase();
+
+            _resolveUseCase.Execute(target);
+            _registerUseCase.Execute(target as MonoBehaviour);
         }
 
-        /// <summary>
-        /// Inspector の描画。デフォルト UI を維持する。
-        /// </summary>
         public override void OnInspectorGUI()
         {
+            EditorGUI.BeginChangeCheck();
             DrawDefaultInspector();
+            // Resolve は選択時のみ実行（パス文字列を編集した場合は ResolveAndRegisterAll をメニューから手動実行）
+            if (EditorGUI.EndChangeCheck())
+                _registerUseCase?.Execute(target as MonoBehaviour);
         }
     }
 }
