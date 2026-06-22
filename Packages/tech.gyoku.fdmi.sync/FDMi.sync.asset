@@ -10,7 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5136146375e9a0a498a72a0091b40cc1, type: 3}
-  m_Name: tech.gyoku.FDMi.input
+  m_Name: FDMi.sync
   m_EditorClassIdentifier: 
-  sourceAssembly: {fileID: 5897886265953266890, guid: 760c6e38a9fa8ca409c497aec9abe202,
-    type: 3}
+  sourceAssembly: {fileID: 5897886265953266890, guid: bdcb8861aa3383e46b0c7a422a936dd6, type: 3}
