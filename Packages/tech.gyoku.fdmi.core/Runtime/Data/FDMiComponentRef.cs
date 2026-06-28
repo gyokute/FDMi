@@ -11,10 +11,10 @@ namespace FDMi.core
         public Component Data
         {
             get => data[0];
-            set => set(value);
+            set => Set(value);
         }
 
-        public virtual void set(Component src)
+        public virtual void Set(Component src)
         {
             data[0] = src;
             TriggerCallbacks();

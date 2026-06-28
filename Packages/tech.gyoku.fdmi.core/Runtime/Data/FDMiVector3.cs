@@ -11,10 +11,10 @@ namespace FDMi.core
         public Vector3 Data
         {
             get => data[0];
-            set => set(value);
+            set => Set(value);
         }
 
-        public virtual void set(Vector3 src)
+        public virtual void Set(Vector3 src)
         {
             data[0] = src;
             TriggerCallbacks();

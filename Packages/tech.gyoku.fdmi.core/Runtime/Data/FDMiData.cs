@@ -22,5 +22,13 @@ namespace FDMi.core
                 if (callbackBehaviour[i])
                     callbackBehaviour[i].SendCustomEvent(callbackFunction[i]);
         }
+        // set primitive types
+        public virtual void Set(float i) => TriggerCallbacks();
+        public virtual void Set(short i) => TriggerCallbacks();
+        public virtual void Set(sbyte i) => TriggerCallbacks();
+        public virtual float GetFloat() => 0f;
+        public virtual short GetShort() => 0;
+        public virtual sbyte GetSByte() => 0;
+
     }
 }
