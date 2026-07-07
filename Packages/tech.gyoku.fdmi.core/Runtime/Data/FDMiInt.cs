@@ -20,8 +20,8 @@ namespace FDMi.core
             TriggerCallbacks();
         }
         public override void Set(float i) => Set((int)i);
-        public override void Set(short i) => Set(i);
-        public override void Set(sbyte i) => Set(i);
+        public override void Set(short i) => Set((int)i);
+        public override void Set(sbyte i) => Set((int)i);
         public override float GetFloat() => (float) data[0];
         public override short GetShort() => (short)(data[0]);
         public override sbyte GetSByte() => (sbyte)(data[0]);
