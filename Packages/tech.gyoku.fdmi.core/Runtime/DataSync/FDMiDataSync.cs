@@ -1,4 +1,4 @@
-﻿using UdonSharp;
+using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
@@ -6,39 +6,27 @@ using VRC.Udon;
 namespace FDMi.core
 {
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-    public class FDMiDataSyncAsSByte : FDMiBehaviour
+    public abstract class FDMiDataSync : FDMiBehaviour
     {
         public string dataPath;
 
         [FDMiDataPath(nameof(dataPath)), FDMiRegisterCallback(nameof(OnDataChanged))]
         public FDMiData data;
+        protected bool whenDeserializing = false;
 
-        [UdonSynced, HideInInspector]
-        public sbyte syncedValue;
-
-        void OnDeserialization()
-        {
-            data.Set(syncedValue);
-        }
-
-        public void OnDataChanged()
-        {
-            sbyte next = data.GetSByte();
-            if (syncedValue == next)
-                return;
-            syncedValue = next;
-            if (!Networking.IsOwner(gameObject))
-                Networking.SetOwner(Networking.LocalPlayer, gameObject);
-            TrySerialize();
-        }
+        public abstract void OnDataChanged();
 
         [SerializeField]
         protected float updateInterval = 0.25f;
         protected double nextUpdateTime;
-        public bool trySerializeLatch = false;
+        protected bool trySerializeLatch = false;
 
-        public void TrySerialize()
+        protected void TrySerialize()
         {
+            if (!Networking.IsOwner(gameObject))
+            {
+                Networking.SetOwner(Networking.LocalPlayer, gameObject);
+            }
             // Try Serialize.
             if (Time.time > nextUpdateTime && !Networking.IsClogged)
             {
