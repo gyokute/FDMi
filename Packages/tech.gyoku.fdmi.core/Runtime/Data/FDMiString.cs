@@ -14,10 +14,12 @@ namespace FDMi.core
             set => Set(value);
         }
 
-        public virtual void Set(string src)
+        public override void Set(string src)
         {
             data[0] = src;
             TriggerCallbacks();
         }
+
+        public override string GetString() => data[0];
     }
 }

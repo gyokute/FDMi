@@ -14,10 +14,12 @@ namespace FDMi.core
             set => Set(value);
         }
 
-        public virtual void Set(Quaternion src)
+        public override void Set(Quaternion src)
         {
             data[0] = src;
             TriggerCallbacks();
         }
+
+        public override Quaternion GetQuaternion() => data[0];
     }
 }
