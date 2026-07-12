@@ -11,13 +11,39 @@ namespace FDMi.core
         public float Data
         {
             get => data[0];
-            set => set(value);
+            set => Set(value);
         }
 
-        public virtual void set(float src)
+        public override void Set(float src)
         {
             data[0] = src;
             TriggerCallbacks();
         }
+
+        public override void Set(int i) => Set((float)i);
+
+        public override void Set(uint i) => Set((float)i);
+
+        public override void Set(short i) => Set((float)i);
+
+        public override void Set(ushort i) => Set((float)i);
+
+        public override void Set(sbyte i) => Set((float)i);
+
+        public override void Set(byte i) => Set((float)i);
+
+        public override float GetFloat() => data[0];
+
+        public override int GetInt() => (int)(data[0]);
+
+        public override uint GetUInt() => (uint)(data[0]);
+
+        public override short GetShort() => (short)(data[0]);
+
+        public override ushort GetUShort() => (ushort)(data[0]);
+
+        public override sbyte GetSByte() => (sbyte)(data[0]);
+
+        public override byte GetByte() => (byte)(data[0]);
     }
 }

@@ -5,16 +5,16 @@ using VRC.Udon;
 
 namespace FDMi.core
 {
-    public class FDMiComponentRef : FDMiData
+    public class FDMiTransformRef : FDMiData
     {
-        public Component[] data = new Component[1];
-        public Component Data
+        public Transform[] data = new Transform[1];
+        public Transform Data
         {
             get => data[0];
-            set => Set(value);
+            set => set(value);
         }
 
-        public virtual void Set(Component src)
+        public virtual void set(Transform src)
         {
             data[0] = src;
             TriggerCallbacks();
