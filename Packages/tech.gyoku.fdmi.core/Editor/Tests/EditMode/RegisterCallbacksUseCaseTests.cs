@@ -1,11 +1,12 @@
 using FDMi.core.Editor.Application.UseCases;
 using NUnit.Framework;
+using UdonSharp;
 using UnityEngine;
 
 namespace FDMi.core.Editor.Tests
 {
     // [FDMiRegisterCallback] 付きフィールド 1 つ
-    class BehaviourWithRegisterCallback : MonoBehaviour
+    class BehaviourWithRegisterCallback : UdonSharpBehaviour
     {
         [FDMiRegisterCallback("OnChanged")]
         public FDMiBool myData;
@@ -20,7 +21,7 @@ namespace FDMi.core.Editor.Tests
     }
 
     // 同一フィールドに複数 [FDMiRegisterCallback]
-    class BehaviourWithMultipleCallbacks : MonoBehaviour
+    class BehaviourWithMultipleCallbacks : UdonSharpBehaviour
     {
         [FDMiRegisterCallback("OnChangedA")]
         [FDMiRegisterCallback("OnChangedB")]
