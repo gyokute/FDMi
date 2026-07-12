@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using FDMi.core.Editor.Domain.Entities;
 using FDMi.core.Editor.Domain.Repositories;
+using FDMi.core.Editor.Infrastructure.Repositories;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace FDMi.core.Editor.Application.UseCases
     /// <summary>
     /// [FDMiDataPathAttribute] 付きフィールドに FDMiData を解決して代入するユースケース。
     /// </summary>
-    public class ResolveDataPathsUseCase
+    public class ResolveDataPathsUseCase : IFDMiAutoSetupUseCase
     {
         static readonly Dictionary<Type, (FieldInfo field, FDMiDataPathAttribute attr)[]> _cache =
             new Dictionary<Type, (FieldInfo, FDMiDataPathAttribute)[]>();
@@ -26,6 +27,12 @@ namespace FDMi.core.Editor.Application.UseCases
         {
             _repository = repository;
         }
+
+        /// <summary>
+        /// コンストラクタ。SceneFDMiDataRepository を使用する。
+        /// </summary>
+        public ResolveDataPathsUseCase()
+            : this(new SceneFDMiDataRepository()) { }
 
         /// <summary>
         /// 対象オブジェクトの [FDMiDataPathAttribute] 付きフィールドを解決して代入する。
@@ -77,6 +84,13 @@ namespace FDMi.core.Editor.Application.UseCases
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        public void ExecuteAll()
+        {
+            var useCase = new ResolveDataPathsUseCase(new SceneFDMiDataRepository());
+            foreach (var mb in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
+                useCase.Execute(mb);
+        }
+
         /// <summary>
         /// 型ごとの [FDMiDataPathAttribute] 付きフィールドをキャッシュから取得する。
         /// キャッシュがない場合はリフレクションで取得してキャッシュする。
@@ -87,11 +101,7 @@ namespace FDMi.core.Editor.Application.UseCases
                 return cached;
 
             var result = new List<(FieldInfo, FDMiDataPathAttribute)>();
-            foreach (
-                var field in type.GetFields(
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                )
-            )
+            foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 var attr = field.GetCustomAttribute<FDMiDataPathAttribute>();
                 if (attr != null)

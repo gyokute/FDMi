@@ -7,32 +7,43 @@ using UnityEngine;
 
 namespace FDMi.core.Editor.Application.UseCases
 {
-    public class RegisterCallbacksUseCase
+    public class RegisterCallbacksUseCase : IFDMiAutoSetupUseCase
     {
-        static readonly Dictionary<Type, (FieldInfo field, FDMiRegisterCallbackAttribute[] attrs)[]> _fieldCache
-            = new Dictionary<Type, (FieldInfo, FDMiRegisterCallbackAttribute[])[]>();
+        static readonly Dictionary<Type, (FieldInfo field, FDMiRegisterCallbackAttribute[] attrs)[]> _fieldCache =
+            new Dictionary<Type, (FieldInfo, FDMiRegisterCallbackAttribute[])[]>();
 
-        static readonly Dictionary<MonoBehaviour, HashSet<FDMiData>> _registrations
-            = new Dictionary<MonoBehaviour, HashSet<FDMiData>>();
+        static readonly Dictionary<MonoBehaviour, HashSet<FDMiData>> _registrations =
+            new Dictionary<MonoBehaviour, HashSet<FDMiData>>();
 
-        public void Execute(MonoBehaviour target)
+        /// <summary>
+        /// 対象オブジェクトの [FDMiRegisterCallbackAttribute] 付きフィールドをスキャンし、FDMiData の callbackBehaviour/callbackFunction に登録する。
+        /// 前回登録先があれば、まずそのエントリを削除してから再登録する。
+        /// 破棄済みの FDMiData や [FDMiRegisterCallback] 付きクラスの既存エントリは削除される。
+        /// 破棄済みの MonoBehaviour は無視される。
+        /// </summary>
+        /// <param name="target"></param>
+        public void Execute(UnityEngine.Object target)
         {
-            if (target == null) return;
-
-            var entries = GetCachedEntries(target.GetType());
-            if (entries.Length == 0) return;
+            var mb = target as MonoBehaviour;
+            if (mb == null)
+                return;
+            var entries = GetCachedEntries(mb.GetType());
+            if (entries.Length == 0)
+                return;
 
             // 前回登録先のみを対象に target のエントリを削除（全スキャン不要）
-            if (_registrations.TryGetValue(target, out var prev))
+            if (_registrations.TryGetValue(mb, out var prev))
                 foreach (var data in prev)
-                    if (data != null) RemoveEntriesForTarget(data, target);
+                    if (data != null)
+                        RemoveEntriesForTarget(data, mb);
 
             // 現在のフィールド値で再登録
             var next = new HashSet<FDMiData>();
             foreach (var (field, attrs) in entries)
             {
-                var data = field.GetValue(target) as FDMiData;
-                if (data == null) continue;
+                var data = field.GetValue(mb) as FDMiData;
+                if (data == null)
+                    continue;
 
                 var so = new SerializedObject(data);
                 so.Update();
@@ -44,7 +55,7 @@ namespace FDMi.core.Editor.Application.UseCases
                     int idx = bProp.arraySize;
                     bProp.arraySize = idx + 1;
                     fProp.arraySize = idx + 1;
-                    bProp.GetArrayElementAtIndex(idx).objectReferenceValue = target;
+                    bProp.GetArrayElementAtIndex(idx).objectReferenceValue = mb;
                     fProp.GetArrayElementAtIndex(idx).stringValue = attr.FunctionName;
                 }
 
@@ -52,10 +63,10 @@ namespace FDMi.core.Editor.Application.UseCases
                 next.Add(data);
             }
 
-            _registrations[target] = next;
+            _registrations[mb] = next;
         }
 
-        public static void RegisterAll()
+        public void ExecuteAll()
         {
             _registrations.Clear();
 
@@ -71,7 +82,7 @@ namespace FDMi.core.Editor.Application.UseCases
 
         static void PurgeAutoManagedAndNullEntries(FDMiData data)
         {
-            var so    = new SerializedObject(data);
+            var so = new SerializedObject(data);
             so.Update();
             var bProp = so.FindProperty("callbackBehaviour");
             var fProp = so.FindProperty("callbackFunction");
@@ -83,9 +94,9 @@ namespace FDMi.core.Editor.Application.UseCases
                 // null/破棄済み、または [FDMiRegisterCallback] を持つクラスのコンポーネント。
                 // [FDMiRegisterCallback] を持つクラスのエントリは RegisterAll で全件再構築するため、
                 // そのクラスの全登録（手動含む）を一括削除して再登録で上書きする設計。
-                bool remove = obj == null
-                    || (obj is MonoBehaviour mb && GetCachedEntries(mb.GetType()).Length > 0);
-                if (!remove) continue;
+                bool remove = obj == null || (obj is MonoBehaviour mb && GetCachedEntries(mb.GetType()).Length > 0);
+                if (!remove)
+                    continue;
 
                 bProp.GetArrayElementAtIndex(i).objectReferenceValue = null;
                 bProp.DeleteArrayElementAtIndex(i);
@@ -93,7 +104,8 @@ namespace FDMi.core.Editor.Application.UseCases
                 changed = true;
             }
 
-            if (changed) so.ApplyModifiedPropertiesWithoutUndo();
+            if (changed)
+                so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         public static void ClearCacheForTesting()
@@ -113,27 +125,29 @@ namespace FDMi.core.Editor.Application.UseCases
             for (int i = bProp.arraySize - 1; i >= 0; i--)
             {
                 var elem = bProp.GetArrayElementAtIndex(i);
-                if (elem.objectReferenceValue != (UnityEngine.Object)target) continue;
+                if (elem.objectReferenceValue != (UnityEngine.Object)target)
+                    continue;
                 elem.objectReferenceValue = null; // object ref は null にしてから削除
                 bProp.DeleteArrayElementAtIndex(i);
                 fProp.DeleteArrayElementAtIndex(i);
                 changed = true;
             }
 
-            if (changed) so.ApplyModifiedPropertiesWithoutUndo();
+            if (changed)
+                so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        internal static (FieldInfo field, FDMiRegisterCallbackAttribute[] attrs)[]
-            GetCachedEntries(Type type)
+        internal static (FieldInfo field, FDMiRegisterCallbackAttribute[] attrs)[] GetCachedEntries(Type type)
         {
-            if (_fieldCache.TryGetValue(type, out var cached)) return cached;
+            if (_fieldCache.TryGetValue(type, out var cached))
+                return cached;
 
             var result = new List<(FieldInfo, FDMiRegisterCallbackAttribute[])>();
-            foreach (var field in type.GetFields(
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 var attrs = field.GetCustomAttributes<FDMiRegisterCallbackAttribute>().ToArray();
-                if (attrs.Length > 0) result.Add((field, attrs));
+                if (attrs.Length > 0)
+                    result.Add((field, attrs));
             }
 
             var entries = result.ToArray();

@@ -1,7 +1,10 @@
-using UnityEditor;
-using UnityEngine;
+using System;
+using System.Linq;
+using System.Reflection;
 using FDMi.core.Editor.Application.UseCases;
 using FDMi.core.Editor.Infrastructure.Repositories;
+using UnityEditor;
+using UnityEngine;
 
 namespace FDMi.core.Editor.Hooks
 {
@@ -14,41 +17,35 @@ namespace FDMi.core.Editor.Hooks
         static FDMiEditorHooks()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-            EditorApplication.hierarchyChanged     += OnHierarchyChanged;
         }
 
         static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
             if (state == PlayModeStateChange.ExitingEditMode)
-                ResolveAndRegisterAll();
-        }
-
-        // hierarchyChanged は短時間に複数回発火するため delayCall で集約する
-        static void OnHierarchyChanged()
-        {
-            if (_pendingResolve) return;
-            _pendingResolve = true;
-            EditorApplication.delayCall += () =>
-            {
-                _pendingResolve = false;
-                ResolveAndRegisterAll();
-            };
+                ResolveAll();
         }
 
         [MenuItem("FDMi/Resolve All Data Paths")]
-        static void ResolveAllMenu() => ResolveAndRegisterAll();
+        static void ResolveAllMenu() => ResolveAll();
 
         internal static void ResolveAll()
         {
-            var useCase = new ResolveDataPathsUseCase(new SceneFDMiDataRepository());
-            foreach (var mb in Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
-                useCase.Execute(mb);
-        }
+            // 全てのAssemblyから、IFDMiAutoSetupUseCase を実装するクラスを探して ExecuteAll() を呼び出す
+            var useCaseTypes = AppDomain
+                .CurrentDomain.GetAssemblies()
+                .SelectMany(asm => asm.GetTypes())
+                .Where(t =>
+                    typeof(IFDMiAutoSetupUseCase).IsAssignableFrom(t)
+                    && !t.IsAbstract
+                    && t.GetConstructor(Type.EmptyTypes) != null
+                );
 
-        internal static void ResolveAndRegisterAll()
-        {
-            ResolveAll();
-            RegisterCallbacksUseCase.RegisterAll();
+            // var useCase = new ResolveDataPathsUseCase(new SceneFDMiDataRepository());
+            foreach (var useCaseType in useCaseTypes)
+            {
+                var useCase = (IFDMiAutoSetupUseCase)Activator.CreateInstance(useCaseType);
+                useCase.ExecuteAll();
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ namespace FDMi.core.Editor.Hooks
 
         public bool OnBuildRequested(VRCSDKRequestedBuildType requestedBuildType)
         {
-            FDMiEditorHooks.ResolveAndRegisterAll();
+            FDMiEditorHooks.ResolveAll();
             return true;
         }
     }
