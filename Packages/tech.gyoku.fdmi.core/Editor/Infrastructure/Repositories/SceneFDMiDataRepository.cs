@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using FDMi.core.Editor.Domain.Entities;
 using FDMi.core.Editor.Domain.Repositories;
+using UnityEngine;
 
 namespace FDMi.core.Editor.Infrastructure.Repositories
 {
@@ -20,7 +20,8 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         /// <param name="fieldType">フィールドの宣言型（配列の場合は要素型。FDMiBool 等）。</param>
         public FDMiData[] FindAll(GameObject context, FDMiDataPath path, Type fieldType)
         {
-            if (context == null || string.IsNullOrEmpty(path.DataName)) return new FDMiData[0];
+            if (context == null || string.IsNullOrEmpty(path.DataName))
+                return new FDMiData[0];
             var results = path.IsAbsolute
                 ? FindAllAbsolute(context, path, fieldType)
                 : FindAllRelative(context, path, fieldType);
@@ -32,9 +33,7 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         /// </summary>
         List<FDMiData> FindAllRelative(GameObject context, FDMiDataPath path, Type fieldType)
         {
-            var root = context.transform.parent != null
-                ? context.transform.parent
-                : context.transform;
+            var root = context.transform.parent != null ? context.transform.parent : context.transform;
             var results = new List<FDMiData>();
             CollectInScope(root, path.DataName, fieldType, results);
             return results;
@@ -65,12 +64,14 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
                     break;
                 }
             }
-            if (current == null) return new List<FDMiData>();
+            if (current == null)
+                return new List<FDMiData>();
 
             for (int i = 1; i < path.Namespaces.Count; i++)
             {
                 current = FindChildNamespace(current.transform, path.Namespaces[i]);
-                if (current == null) return new List<FDMiData>();
+                if (current == null)
+                    return new List<FDMiData>();
             }
 
             var results = new List<FDMiData>();
@@ -89,7 +90,8 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
             while (current != null)
             {
                 var ns = current.GetComponent<FDMiNamespace>();
-                if (ns != null && ns.isNamespaceRoot) return ns;
+                if (ns != null && ns.isNamespaceRoot)
+                    return ns;
                 current = current.parent;
             }
             return null;
@@ -103,7 +105,8 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         List<FDMiData> FindAllAbsoluteFromAnchor(GameObject context, FDMiDataPath path, Type fieldType)
         {
             var anchor = FindNearestAncestorRootNamespace(context.transform);
-            if (anchor == null) return new List<FDMiData>();
+            if (anchor == null)
+                return new List<FDMiData>();
 
             if (ContainsWildcardSegment(path.Namespaces))
             {
@@ -116,7 +119,8 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
             for (int i = 1; i < path.Namespaces.Count; i++)
             {
                 current = FindChildNamespace(current.transform, path.Namespaces[i]);
-                if (current == null) return new List<FDMiData>();
+                if (current == null)
+                    return new List<FDMiData>();
             }
             var results = new List<FDMiData>();
             CollectInScope(current.transform, path.DataName, fieldType, results);
@@ -135,11 +139,13 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
                 var ns = child.GetComponent<FDMiNamespace>();
                 if (ns != null)
                 {
-                    if (ns.nameSpace == namespaceName) return ns;
+                    if (ns.nameSpace == namespaceName)
+                        return ns;
                     continue; // 別の NS には入らない
                 }
                 var found = FindChildNamespace(child, namespaceName);
-                if (found != null) return found;
+                if (found != null)
+                    return found;
             }
             return null;
         }
@@ -150,7 +156,8 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         bool ContainsWildcardSegment(IReadOnlyList<string> namespaces)
         {
             foreach (var ns in namespaces)
-                if (ns == "*" || ns == "**") return true;
+                if (ns == "*" || ns == "**")
+                    return true;
             return false;
         }
 
@@ -178,7 +185,14 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
         /// path のパターン（先頭から patternOffset 個読み飛ばした残り）に一致する場合は
         /// そのスコープ内の FDMiData を全件収集する。さらに子の名前空間へ chain を伸ばして再帰する。
         /// </summary>
-        void CollectMatchingScopes(FDMiNamespace node, List<string> chain, int patternOffset, FDMiDataPath path, Type fieldType, List<FDMiData> results)
+        void CollectMatchingScopes(
+            FDMiNamespace node,
+            List<string> chain,
+            int patternOffset,
+            FDMiDataPath path,
+            Type fieldType,
+            List<FDMiData> results
+        )
         {
             if (path.MatchesNamespaceChain(chain, patternOffset))
                 CollectInScope(node.transform, path.DataName, fieldType, results);
@@ -203,7 +217,8 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
             var allNamespaces = UnityEngine.Object.FindObjectsByType<FDMiNamespace>(FindObjectsSortMode.None);
             foreach (var ns in allNamespaces)
             {
-                if (!ns.isNamespaceRoot) continue;
+                if (!ns.isNamespaceRoot)
+                    continue;
                 CollectMatchingScopes(ns, new List<string> { ns.nameSpace }, 0, path, fieldType, results);
             }
             return results;
@@ -218,12 +233,14 @@ namespace FDMi.core.Editor.Infrastructure.Repositories
             for (int i = 0; i < root.childCount; i++)
             {
                 var child = root.GetChild(i);
-                if (child.GetComponent<FDMiNamespace>() != null) continue;
+                if (child.GetComponent<FDMiNamespace>() != null)
+                    continue;
 
                 if (child.name == dataName)
                 {
                     var component = child.GetComponent(fieldType) as FDMiData;
-                    if (component != null) results.Add(component);
+                    if (component != null)
+                        results.Add(component);
                 }
 
                 CollectInScope(child, dataName, fieldType, results);

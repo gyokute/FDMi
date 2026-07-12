@@ -1,6 +1,6 @@
+using FDMi.core.Editor.Application.UseCases;
 using NUnit.Framework;
 using UnityEngine;
-using FDMi.core.Editor.Application.UseCases;
 
 namespace FDMi.core.Editor.Tests
 {
@@ -9,6 +9,7 @@ namespace FDMi.core.Editor.Tests
     {
         [FDMiRegisterCallback("OnChanged")]
         public FDMiBool myData;
+
         public void OnChanged() { }
     }
 
@@ -28,8 +29,8 @@ namespace FDMi.core.Editor.Tests
 
     public class RegisterCallbacksUseCaseTests
     {
-        readonly System.Collections.Generic.List<GameObject> _created
-            = new System.Collections.Generic.List<GameObject>();
+        readonly System.Collections.Generic.List<GameObject> _created =
+            new System.Collections.Generic.List<GameObject>();
 
         [SetUp]
         public void SetUp() => RegisterCallbacksUseCase.ClearCacheForTesting();
@@ -38,7 +39,8 @@ namespace FDMi.core.Editor.Tests
         public void TearDown()
         {
             foreach (var go in _created)
-                if (go != null) Object.DestroyImmediate(go);
+                if (go != null)
+                    Object.DestroyImmediate(go);
             _created.Clear();
         }
 
@@ -132,7 +134,7 @@ namespace FDMi.core.Editor.Tests
 
             Assert.AreEqual(1, data.callbackBehaviour.Length);
             Assert.AreEqual(1, data.callbackFunction.Length, "callbackFunction も重複なし");
-            Assert.AreEqual(mb,          data.callbackBehaviour[0]);
+            Assert.AreEqual(mb, data.callbackBehaviour[0]);
             Assert.AreEqual("OnChanged", data.callbackFunction[0]);
         }
 
@@ -154,9 +156,9 @@ namespace FDMi.core.Editor.Tests
             useCase.Execute(mb);
 
             Assert.AreEqual(0, dataA.callbackBehaviour.Length, "dataA からエントリが消えていること");
-            Assert.AreEqual(0, dataA.callbackFunction.Length,  "dataA の callbackFunction からも消えていること");
+            Assert.AreEqual(0, dataA.callbackFunction.Length, "dataA の callbackFunction からも消えていること");
             Assert.AreEqual(1, dataB.callbackBehaviour.Length, "dataB にエントリが追加されていること");
-            Assert.AreEqual(mb,          dataB.callbackBehaviour[0]);
+            Assert.AreEqual(mb, dataB.callbackBehaviour[0]);
             Assert.AreEqual("OnChanged", dataB.callbackFunction[0]);
         }
 
@@ -177,60 +179,60 @@ namespace FDMi.core.Editor.Tests
             useCase.Execute(mb);
 
             Assert.AreEqual(0, data.callbackBehaviour.Length, "null 変更後にエントリが消えていること");
-            Assert.AreEqual(0, data.callbackFunction.Length,  "null 変更後に callbackFunction からも消えていること");
+            Assert.AreEqual(0, data.callbackFunction.Length, "null 変更後に callbackFunction からも消えていること");
         }
 
         [Test]
         public void RegisterAll_RemovesDestroyedComponentEntries()
         {
-            var mbGo   = NewGO("mb");
-            var mb     = mbGo.AddComponent<BehaviourWithRegisterCallback>();
+            var mbGo = NewGO("mb");
+            var mb = mbGo.AddComponent<BehaviourWithRegisterCallback>();
             var dataGo = NewGO("data");
-            var data   = dataGo.AddComponent<FDMiBool>();
-            mb.myData  = data;
+            var data = dataGo.AddComponent<FDMiBool>();
+            mb.myData = data;
 
             new RegisterCallbacksUseCase().Execute(mb);
             Assert.AreEqual(1, data.callbackBehaviour.Length);
 
             Object.DestroyImmediate(mb); // コンポーネント削除 → Unity-null
 
-            RegisterCallbacksUseCase.RegisterAll();
+            new RegisterCallbacksUseCase().ExecuteAll();
 
             Assert.AreEqual(0, data.callbackBehaviour.Length, "破棄されたエントリが除去されていること");
-            Assert.AreEqual(0, data.callbackFunction.Length,  "callbackFunction からも除去されていること");
+            Assert.AreEqual(0, data.callbackFunction.Length, "callbackFunction からも除去されていること");
         }
 
         [Test]
         public void RegisterAll_ReRegistersLivingComponents()
         {
-            var go     = NewGO();
-            var mb     = go.AddComponent<BehaviourWithRegisterCallback>();
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithRegisterCallback>();
             var dataGo = NewGO("data");
-            var data   = dataGo.AddComponent<FDMiBool>();
-            mb.myData  = data;
+            var data = dataGo.AddComponent<FDMiBool>();
+            mb.myData = data;
 
-            RegisterCallbacksUseCase.RegisterAll();
+            new RegisterCallbacksUseCase().ExecuteAll();
 
             Assert.AreEqual(1, data.callbackBehaviour.Length);
-            Assert.AreEqual(mb,          data.callbackBehaviour[0]);
+            Assert.AreEqual(mb, data.callbackBehaviour[0]);
             Assert.AreEqual("OnChanged", data.callbackFunction[0]);
         }
 
         [Test]
         public void RegisterAll_CalledTwice_NoDuplicateEntries()
         {
-            var go     = NewGO();
-            var mb     = go.AddComponent<BehaviourWithRegisterCallback>();
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithRegisterCallback>();
             var dataGo = NewGO("data");
-            var data   = dataGo.AddComponent<FDMiBool>();
-            mb.myData  = data;
+            var data = dataGo.AddComponent<FDMiBool>();
+            mb.myData = data;
 
-            RegisterCallbacksUseCase.RegisterAll();
-            RegisterCallbacksUseCase.RegisterAll();
+            new RegisterCallbacksUseCase().ExecuteAll();
+            new RegisterCallbacksUseCase().ExecuteAll();
 
             Assert.AreEqual(1, data.callbackBehaviour.Length);
             Assert.AreEqual(1, data.callbackFunction.Length, "callbackFunction も重複なし");
-            Assert.AreEqual(mb,          data.callbackBehaviour[0]);
+            Assert.AreEqual(mb, data.callbackBehaviour[0]);
             Assert.AreEqual("OnChanged", data.callbackFunction[0]);
         }
     }

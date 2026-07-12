@@ -48,11 +48,15 @@ namespace FDMi.core.Editor.Domain.Entities
         /// <summary>パスの等値比較。DataName と Namespaces の内容を比較する。</summary>
         public override bool Equals(object obj)
         {
-            if (!(obj is FDMiDataPath other)) return false;
-            if (DataName != other.DataName) return false;
-            if (Namespaces.Count != other.Namespaces.Count) return false;
+            if (!(obj is FDMiDataPath other))
+                return false;
+            if (DataName != other.DataName)
+                return false;
+            if (Namespaces.Count != other.Namespaces.Count)
+                return false;
             for (int i = 0; i < Namespaces.Count; i++)
-                if (Namespaces[i] != other.Namespaces[i]) return false;
+                if (Namespaces[i] != other.Namespaces[i])
+                    return false;
             return true;
         }
 
@@ -60,7 +64,8 @@ namespace FDMi.core.Editor.Domain.Entities
         public override int GetHashCode()
         {
             int hash = DataName?.GetHashCode() ?? 0;
-            foreach (var ns in Namespaces) hash ^= ns?.GetHashCode() ?? 0;
+            foreach (var ns in Namespaces)
+                hash ^= ns?.GetHashCode() ?? 0;
             return hash;
         }
 
@@ -109,9 +114,11 @@ namespace FDMi.core.Editor.Domain.Entities
                     return false;
                 }
 
-                if (ci >= candidate.Count) return false;
+                if (ci >= candidate.Count)
+                    return false;
 
-                if (segment != "*" && segment != candidate[ci]) return false;
+                if (segment != "*" && segment != candidate[ci])
+                    return false;
 
                 pi++;
                 ci++;
