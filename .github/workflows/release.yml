@@ -32,12 +32,12 @@ jobs:
     steps:
       # Checkout Local Repository
       - name: Checkout
-        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        uses: actions/checkout@62661c4e71a304b2823ed026347b8d34c3eac541
 
       # Get the Package version based on the package.json file
       - name: Get Version
         id: version
-        uses: zoexx/github-action-json-file-properties@d02f28167f05bf70cd75352b11c25a4e8c39bf38
+        uses: zoexx/github-action-json-file-properties@42c424cc2a0f9dfd36c79aedb70d429c0ae3e3fa
         with:
           file_path: "${{ env.packagePath }}/package.json"
           prop_path: "version"
@@ -85,7 +85,7 @@ jobs:
 
       # Publish the Release to GitHub
       - name: Make Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
         with:
           files: |
             *.zip
