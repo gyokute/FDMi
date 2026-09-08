@@ -1,33 +1,56 @@
-﻿using FDMi.core;
-using UdonSharp;
-using UnityEngine;
-using VRC.SDK3.Dynamics.Contact.Components;
-using VRC.SDKBase;
-using VRC.Udon;
+using FDMi.core;
 
 namespace FDMi.input
 {
     public class FDMiHandInputGroup : FDMiBehaviour
     {
-        #region Finger Input
-        public virtual void OnSelect() {}
+        [UnityEngine.HideInInspector] public FDMiHandInput grabHand;
 
-        public virtual void OnEnterSelect() { }
+        public FDMiHandInput leftHandInput;
+        public FDMiHandInput rightHandInput;
 
-        public virtual void OnLeaveSelect() { }
-        public virtual void OnGrab() { }
+        public bool defaultForLeftHand;
+        public bool defaultForRightHand;
 
-        public virtual void OnGrabStart() { }
+        private bool groupActive;
 
-        public virtual void OnGrabEnd() { }
-        #endregion
+        private void OnEnable()
+        {
+            groupActive = true;
 
-        #region Gesture Input
-        //straight-move gesture
-        //twist gesture
-        #endregion
-        #region Axis Input
-        // VR Controller/Mouse-Button input
-        #endregion
+            if (defaultForLeftHand && leftHandInput)
+                leftHandInput.SetDefault(this);
+
+            if (defaultForRightHand && rightHandInput && rightHandInput != leftHandInput)
+                rightHandInput.SetDefault(this);
+        }
+
+        private void OnDisable()
+        {
+            groupActive = false;
+
+            if (leftHandInput)
+                leftHandInput.DisableGroup(this);
+
+            if (rightHandInput && rightHandInput != leftHandInput)
+                rightHandInput.DisableGroup(this);
+        }
+
+        public bool IsActive()
+        {
+            return groupActive;
+        }
+
+        public virtual void OnEnterSelect(FDMiHandInput hand) { }
+
+        public virtual void OnSelect(FDMiHandInput hand) { }
+
+        public virtual void OnLeaveSelect(FDMiHandInput hand) { }
+
+        public virtual void OnGrabStart(FDMiHandInput hand) { }
+
+        public virtual void OnGrab(FDMiHandInput hand) { }
+
+        public virtual void OnGrabEnd(FDMiHandInput hand) { }
     }
 }
