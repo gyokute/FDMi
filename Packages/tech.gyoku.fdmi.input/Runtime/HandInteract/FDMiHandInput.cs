@@ -43,7 +43,6 @@ namespace FDMi.input
             if (!gripInitialized)
                 return;
 
-            UpdateHandTracking();
             gripValue = ReadGrip();
             SetGrip(gripValue > grabThreshold);
         }
@@ -127,7 +126,7 @@ namespace FDMi.input
             gripPressed = pressed;
             if (pressed)
                 BeginGrab();
-            else
+            else if (grabMode)
                 EndGrab();
         }
 
