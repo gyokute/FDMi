@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
-  m_Name: FDMiDialFunctionBase
+  m_Name: FDMiHandLever
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: 855841d834ff1c64caeaf8ac8b7405eb, type: 2}
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 735f54968ee2bac4e902a19bd6657ff2, type: 2}
   udonAssembly: 
   assemblyError: 
-  sourceCsScript: {fileID: 11500000, guid: 268b9a2e08f72bd4fa134178498a98d9, type: 3}
+  sourceCsScript: {fileID: 11500000, guid: f42152907ec0bb94d8193ccf4a8e002e, type: 3}
   scriptVersion: 2
   compiledVersion: 2
   behaviourSyncMode: 0
   hasInteractEvent: 0
-  scriptID: 6881121033758013802
+  scriptID: 3108336857186772932
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
