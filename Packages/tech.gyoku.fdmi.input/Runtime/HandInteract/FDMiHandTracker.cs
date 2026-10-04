@@ -34,6 +34,8 @@ namespace FDMi.input
 
         [HideInInspector]
         public Quaternion handRot;
+
+        [HideInInspector]
         public float[] axes = new float[(int)FDMiHandAxisType.Length];
 
         private VRCPlayerApi localPlayer;
@@ -46,8 +48,10 @@ namespace FDMi.input
         }
 
         private bool isGrab;
+        private bool selectActive;
+        private bool waitingForRelease;
 
-        private void LateUpdate()
+        private void Update()
         {
             // get hand position and rotation
             VRCPlayerApi.TrackingData track = Networking.LocalPlayer.GetTrackingData(trackingHand);
@@ -59,30 +63,63 @@ namespace FDMi.input
             axes[(int)FDMiHandAxisType.PadV] = Input.GetAxis(padVAxis);
             axes[(int)FDMiHandAxisType.PadH] = Input.GetAxis(padHAxis);
             axes[(int)FDMiHandAxisType.PadPush] = Input.GetAxis(padPushAxis);
-            // axis input events
-            // when grabbing
-            if (axes[(int)FDMiHandAxisType.Grab] > grabThreshold)
+            bool gripPressed = axes[(int)FDMiHandAxisType.Grab] > grabThreshold;
+            if (gripPressed && !isGrab)
             {
-                if (!isGrab && contactedGroup)
+                isGrab = true;
+                if (contactedGroup && !waitingForRelease)
                 {
+                    EndSelect();
                     grabingGroup = contactedGroup;
                     grabingGroup.OnGrabStart(this);
                 }
-                isGrab = true;
-                if (grabingGroup)
-                    grabingGroup.OnGrab(this);
             }
-            else
+            else if (!gripPressed && isGrab)
             {
-                if (isGrab && grabingGroup)
-                {
-                    grabingGroup.OnGrabEnd();
-                    grabingGroup = null;
-                }
                 isGrab = false;
-                if (contactedGroup)
-                    contactedGroup.OnSelect(this);
+                if (grabingGroup)
+                {
+                    FDMiHandInputGroup group = grabingGroup;
+                    grabingGroup = null;
+                    group.OnGrabEnd(this);
+                }
+                waitingForRelease = false;
+                StartSelect();
             }
+        }
+
+        private void LateUpdate()
+        {
+            if (grabingGroup)
+                grabingGroup.OnGrab(this);
+            else if (selectActive && contactedGroup)
+                contactedGroup.OnSelect(this);
+        }
+
+        private void StartSelect()
+        {
+            if (!selectActive && !grabingGroup && !waitingForRelease && contactedGroup)
+            {
+                selectActive = true;
+                contactedGroup.OnSelectStart(this);
+            }
+        }
+
+        private void EndSelect()
+        {
+            if (selectActive)
+            {
+                selectActive = false;
+                contactedGroup.OnSelectEnd();
+            }
+        }
+
+        public void YieldGrab(FDMiHandInputGroup group)
+        {
+            if (grabingGroup != group)
+                return;
+            grabingGroup = null;
+            waitingForRelease = true;
         }
 
         #region Input Selection
@@ -92,12 +129,11 @@ namespace FDMi.input
 
         public void SetContactInput(string contactTag, FDMiHandInputGroup group)
         {
-            if (contactedGroup)
-                contactedGroup.OnSelectEnd();
-            if (contactTag != this.contactTag)
+            if (contactTag != this.contactTag || contactedGroup == group)
                 return;
+            EndSelect();
             contactedGroup = group;
-            group.OnSelectStart(this);
+            StartSelect();
 
             if (contactTag == "FingerIndexL")
                 localPlayer.PlayHapticEventInHand(VRC_Pickup.PickupHand.Left, 0.25f, 1, 1);
@@ -110,11 +146,9 @@ namespace FDMi.input
             if (contactedGroup != group)
                 return;
 
-            group.OnSelectEnd();
+            EndSelect();
             contactedGroup = defaultInputGroup;
-
-            if (defaultInputGroup != null)
-                defaultInputGroup.OnSelectStart(this);
+            StartSelect();
         }
 
         public void SetDefaultInput(string contactTag, FDMiHandInputGroup group)
@@ -125,19 +159,25 @@ namespace FDMi.input
             if (!contactedGroup)
             {
                 contactedGroup = defaultInputGroup;
-                contactedGroup.OnSelectStart(this);
+                StartSelect();
             }
         }
 
         public void UnsetDefaultInput(FDMiHandInputGroup group)
         {
+            if (grabingGroup == group)
+            {
+                grabingGroup = null;
+                group.OnGrabEnd(this);
+            }
             if (contactedGroup == group)
             {
+                EndSelect();
                 contactedGroup = null;
-                contactedGroup.OnSelectEnd();
             }
             if (defaultInputGroup == group)
                 defaultInputGroup = null;
+            StartSelect();
         }
         #endregion
     }

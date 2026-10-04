@@ -8,6 +8,11 @@ namespace FDMi.input
     [UnityEngine.RequireComponent(typeof(VRCContactReceiver))]
     public class FDMiContactReceiver : FDMiHandInputGroup
     {
+        public string targetPath = "TargetTransform";
+
+        [FDMiDataPath(nameof(targetPath))]
+        public FDMiTransformRef targetTransform;
+
         public override void OnContactEnter(ContactEnterInfo contactInfo)
         {
             foreach (var t in Trackers)
