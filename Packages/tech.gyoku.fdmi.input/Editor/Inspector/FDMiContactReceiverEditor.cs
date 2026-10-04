@@ -9,34 +9,38 @@ using VRC.SDK3.Dynamics.Contact.Components;
 
 namespace FDMi.input.Editor
 {
-    [CustomEditor(typeof(FDMiContactReceiverHelper), true)]
-    public class FDMiContactReceiverHelperEditor : UnityEditor.Editor
+    [CustomEditor(typeof(FDMiContactReceiver), true)]
+    public class FDMiContactReceiverEditor : FDMiHandInputGroupEditor
     {
         ResolveDataPathsUseCase dataPathUseCase;
 
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
+
             if (dataPathUseCase == null)
                 dataPathUseCase = new ResolveDataPathsUseCase();
             dataPathUseCase.Execute(target);
 
-            FDMiContactReceiverHelper component = (FDMiContactReceiverHelper)target;
+            FDMiContactReceiver component = (FDMiContactReceiver)target;
             VRCContactReceiver contactReceiver = component.GetComponent<VRCContactReceiver>();
-            DispatchRootTransform(contactReceiver, component.rootTransformRef);
+            
+            DispatchRootTransform(contactReceiver, component.targetTransform);
         }
 
         public override void OnInspectorGUI()
         {
-            FDMiContactReceiverHelper component = (FDMiContactReceiverHelper)target;
+            base.OnInspectorGUI();
+
+            FDMiContactReceiver component = (FDMiContactReceiver)target;
             VRCContactReceiver contactReceiver = component.GetComponent<VRCContactReceiver>();
 
             MoveReceiverPosition(component.transform, contactReceiver);
             EditorGUI.BeginChangeCheck();
-            DrawDefaultInspector();
             if (EditorGUI.EndChangeCheck())
             {
                 dataPathUseCase.Execute(target);
-                DispatchRootTransform(contactReceiver, component.rootTransformRef);
+                DispatchRootTransform(contactReceiver, component.targetTransform);
             }
         }
 
@@ -47,10 +51,10 @@ namespace FDMi.input.Editor
                 contactReceiver.position = contactReceiver.rootTransform.InverseTransformPoint(pos);
         }
 
-        void DispatchRootTransform(VRCContactReceiver contactReceiver, FDMiTransformRef rootTransformRef)
+        void DispatchRootTransform(VRCContactReceiver contactReceiver, FDMiTransformRef targetTransform)
         {
-            if (rootTransformRef && rootTransformRef.Data)
-                contactReceiver.rootTransform = rootTransformRef.Data;
+            if (targetTransform && targetTransform.Data)
+                contactReceiver.rootTransform = targetTransform.Data;
         }
     }
 }
