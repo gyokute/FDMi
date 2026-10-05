@@ -16,6 +16,10 @@ namespace FDMi.input
 
     public class FDMiHandAxisInput : FDMiHandInputElement
     {
+        public string outputPath = "Value";
+
+        [FDMiDataPath(nameof(outputPath))]
+        public FDMiData output;
         public FDMiHandAxisType inputAxisType = FDMiHandAxisType.Trigger;
         public FDMiAxisBehaviourType behaviourType;
         public float multiply = 1f;

@@ -10,10 +10,6 @@ namespace FDMi.input
 {
     public abstract class FDMiHandInputElement : FDMiBehaviour
     {
-        public string outputPath = "Value";
-
-        [FDMiDataPath(nameof(outputPath))]
-        public FDMiData output;
         private float[] axisValues = new float[5];
 
         public virtual void WhileSelect(FDMiHandInputGroup group) { }
