@@ -14,17 +14,20 @@ namespace FDMi.core.Editor.Inspector
 
         void OnEnable()
         {
-            //すべてのAssemblyからIFDMiAutoSetupUseCaseを継承するクラスを取得する
-            var autoSetupUseCaseTypes = System
-                .AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type =>
-                    typeof(IFDMiAutoSetupUseCase).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract
-                );
-            // 取得したクラスのインスタンスを生成し、Executeメソッドを呼び出す
-            fDMiAutoSetupUseCases = autoSetupUseCaseTypes
-                .Select(type => (IFDMiAutoSetupUseCase)System.Activator.CreateInstance(type))
-                .ToList();
+            if (fDMiAutoSetupUseCases == null)
+            {
+                //すべてのAssemblyからIFDMiAutoSetupUseCaseを継承するクラスを取得する
+                var autoSetupUseCaseTypes = System
+                    .AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(assembly => assembly.GetTypes())
+                    .Where(type =>
+                        typeof(IFDMiAutoSetupUseCase).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract
+                    );
+                // 取得したクラスのインスタンスを生成し、Executeメソッドを呼び出す
+                fDMiAutoSetupUseCases = autoSetupUseCaseTypes
+                    .Select(type => (IFDMiAutoSetupUseCase)System.Activator.CreateInstance(type))
+                    .ToList();
+            }
             fDMiAutoSetupUseCases.ForEach(useCase => useCase.Execute(target));
         }
 
