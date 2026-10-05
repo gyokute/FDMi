@@ -1,0 +1,22 @@
+{
+    "name": "FDMi.dynamics.editor",
+    "rootNamespace": "",
+    "references": [
+        "UdonSharp.Runtime",
+        "UdonSharp.Editor",
+        "VRC.SDKBase.Editor.BuildPipeline",
+        "FDMi.core",
+        "FDMi.dynamics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
