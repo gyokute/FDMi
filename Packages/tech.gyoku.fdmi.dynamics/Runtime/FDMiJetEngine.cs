@@ -6,12 +6,25 @@ namespace FDMi.dynamics
 {
     public class FDMiJetEngine : FDMiBehaviour
     {
+        public Rigidbody body;
         [Header("Input Variables")]
         // throttle 0~1
         public string throttlePath = "Throttle";
 
         [FDMiDataPath(nameof(throttlePath))]
         public FDMiFloat Throttle;
+
+        // starter switch (AirSW equivalent, 0/1, optional). Adds rotation to N2.
+        public string starterPath = "Starter";
+
+        [FDMiDataPath(nameof(starterPath))]
+        public FDMiBool Starter;
+
+        // fuel switch (AirSW equivalent, 0/1, optional). Adds rotation to N2.
+        public string fuelSWPath = "FuelSW";
+
+        [FDMiDataPath(nameof(fuelSWPath))]
+        public FDMiBool FuelSW;
 
         // Aerodynamic state
         // Mach number, optional (null = V/sqrt(gamma R T))
@@ -63,7 +76,27 @@ namespace FDMi.dynamics
         [FDMiDataPath(nameof(EGTPath))]
         public FDMiFloat EGT;
 
+        // fan spool
+        public string n1Path = "N1";
+
+        [FDMiDataPath(nameof(n1Path))]
+        public FDMiFloat n1;
+
+        // core spool
+        public string n2Path = "N2";
+
+        [FDMiDataPath(nameof(n2Path))]
+        public FDMiFloat n2;
+
         #region "Design parameters"
+        [Header("Spool transient (first-order lag)")]
+        public float tauN2 = 0.8f; // HP spool time constant [s]
+        public float tauN1 = 1.5f; // fan spool time constant [s] (follows N2)
+        public float n1Idle = 0.23f; // fan idle [0,1]
+        public float n2Idle = 0.55f; // core idle [0,1]
+        public float starterAccel = 0.3f; // starter adds this to N2 [0,1]/s]; motoring N2 ~= starterAccel * tauN2
+        public float idleThrFloor = 0.35f; // min thermal throttle with fuel on (fixed-area match inverts below)
+
         [Header("Engine design parameters")]
         public float fanDiameter = 2.19f;
         public float fanPR = 1.745f;
@@ -111,26 +144,73 @@ namespace FDMi.dynamics
             _dynamicPressure = DynamicPressure.data;
             _tas = TAS.data;
             _throttle = Throttle.data;
+            _starter = Starter.data;
+            _fuelSw = FuelSW.data;
+            _fuelFlow = fuelFlow.data;
+            _egt = EGT.data;
+            _n1Arr = n1.data;
+            _n2Arr = n2.data;
         }
+
+        float _n1 = 0f;
+        float _n2 = 0f;
+        float _thrEff = 0f;
 
         void FixedUpdate()
         {
-            SolveThrust();
+            float dt = Time.fixedDeltaTime;
+            float thr = Mathf.Clamp01(_throttle[0]);
+
+            bool fueled = _fuelSw[0];
+
+            // N2: throttle demand + starter rotation (user requirement)
+            float n2ss = n2Idle + (1.05f - n2Idle) * thr;
+            _n2 += (n2ss - _n2) * (dt / (tauN2 + dt));
+            if (_starter[0])
+                _n2 += starterAccel * dt;
+            _n2 = Mathf.Clamp(_n2, 0f, 1.05f);
+
+            // N1 follows N2 (aero coupling proxy), never throttle directly -> two-stage lag
+            float corePow = Mathf.Clamp01((_n2 - n2Idle) / Mathf.Max(1f, 1.05f - n2Idle));
+            float n1ss = n1Idle + (1.05f - n1Idle) * corePow;
+            _n1 += (n1ss - _n1) * (dt / (tauN1 + dt));
+            _n1 = Mathf.Clamp(_n1, 0f, 1.05f);
+
+            _n1Arr[0] = _n1;
+            _n2Arr[0] = _n2;
+
+            if (!fueled)
+            {
+                // dry motoring: rotation only, no combustion
+                _fuelFlow[0] = 0f;
+                _egt[0] = _oat[0];
+                return;
+            }
+
+            _thrEff = idleThrFloor + (1f - idleThrFloor) * corePow;
+            float thrust = SolveThrust();
+            body.AddForceAtPosition(transform.forward * thrust, transform.position, ForceMode.Force);
         }
 
         float fanThrust = 0f;
         float coreTurbineThrust = 0f;
 
         // per-frame scratch for secant residuals (avoids arg structs)
+        float[] _throttle;
+        bool[] _starter;
+        bool[] _fuelSw;
         float[] _sat;
         float[] _staticPressure;
         float[] _mach;
         float[] _oat;
         float[] _dynamicPressure;
         float[] _tas;
-        float[] _throttle;
+        float[] _fuelFlow;
+        float[] _egt;
+        float[] _n1Arr;
+        float[] _n2Arr;
 
-        void SolveThrust()
+        float SolveThrust()
         {
             // free stream (ISA, SI)
             float ts0 = _sat[0];
@@ -149,7 +229,7 @@ namespace FDMi.dynamics
             float cp2 = Cp(tt0);
 
             // burner temperature from throttle
-            float tt4 = _tt4dK * _throttle[0];
+            float tt4 = _tt4dK * _thrEff;
             float cp4 = Cp(tt4);
 
             // HPT secant: t = Tt5/Tt4
@@ -217,6 +297,9 @@ namespace FDMi.dynamics
             if (fa < 0f)
                 fa = 0f;
 
+            _fuelFlow[0] = fa * eair;
+            _egt[0] = tt15;
+            return fnN;
         }
 
         float FuelTerm(float etaB, float cp3, float tt3)
