@@ -1,160 +1,286 @@
-﻿using FDMi.core;
+using FDMi.core;
 using UdonSharp;
 using UnityEngine;
-using VRC.SDKBase;
-using VRC.Udon;
 
 namespace FDMi.dynamics
 {
-    // 3-spool turbofan, EICAS-level. Static maps + 1st-order spool/fuel lags.
-    // Transient: fuel leads, air lags -> FAR spike -> EGT overshoot + surge latch.
-    // Choke: corrected-speed cap. Surge margin consumed by FAR excess + supersonic distortion.
-    // Docs: NASA E3(Fn=G(uj-uf), EPR=Pt7/Pt2, ram Tt/T=1+0.2M^2),
-    //   NAL-TR-283(dN:1st-order lag vs Wf, Nc=N/sqrt(theta)),
-    //   NAL-TR-515(dNi/dt=dH/(I Ni), Fnet=Fgross-Rd, TSFC corr).
     public class FDMiJetEngine : FDMiBehaviour
     {
-        // --- inputs (realtime bus) ---
+        [Header("Input Variables")]
+        // throttle 0~1
         public string throttlePath = "Throttle";
-        [FDMiDataPath(nameof(throttlePath))]
-        public FDMiData throttle;
-        public string densityPath = "Density";
-        [FDMiDataPath(nameof(densityPath))]
-        public FDMiData airDensity;
-        public string speedPath = "TAS";
-        [FDMiDataPath(nameof(speedPath))]
-        public FDMiData airSpeed;
-        public string tempPath = "OAT";
-        [FDMiDataPath(nameof(tempPath))]
-        public FDMiData airTemp;
 
-        // --- outputs (realtime bus) ---
-        public string thrustPath = "Thrust";
-        [FDMiDataPath(nameof(thrustPath))]
-        public FDMiData thrustN;
+        [FDMiDataPath(nameof(throttlePath))]
+        public FDMiData Throttle;
+
+        // Aerodynamic state
+        // Mach number, optional (null = V/sqrt(gamma R T))
+        public string TASPath = "TAS";
+
+        [FDMiDataPath(nameof(TASPath))]
+        public FDMiData TAS;
+
+        // Mach number, optional (null = V/sqrt(gamma R T))
+        public string MachPath = "Mach";
+
+        [FDMiDataPath(nameof(MachPath))]
+        public FDMiData Mach;
+
+        // Static air temperature
+        public string SATPath = "SAT";
+
+        [FDMiDataPath(nameof(SATPath))]
+        public FDMiData SAT;
+
+        // Outside air temperature
+        public string OATPath = "OAT";
+
+        [FDMiDataPath(nameof(OATPath))]
+        public FDMiData OAT;
+
+        // Static air pressure
+        public string StaticPressurePath = "StaticPressure";
+
+        [FDMiDataPath(nameof(StaticPressurePath))]
+        public FDMiData StaticPressure;
+
+        // Outside air pressure
+        public string DynamicPressurePath = "DynamicPressure";
+
+        [FDMiDataPath(nameof(DynamicPressurePath))]
+        public FDMiData DynamicPressure;
+
+        // --- outputs ---
+        // fuel flow [kg/s]
         public string fuelPath = "FuelFlow";
+
         [FDMiDataPath(nameof(fuelPath))]
         public FDMiData fuelFlow;
-        public string eprPath = "EPR";
-        [FDMiDataPath(nameof(eprPath))]
-        public FDMiData epr;
-        public string egtPath = "EGT";
-        [FDMiDataPath(nameof(egtPath))]
-        public FDMiData egt;
-        public string n1Path = "N1";
-        [FDMiDataPath(nameof(n1Path))]
-        public FDMiData n1;
-        public string n2Path = "N2";
-        [FDMiDataPath(nameof(n2Path))]
-        public FDMiData n2;
-        public string n3Path = "N3";
-        [FDMiDataPath(nameof(n3Path))]
-        public FDMiData n3;
-        public string surgePath = "Surge";
-        [FDMiDataPath(nameof(surgePath))]
-        public FDMiData surge;
 
-        // --- params (CF6-50C2 preset; N3 unused: threeSpool=false) ---
-        public bool threeSpool = false;
-        public float n1Idle = 22f; // N1 ground idle [%]
-        public float n2Idle = 60f; // N2 ground idle [%]
-        public float maxThrust = 233600f; // Fn_SL,max [N] = 52500lbf
-        public float maxFlow = 645f; // G_SL,max [kg/s] = 1423lb/s
-        public float idleFlow = 0.15f; // mf_idle,SL [kg/s]
-        public float sfc = 1.0e-05f; // dmf/dFn, TO SFC 0.376 fit [kg/N/s]
-        public float eprMax = 1.6f; // EPR at N1c=100% (representative)
-        public float egtMax = 1233f; // EGT redline 960degC [K]
-        public float tau1 = 2f; // fan lag [s]
-        public float tau2 = 1f; // core lag [s]
-        public float tau3 = 0.5f; // (unused when !threeSpool)
-        public float tauF = 0.15f; // fuel metering lag [s]
-        public float accelTime = 4f; // accel schedule: idle->max fuel ramp [s]
-        public float chokeLim = 1.05f; // corrected speed choke cap [-]
+        // EGT[K]
+        public string EGTPath = "EGT";
 
-        private float _n1 = 22f;
-        private float _n2 = 60f;
-        private float _n3;
-        private float _mfCmd;
-        private float _mf;
-        private bool _surged;
-        private float _maxF;
-        private float _FARref;
-        private float _ujC;
+        [FDMiDataPath(nameof(EGTPath))]
+        public FDMiData EGT;
 
-        void Start()
-        {
-            _n1 = n1Idle;
-            _n2 = n2Idle;
-            _n3 = threeSpool ? 55f : 0f;
-            _mf = idleFlow;
-            _mfCmd = idleFlow;
-            _surged = false;
-            _maxF = idleFlow + sfc * maxThrust;
-            _FARref = _maxF / maxFlow;
-            _ujC = (maxThrust / maxFlow) / (Mathf.Sqrt(eprMax - 1f) * Mathf.Sqrt(288.15f));
-        }
+        #region "Design parameters"
+        [Header("Engine design parameters")]
+        public float fanDiameter = 2.19f;
+        public float fanPR = 1.745f;
+        public float OPR = 29.3f;
+        public float bypassRatio = 4.4f;
+
+        public float burnerPR = 1.0f;
+        public float tt4maxC = 1096f; // burner exit at 100%
+        [Header("各部の断熱圧縮効率。調整不要。")]
+        public float etaFan = 1.0f;
+        public float etaComp = 0.959f;
+        public float etaBurn = 0.984f;
+        public float etaTurb = 0.982f;
+        public float etaNoz = 1.0f;
+
+        [Header("Bake results (Editor が設定。触らない)")]
+        public float corePR = 21.86f;
+        public float _a4 = 0.02694f;
+        public float _a4p = 0.10507f;
+        public float _a8 = 0.22631f;
+        public float _afan;
+        public float coreAreaM2; // = 0.64707f; // 6.965 ft2
+        public float _tt4dK = 1363.15f;
+
+        #endregion
+
+        #region "Constants"
+        private float k = 273.15f; // Kelvin offset
+        private float gamma = 1.4f; // polytropic index
+        private float R = 287.05f; // specific gas constant for air [J/(kg K)]
+        private float g0 = 9.80665f; // standard gravity [m/s^2]
+        private float _fhv = 43.2e6f; // J/kg
+        private float adiabaticFactor = 3.5f; // (gamma/(gamma-1))
+        #endregion
+
+        // Bake 済み値 (_tt4dK/_afan/coreAreaM2/_a4/_a4p/_a8/corePR) を使う。計算は Editor (FDMiJetEngineBake) のみ。
 
         void FixedUpdate()
         {
-            if (!throttle || !airDensity || !airSpeed || !airTemp) return;
-            if (!thrustN || !fuelFlow || !epr || !egt || !n1 || !n2 || !n3 || !surge) return;
+            SolveThrust();
+        }
 
-            float dt = Time.fixedDeltaTime;
-            float thr = Mathf.Clamp01(throttle.GetFloat() * 0.01f);
-            float rho = airDensity.GetFloat();
-            float v0 = airSpeed.GetFloat();
-            float tamb = airTemp.GetFloat();
+        float fanThrust = 0f;
+        float coreTurbineThrust = 0f;
 
-            // atmosphere: delta=sigma*theta, ram=1+0.2M^2
-            float theta = tamb / 288.15f;
-            float delta = rho / 1.225f * theta;
-            float mach = v0 / Mathf.Sqrt(1.4f * 287.05f * tamb);
-            float ram = 1f + 0.2f * mach * mach;
-            float deltat = delta * Mathf.Pow(ram, 3.5f);
-            float sq = Mathf.Sqrt(theta * ram);
+        // per-frame scratch for secant residuals (avoids arg structs)
 
-            // fuel is fast (lever), air is slow (spool): FAR spikes on accel.
-            // accel schedule (FADEC surrogate) slews the fuel command.
-            float xs = deltat / sq;
-            float mfTgt = (idleFlow + (_maxF - idleFlow) * thr) * xs;
-            float mx = (_maxF - idleFlow) * xs * dt / accelTime;
-            float dm = mfTgt - _mfCmd;
-            if (dm > mx) dm = mx;
-            else if (dm < -mx) dm = -mx;
-            _mfCmd += dm;
-            _mf += (_mfCmd - _mf) * dt / (tauF + dt);
+        void SolveThrust()
+        {
+            // free stream (ISA, SI)
+            float ts0 = SAT.GetFloat();
+            float ps0 = StaticPressure.GetFloat();
+            float fmach = Mach.GetFloat();
+            float tt0 = OAT.GetFloat();
+            float pt0 = DynamicPressure.GetFloat();
+            float u0ms = TAS.GetFloat();
 
-            // spools: N+=(Nt-N)*dt/(tau+dt), stable for any dt
-            _n1 += ((n1Idle + (100f - n1Idle) * thr) - _n1) * dt / (tau1 + dt);
-            _n2 += ((n2Idle + (100f - n2Idle) * thr) - _n2) * dt / (tau2 + dt);
-            if (threeSpool) _n3 += ((55f + 45f * thr) - _n3) * dt / (tau3 + dt);
-            float n1c = Mathf.Min(_n1 / sq * 0.01f, chokeLim);
-            float n2c = Mathf.Min(_n2 / sq * 0.01f, chokeLim);
-            float n3c = Mathf.Min(_n3 / sq * 0.01f, chokeLim);
-            float nxc = threeSpool ? n3c : n2c;
+            // inlet (Mil-spec)
+            float pr2 = 1f;
+            if (fmach > 1f)
+                pr2 = 1f - 0.075f * Mathf.Pow(fmach - 1f, 1.35f);
+            float tt2 = tt0;
+            float pt2 = pt0 * pr2;
+            float cp2 = Cp(tt0);
 
-            // performance: EPR -> nozzle expansion uj, Fn=G(uj-v0), surge latch, EGT from FAR
-            float g = maxFlow * xs * n1c;
-            float eprV = 1f + (eprMax - 1f) * n1c * n1c;
-            float uj = _ujC * Mathf.Sqrt((eprV - 1f) * tamb * ram);
-            float far = _mf / g;
-            float sm = 0.2f - (far / _FARref - 1f) - 0.1f * Mathf.Max(0f, mach - 1f);
-            if (!_surged && sm < 0f) _surged = true;
-            else if (_surged && thr < 0.3f) _surged = false;
-            float fn = g * (uj - v0);
-            if (_surged) fn *= 0.5f;
-            if (fn < 0f) fn = 0f;
-            float egtV = tamb * ram + (egtMax - 288.15f) * nxc * (0.5f + 0.5f * far / _FARref);
-            if (_surged) egtV += 200f;
+            // burner temperature from throttle
+            float tt4 = _tt4dK * Throttle.GetFloat();
+            float cp4 = Cp(tt4);
 
-            thrustN.Set(fn);
-            fuelFlow.Set(_mf);
-            epr.Set(eprV);
-            egt.Set(egtV);
-            n1.Set(_n1);
-            n2.Set(_n2);
-            n3.Set(_n3);
-            surge.Set(_surged ? 1f : 0f);
+            // HPT secant: t = Tt5/Tt4
+            float tH = SecantT(etaTurb, _a4p / Mathf.Max(1e-9f, _a4));
+            float tt5 = tt4 * tH;
+            float cp5 = Cp(tt5);
+            float pr5 = Mathf.Pow(1f - (1f / etaTurb) * (1f - tH), adiabaticFactor);
+            float dHht = cp4 * (tt5 - tt4); // negative
+
+            // LPT secant: t = Tt15/Tt5
+            float tL = SecantT(etaTurb, _a8 / Mathf.Max(1e-9f, _a4p));
+            float tt15 = tt5 * tL;
+            float pr15 = Mathf.Pow(1f - (1f / etaTurb) * (1f - tL), adiabaticFactor);
+            float dHlt = cp5 * (tt15 - tt5); // negative
+
+            // back out fan + core compressors
+            float dHf = dHlt / (1f + bypassRatio);
+            float tt13 = tt2 - dHf / cp2;
+            if (tt13 < tt2)
+                tt13 = tt2;
+            float tr13 = tt13 / tt2;
+            float pr13 = Mathf.Pow(1f + etaFan * (tr13 - 1f), adiabaticFactor);
+            float g13 = gamma;
+            float cp13 = Cp(tt13);
+            float tt3 = tt13 - dHht / cp13;
+            float tr3 = tt3 / Mathf.Max(1f, tt13);
+            float pr3 = Mathf.Pow(1f + etaComp * (tr3 - 1f), adiabaticFactor);
+            float cp3 = Cp(tt3);
+
+            float pt13 = pt2 * pr13;
+            float epr = pr15 * pr5 * burnerPR * pr3 * pr13; // PR7 = 1 (no AB)
+            float etr =
+                (tt15 / Mathf.Max(1f, tt5)) * (tt5 / Mathf.Max(1f, tt4)) * (tt4 / Mathf.Max(1f, tt3)) * tr3 * tr13;
+
+            // performance: choked core flow, mdot in kg/s
+            float pt8 = epr * pr2 * pt0;
+            float eair = WcPerArea(1.0f) * _a8 * pt8 / Mathf.Sqrt(Mathf.Max(0.01f, etr * tt0));
+            float m2t = eair * (1f + bypassRatio) * Mathf.Sqrt(tt0) / Mathf.Max(1e-6f, pr2 * pt0 * _afan);
+            float m2 = SolveMach(m2t);
+
+            // core nozzle: F = mdot*V + (pe-ps)*A
+            float fac = 1.0f / adiabaticFactor;
+            float npr = pt8 / Mathf.Max(1e-6f, ps0);
+            float uexit = Mathf.Sqrt(
+                Mathf.Max(0f, 2f * R / Mathf.Max(1e-6f, fac) * etr * tt0 * etaNoz * (1f - Mathf.Pow(npr, -fac)))
+            );
+            float pexit = npr <= 1.893f ? ps0 : 0.52828f * pt8;
+            float fg = uexit + (pexit - ps0) * _a8 / Mathf.Max(1e-6f, eair);
+            // fan nozzle
+            float facF = 1.0f / adiabaticFactor;
+            float snpr = pt13 / Mathf.Max(1e-6f, ps0);
+            float ues = Mathf.Sqrt(
+                Mathf.Max(0f, 2f * R / Mathf.Max(1e-6f, facF) * tt13 * etaNoz * (1f - Mathf.Pow(snpr, -facF)))
+            );
+            float pfexit = snpr <= 1.893f ? ps0 : 0.52828f * pt13;
+            fg += bypassRatio * ues + (pfexit - ps0) * bypassRatio * coreAreaM2 / Mathf.Max(1e-6f, eair);
+
+            float dram = u0ms * (1f + bypassRatio);
+            float fnet = fg - dram;
+            float fnN = fnet * eair;
+
+            // fuel from energy balance
+            float tr4 = tt4 / Mathf.Max(1f, tt3);
+            float fa = (tr4 - 1f) / (FuelTerm(etaBurn, cp3, tt3) - tr4);
+            if (fa < 0f)
+                fa = 0f;
+
+            // debug valiables: not used nowtime.
+            float lastM2 = m2;
+            float lastFuelKgS = Mathf.Max(0f, fa) * Mathf.Max(0f, eair);
+
+            float lastEPR = epr;
+            float lastFA = fa;
+            float lastAirKgS = eair;
+        }
+
+        float FuelTerm(float etaB, float cp3, float tt3)
+        {
+            return etaB * _fhv / Mathf.Max(1f, cp3 * tt3);
+        }
+
+        // secant on F(t) = area - sqrt(t)*(1-(1/eta)(1-t))^(-g/(g-1)), init (1.0, 0.5)
+        private static float SecantT(float _secEta, float _secArea, float _secGamma = 1.4f)
+        {
+            float tPrev = 1f;
+            float tCur = 0.5f;
+            float fPrev = SecResid(_secEta, _secArea, tPrev);
+            for (int i = 0; i < 6; i++)
+            {
+                float fCur = SecResid(_secEta, _secArea, tCur);
+                float denom = fCur - fPrev;
+                if (Mathf.Abs(denom) < 1e-7f)
+                    break;
+                float tNext = tCur - fCur * (tCur - tPrev) / denom;
+                tNext = Mathf.Clamp(tNext, 0.2f, 1f);
+                tPrev = tCur;
+                fPrev = fCur;
+                tCur = tNext;
+                if (Mathf.Abs(fCur) < 0.001f)
+                    break;
+            }
+            return tCur;
+        }
+
+        private static float SecResid(float _secEta, float _secArea, float t, float _secGamma = 1.4f)
+        {
+            float e = _secGamma / (_secGamma - 1f);
+            float base_ = Mathf.Max(0.05f, 1f - (1f / _secEta) * (1f - t));
+            return _secArea - Mathf.Sqrt(t) * Mathf.Pow(base_, -e);
+        }
+
+        private static float SolveMach(float target)
+        {
+            if (target >= WcPerArea(1.0f))
+                return 1f;
+
+            float mPrev = 0.5f;
+            float mCur = 0.3f;
+            float aPrev = 0.03016f;
+            for (int i = 0; i < 8; i++)
+            {
+                float aCur = WcPerArea(mCur);
+                float denom = aCur - aPrev;
+                if (Mathf.Abs(denom) < 1e-7f)
+                    break;
+                float mNext = mCur + (target - aCur) * (mCur - mPrev) / denom;
+                mNext = Mathf.Clamp(mNext, 0.01f, 1f);
+                mPrev = mCur;
+                aPrev = aCur;
+                mCur = mNext;
+            }
+            return mCur;
+        }
+
+        // corrected flow per area: mdot*sqrt(Tt)/(Pt*A), SI
+        private static float WcPerArea(float m)
+        {
+            if (m == 1f)
+                return 0.04041f;
+            else
+                return 0.06984f * m / Mathf.Pow(1f + 0.2f * m * m, 3f);
+        }
+
+        // Cp fit of EngineSim-UA AeroUtil, Rankine poly remapped to J/(kg K), Kelvin input
+        private static float Cp(float tK)
+        {
+            return 1005f;
+            // float t2 = tK * tK;
+            // float t3 = t2 * tK;
+            // return -1.09151e-08f * t3 - 6.95718e-06f * t2 + 0.2134518f * tK + 940.055f;
         }
     }
 }

@@ -6,6 +6,7 @@
         "UdonSharp.Editor",
         "VRC.SDKBase.Editor.BuildPipeline",
         "FDMi.core",
+        "FDMi.core.editor",
         "FDMi.dynamics"
     ],
     "includePlatforms": [
