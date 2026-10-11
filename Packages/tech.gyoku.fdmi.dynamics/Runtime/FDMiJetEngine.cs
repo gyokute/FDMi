@@ -11,57 +11,57 @@ namespace FDMi.dynamics
         public string throttlePath = "Throttle";
 
         [FDMiDataPath(nameof(throttlePath))]
-        public FDMiData Throttle;
+        public FDMiFloat Throttle;
 
         // Aerodynamic state
         // Mach number, optional (null = V/sqrt(gamma R T))
         public string TASPath = "TAS";
 
         [FDMiDataPath(nameof(TASPath))]
-        public FDMiData TAS;
+        public FDMiFloat TAS;
 
         // Mach number, optional (null = V/sqrt(gamma R T))
         public string MachPath = "Mach";
 
         [FDMiDataPath(nameof(MachPath))]
-        public FDMiData Mach;
+        public FDMiFloat Mach;
 
         // Static air temperature
         public string SATPath = "SAT";
 
         [FDMiDataPath(nameof(SATPath))]
-        public FDMiData SAT;
+        public FDMiFloat SAT;
 
         // Outside air temperature
         public string OATPath = "OAT";
 
         [FDMiDataPath(nameof(OATPath))]
-        public FDMiData OAT;
+        public FDMiFloat OAT;
 
         // Static air pressure
         public string StaticPressurePath = "StaticPressure";
 
         [FDMiDataPath(nameof(StaticPressurePath))]
-        public FDMiData StaticPressure;
+        public FDMiFloat StaticPressure;
 
         // Outside air pressure
         public string DynamicPressurePath = "DynamicPressure";
 
         [FDMiDataPath(nameof(DynamicPressurePath))]
-        public FDMiData DynamicPressure;
+        public FDMiFloat DynamicPressure;
 
         // --- outputs ---
         // fuel flow [kg/s]
         public string fuelPath = "FuelFlow";
 
         [FDMiDataPath(nameof(fuelPath))]
-        public FDMiData fuelFlow;
+        public FDMiFloat fuelFlow;
 
         // EGT[K]
         public string EGTPath = "EGT";
 
         [FDMiDataPath(nameof(EGTPath))]
-        public FDMiData EGT;
+        public FDMiFloat EGT;
 
         #region "Design parameters"
         [Header("Engine design parameters")]
@@ -72,6 +72,7 @@ namespace FDMi.dynamics
 
         public float burnerPR = 1.0f;
         public float tt4maxC = 1096f; // burner exit at 100%
+
         [Header("各部の断熱圧縮効率。調整不要。")]
         public float etaFan = 1.0f;
         public float etaComp = 0.959f;
@@ -101,6 +102,17 @@ namespace FDMi.dynamics
 
         // Bake 済み値 (_tt4dK/_afan/coreAreaM2/_a4/_a4p/_a8/corePR) を使う。計算は Editor (FDMiJetEngineBake) のみ。
 
+        void Start()
+        {
+            _sat = SAT.data;
+            _staticPressure = StaticPressure.data;
+            _mach = Mach.data;
+            _oat = OAT.data;
+            _dynamicPressure = DynamicPressure.data;
+            _tas = TAS.data;
+            _throttle = Throttle.data;
+        }
+
         void FixedUpdate()
         {
             SolveThrust();
@@ -110,16 +122,23 @@ namespace FDMi.dynamics
         float coreTurbineThrust = 0f;
 
         // per-frame scratch for secant residuals (avoids arg structs)
+        float[] _sat;
+        float[] _staticPressure;
+        float[] _mach;
+        float[] _oat;
+        float[] _dynamicPressure;
+        float[] _tas;
+        float[] _throttle;
 
         void SolveThrust()
         {
             // free stream (ISA, SI)
-            float ts0 = SAT.GetFloat();
-            float ps0 = StaticPressure.GetFloat();
-            float fmach = Mach.GetFloat();
-            float tt0 = OAT.GetFloat();
-            float pt0 = DynamicPressure.GetFloat();
-            float u0ms = TAS.GetFloat();
+            float ts0 = _sat[0];
+            float ps0 = _staticPressure[0];
+            float fmach = _mach[0];
+            float tt0 = _oat[0];
+            float pt0 = _dynamicPressure[0];
+            float u0ms = _tas[0];
 
             // inlet (Mil-spec)
             float pr2 = 1f;
@@ -130,7 +149,7 @@ namespace FDMi.dynamics
             float cp2 = Cp(tt0);
 
             // burner temperature from throttle
-            float tt4 = _tt4dK * Throttle.GetFloat();
+            float tt4 = _tt4dK * _throttle[0];
             float cp4 = Cp(tt4);
 
             // HPT secant: t = Tt5/Tt4
@@ -198,13 +217,6 @@ namespace FDMi.dynamics
             if (fa < 0f)
                 fa = 0f;
 
-            // debug valiables: not used nowtime.
-            float lastM2 = m2;
-            float lastFuelKgS = Mathf.Max(0f, fa) * Mathf.Max(0f, eair);
-
-            float lastEPR = epr;
-            float lastFA = fa;
-            float lastAirKgS = eair;
         }
 
         float FuelTerm(float etaB, float cp3, float tt3)
