@@ -7,6 +7,7 @@ namespace FDMi.dynamics
     public class FDMiJetEngine : FDMiBehaviour
     {
         public Rigidbody body;
+
         [Header("Input Variables")]
         // throttle 0~1
         public string throttlePath = "Throttle";
@@ -28,37 +29,37 @@ namespace FDMi.dynamics
 
         // Aerodynamic state
         // Mach number, optional (null = V/sqrt(gamma R T))
-        public string TASPath = "TAS";
+        public string TASPath = "~/Physics/References/TAS";
 
         [FDMiDataPath(nameof(TASPath))]
         public FDMiFloat TAS;
 
         // Mach number, optional (null = V/sqrt(gamma R T))
-        public string MachPath = "Mach";
+        public string MachPath = "~/Physics/References/Mach";
 
         [FDMiDataPath(nameof(MachPath))]
         public FDMiFloat Mach;
 
         // Static air temperature
-        public string SATPath = "SAT";
+        public string SATPath = "~/Physics/References/SAT";
 
         [FDMiDataPath(nameof(SATPath))]
         public FDMiFloat SAT;
 
         // Outside air temperature
-        public string OATPath = "OAT";
+        public string OATPath = "~/Physics/References/OAT";
 
         [FDMiDataPath(nameof(OATPath))]
         public FDMiFloat OAT;
 
         // Static air pressure
-        public string StaticPressurePath = "StaticPressure";
+        public string StaticPressurePath = "~/Physics/References/StaticPressure";
 
         [FDMiDataPath(nameof(StaticPressurePath))]
         public FDMiFloat StaticPressure;
 
         // Outside air pressure
-        public string DynamicPressurePath = "DynamicPressure";
+        public string DynamicPressurePath = "~/Physics/References/DynamicPressure";
 
         [FDMiDataPath(nameof(DynamicPressurePath))]
         public FDMiFloat DynamicPressure;
@@ -92,10 +93,12 @@ namespace FDMi.dynamics
         [Header("Spool transient (first-order lag)")]
         public float tauN2 = 0.8f; // HP spool time constant [s]
         public float tauN1 = 1.5f; // fan spool time constant [s] (follows N2)
-        public float n1Idle = 0.23f; // fan idle [0,1]
-        public float n2Idle = 0.55f; // core idle [0,1]
-        public float starterAccel = 0.3f; // starter adds this to N2 [0,1]/s]; motoring N2 ~= starterAccel * tauN2
-        public float idleThrFloor = 0.35f; // min thermal throttle with fuel on (fixed-area match inverts below)
+        public float fuelIdle = 0.24f; // valve opening at thr=0; N2 idle emerges as N2MAX*sqrt(fuelIdle*etaI)
+        public float starterAccel = 0.3f; // starter torque on N2 [0,1]/s; motoring N2 ~= starterAccel * tauN2
+        public float idleThrFloor = 0.35f; // solve stability floor (fixed-area match inverts below)
+        public float etaWind = 0.07f; // fraction of ram enthalpy driving the spools (M0.8 cruise -> N1~0.21)
+        public float tauEGT = 2.5f; // lumped metal/sensor heat capacity [s]
+        public float lightOffN2 = 0.15f; // ignition S-curve scale [0,1] (reused, no threshold branch)
 
         [Header("Engine design parameters")]
         public float fanDiameter = 2.19f;
@@ -121,7 +124,8 @@ namespace FDMi.dynamics
         public float _afan;
         public float coreAreaM2; // = 0.64707f; // 6.965 ft2
         public float _tt4dK = 1363.15f;
-
+        public float _wfMax = 2.0f; // SL static full-throttle valve flow [kg/s] (Bake sets, provisional until baked)
+        public float _wfIdle = 0.48f; // solve-based idle valve flow [kg/s] (Bake sets, provisional until baked)
         #endregion
 
         #region "Constants"
@@ -155,41 +159,67 @@ namespace FDMi.dynamics
         float _n1 = 0f;
         float _n2 = 0f;
         float _thrEff = 0f;
+        float _egtS = 288.15f; // sensor/metal node [K]
+        float _egtGas = 288.15f; // SolveThrust writes gas node [K]
 
         void FixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
             float thr = Mathf.Clamp01(_throttle[0]);
+            float tt0 = _oat[0];
+            float ps0 = _staticPressure[0];
+            float pt0 = _dynamicPressure[0];
 
-            bool fueled = _fuelSw[0];
+            // discrete inputs only (valves are physical). No state-dependent branch.
+            float fuelV = _fuelSw[0] ? 1f : 0f;
+            float starterV = _starter[0] ? 1f : 0f;
 
-            // N2: throttle demand + starter rotation (user requirement)
-            float n2ss = n2Idle + (1.05f - n2Idle) * thr;
-            _n2 += (n2ss - _n2) * (dt / (tauN2 + dt));
-            if (_starter[0])
-                _n2 += starterAccel * dt;
+            // combustion intensity: valve * smooth ignition (bootstraps via starter-driven N2)
+            float evalve = fuelV * (fuelIdle + (1f - fuelIdle) * thr);
+            float n2sq = _n2 * _n2;
+            float etaI = n2sq / (n2sq + lightOffN2 * lightOffN2);
+            float E = evalve * etaI;
+
+            // ram windmill: enthalpy fraction etaWind of the ram pressure rise drives each
+            // spool through its own design PR (fan vs core split emerges, no separate max).
+            float ramH = Mathf.Pow(Mathf.Max(1f, pt0 / Mathf.Max(1f, ps0)), 0.285714f) - 1f;
+            float wScale = etaWind * (tt0 / 288.15f) * ramH;
+            float w1 = 1.05f * Mathf.Sqrt(Mathf.Max(0f, wScale / (Mathf.Pow(fanPR, 0.285714f) - 1f)));
+            float w2 = 1.05f * Mathf.Sqrt(Mathf.Max(0f, wScale / (Mathf.Pow(OPR, 0.285714f) - 1f)));
+
+            // N2: torque balance target (rss of combustion + windmill) + starter torque
+            float n2t = Mathf.Sqrt(1.1025f * E + w2 * w2);
+            _n2 += (n2t - _n2) * (dt / (tauN2 + dt));
+            _n2 += starterAccel * starterV * dt;
             _n2 = Mathf.Clamp(_n2, 0f, 1.05f);
 
-            // N1 follows N2 (aero coupling proxy), never throttle directly -> two-stage lag
-            float corePow = Mathf.Clamp01((_n2 - n2Idle) / Mathf.Max(1f, 1.05f - n2Idle));
-            float n1ss = n1Idle + (1.05f - n1Idle) * corePow;
-            _n1 += (n1ss - _n1) * (dt / (tauN1 + dt));
+            // N1: LPT work ~ core flow ~ N2^2, plus direct ram on the fan
+            float s = n2sq / 1.05f;
+            float n1t = Mathf.Sqrt(s * s + w1 * w1);
+            _n1 += (n1t - _n1) * (dt / (tauN1 + dt));
             _n1 = Mathf.Clamp(_n1, 0f, 1.05f);
 
             _n1Arr[0] = _n1;
             _n2Arr[0] = _n2;
 
-            if (!fueled)
-            {
-                // dry motoring: rotation only, no combustion
-                _fuelFlow[0] = 0f;
-                _egt[0] = _oat[0];
-                return;
-            }
+            // steady thermo at effective intensity, floored for area-match stability
+            _thrEff = Mathf.Max(E, idleThrFloor * fuelV);
+            float thrustSS = SolveThrust();
 
-            _thrEff = idleThrFloor + (1f - idleThrFloor) * corePow;
-            float thrust = SolveThrust();
-            body.AddForceAtPosition(transform.forward * thrust, transform.position, ForceMode.Force);
+            // spool gate: steady at 1, lags accel, snaps decel (pressure collapse proxy)
+            float sref = n2t * n2t / 1.05f;
+            float gate = (s * s + w1 * w1) / (sref * sref + w1 * w1 + 1e-6f);
+            gate = Mathf.Clamp01(gate);
+            body.AddForceAtPosition(transform.forward * (thrustSS * gate), transform.position, ForceMode.Force);
+
+            // metered valve flow (flows even unburned; density-corrected from inlet)
+            float densCorr = (pt0 / 101325f) / Mathf.Sqrt(Mathf.Max(0.01f, tt0 / 288.15f));
+            _fuelFlow[0] = evalve * _wfMax * densCorr;
+
+            // EGT: 2-node heat capacity (gas node from Solve, sensor lags)
+            float egtT = tt0 + (_egtGas - tt0) * E;
+            _egtS += (egtT - _egtS) * (dt / (tauEGT + dt));
+            _egt[0] = _egtS;
         }
 
         float fanThrust = 0f;
@@ -291,14 +321,9 @@ namespace FDMi.dynamics
             float fnet = fg - dram;
             float fnN = fnet * eair;
 
-            // fuel from energy balance
-            float tr4 = tt4 / Mathf.Max(1f, tt3);
-            float fa = (tr4 - 1f) / (FuelTerm(etaBurn, cp3, tt3) - tr4);
-            if (fa < 0f)
-                fa = 0f;
-
-            _fuelFlow[0] = fa * eair;
-            _egt[0] = tt15;
+            // gas node for the 2-node heat capacity (FixedUpdate lags the sensor node).
+            // Fuel output moved to metered valve flow in FixedUpdate (Bake-scaled _wfMax).
+            _egtGas = tt15;
             return fnN;
         }
 
