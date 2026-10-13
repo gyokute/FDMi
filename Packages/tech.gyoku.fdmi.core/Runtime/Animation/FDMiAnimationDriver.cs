@@ -18,9 +18,16 @@ namespace FDMi.core
         [FDMiDataPath(nameof(valuePath))]
         public FDMiData parameterValue;
 
+        [Header("Output = (Value + Offset) * Scale")]
+        [SerializeField]
+        private float scale = 1f;
+
+        [SerializeField]
+        private float offset = 0f;
+
         void Update()
         {
-            animator.SetFloat(parameterName, parameterValue.GetFloat());
+            animator.SetFloat(parameterName, (parameterValue.GetFloat() + offset) * scale);
         }
     }
 }
