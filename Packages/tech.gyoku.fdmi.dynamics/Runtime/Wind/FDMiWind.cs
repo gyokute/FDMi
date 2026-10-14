@@ -7,6 +7,11 @@ namespace FDMi.dynamics
     // 世界座標の風ベクトル [m/s] を出す。定常風 + Perlin 乱流。
     // 旧 aerodynamics からの移植 (SaccFlight 流儀の gust サンプリング)。
     // gust 座標は時間で流し、機体位置でスケールする。S=0 で定常風のみ。
+    //
+    // Udon 最適化:
+    // - Time.time ではなく自前の時刻積算 (Time.time は Udon でやや高コスト、かつ長時間で精度低下)。
+    // - gust が微小なら正規化をスキップ (normalized は Sqrt 1回。ゼロ除算ガード兼用)。
+    // - 構造体コンストラクタ・Vector3.one 参照なし。すべて成分代入。
     public class FDMiWind : FDMiBehaviour
     {
         [Header("Wiring")]
@@ -22,6 +27,7 @@ namespace FDMi.dynamics
 
         Vector3[] _pos, _const, _wind;
         float[] _scale, _strength;
+        float _t;
 
         void Start()
         {
@@ -30,21 +36,39 @@ namespace FDMi.dynamics
             _scale = WindTurbulenceScale.data;
             _strength = WindGustStrength.data;
             _wind = Wind.data;
+            _t = 0f;
         }
 
-        void Update()
+        void FixedUpdate()
         {
-            Vector3 g = Time.time * _const[0] + _scale[0] * _pos[0];
-            Vector3 gust;
-            gust.x = Mathf.PerlinNoise(g.x, 0f);
-            gust.y = Mathf.PerlinNoise(g.y, 0.3f);
-            gust.z = Mathf.PerlinNoise(g.z, 0.6f);
-            gust -= 0.5f * Vector3.one;
-            if (gust.sqrMagnitude > 1e-8f)
-                gust = gust.normalized * _strength[0];
+            _t += Time.fixedDeltaTime;
+            Vector3 c = _const[0];
+            Vector3 p = _pos[0];
+            float s = _scale[0];
+
+            float gx = _t * c.x + s * p.x;
+            float gy = _t * c.y + s * p.y;
+            float gz = _t * c.z + s * p.z;
+
+            float nx = Mathf.PerlinNoise(gx, 0f) - 0.5f;
+            float ny = Mathf.PerlinNoise(gy, 0.3f) - 0.5f;
+            float nz = Mathf.PerlinNoise(gz, 0.6f) - 0.5f;
+
+            float amp = _strength[0];
+            float len2 = nx * nx + ny * ny + nz * nz;
+            Vector3 w;
+            if (len2 > 1e-8f)
+            {
+                float inv = amp / Mathf.Sqrt(len2);
+                w.x = c.x + nx * inv;
+                w.y = c.y + ny * inv;
+                w.z = c.z + nz * inv;
+            }
             else
-                gust = Vector3.zero;
-            _wind[0] = _const[0] + gust;
+            {
+                w = c;
+            }
+            _wind[0] = w;
         }
     }
 }

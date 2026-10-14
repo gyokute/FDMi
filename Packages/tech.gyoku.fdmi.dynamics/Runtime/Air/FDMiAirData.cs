@@ -4,16 +4,23 @@ using UnityEngine;
 
 namespace FDMi.dynamics
 {
-    // 機体固定座標系 (+Z = 前方) の対気速度と大気データを出す。空力計算の上流。
-    // AirSpeed = 機体座標系で見た対気速度ベクトル (機体の動きを空気基準で表したもの)。
-    // Wing は -AirSpeed を相対風として使う。
+    // 機体固定座標系 (+Z = 前方) の対気速度と大気データを出す。空力・エンジン計算の上流。
+    // AirSpeed = 機体座標系で見た対気速度ベクトル。Wing は -AirSpeed を相対風として使う。
     // 旧 aerodynamics からの移植。TASAcc の pIAS 誤参照・風の座標系混在を修正し、
     // TAS は |v|、IAS 基準密度は 1.225 kg/m3 (ISA 海面) にした。
+    // OAT / DynamicPressure は JetEngine が要る全温・全圧 (等エントロピー関係で Mach から解く)。
+    //
+    // Udon 最適化:
+    // - 迎角・横滑り角は Atan2 直算 (旧 SignedAngle + ProjectOnPlane は正規化×4相当を含む)。
+    //   Alpha = -Atan2(y, z)、Beta = +Atan2(x, z)。旧式と等価 (符号は旧式の minus 込みで合わせた)。
+    // - body.velocity / wind はローカルに1回読み。割り算は invDt にまとめた。
     public class FDMiAirData : FDMiBehaviour
     {
         [Header("Wiring")]
         public Rigidbody body;
         public FDMiVector3 Wind; // 世界座標の風ベクトル [m/s]
+        public FDMiFloat SAT; // 静気温 [K]
+        public FDMiFloat StaticPressure; // 静圧 [Pa]
         public FDMiFloat Rho; // 空気密度 [kg/m3]
         public FDMiFloat SonicSpeed; // 音速 [m/s]
 
@@ -24,6 +31,8 @@ namespace FDMi.dynamics
         public FDMiFloat IAS; // 指示対気速度 [m/s]
         public FDMiFloat TAS; // 真対気速度 [m/s]
         public FDMiFloat Mach;
+        public FDMiFloat OAT; // 全温 Tt0 [K] (JetEngine の OAT 入力)
+        public FDMiFloat DynamicPressure; // 全圧 Pt0 [Pa] (JetEngine の DynamicPressure 入力)
         public FDMiFloat VerticalSpeed; // 世界 Y 速度 [m/s]
         public FDMiFloat IASAcc; // 指示対気速度の時間微分 [m/s2]
         public FDMiFloat TASAcc; // 真対気速度の時間微分 [m/s2]
@@ -32,13 +41,15 @@ namespace FDMi.dynamics
         public float tauAcc = 0.5f; // 加速度の一次遅れ [s] (微分のノイズ吸収。定常値は変えない)
 
         Vector3[] _wind;
-        float[] _rho, _sonic;
+        float[] _sat, _ps, _rho, _sonic;
         Vector3[] _air;
-        float[] _alpha, _beta, _ias, _tas, _mach, _vs, _iasAcc, _tasAcc;
+        float[] _alpha, _beta, _ias, _tas, _mach, _oat, _pt, _vs, _iasAcc, _tasAcc;
 
         void Start()
         {
             _wind = Wind.data;
+            _sat = SAT.data;
+            _ps = StaticPressure.data;
             _rho = Rho.data;
             _sonic = SonicSpeed.data;
             _air = AirSpeed.data;
@@ -47,6 +58,8 @@ namespace FDMi.dynamics
             _ias = IAS.data;
             _tas = TAS.data;
             _mach = Mach.data;
+            _oat = OAT.data;
+            _pt = DynamicPressure.data;
             _vs = VerticalSpeed.data;
             _iasAcc = IASAcc.data;
             _tasAcc = TASAcc.data;
@@ -60,11 +73,12 @@ namespace FDMi.dynamics
             if (dt <= 0f)
                 return;
 
-            Vector3 local = Quaternion.Inverse(body.rotation) * (body.velocity - _wind[0]);
+            Vector3 vel = body.velocity;
+            Vector3 local = Quaternion.Inverse(body.rotation) * (vel - _wind[0]);
             _air[0] = local;
 
-            _alpha[0] = -Vector3.SignedAngle(Vector3.ProjectOnPlane(local, Vector3.right), Vector3.forward, Vector3.right);
-            _beta[0] = Vector3.SignedAngle(Vector3.forward, Vector3.ProjectOnPlane(local, Vector3.up), Vector3.up);
+            _alpha[0] = -Mathf.Atan2(local.y, local.z) * Mathf.Rad2Deg;
+            _beta[0] = Mathf.Atan2(local.x, local.z) * Mathf.Rad2Deg;
 
             float pIAS = _ias[0];
             float pTAS = _tas[0];
@@ -72,12 +86,21 @@ namespace FDMi.dynamics
             float ias = tas * Mathf.Sqrt(_rho[0] / 1.225f);
             _tas[0] = tas;
             _ias[0] = ias;
-            _mach[0] = tas / Mathf.Max(_sonic[0], 0.1f);
-            _vs[0] = body.velocity.y;
 
+            float mach = tas / Mathf.Max(_sonic[0], 0.1f);
+            _mach[0] = mach;
+
+            // 等エントロピー関係: Tt0/T0 = 1 + 0.2*M^2、Pt0/Ps0 = (1 + 0.2*M^2)^3.5
+            float f = 1f + 0.2f * mach * mach;
+            _oat[0] = _sat[0] * f;
+            _pt[0] = _ps[0] * f * f * f * Mathf.Sqrt(f);
+
+            _vs[0] = vel.y;
+
+            float invDt = 1f / dt;
             float k = dt / (tauAcc + dt);
-            _iasAcc[0] += ((ias - pIAS) / dt - _iasAcc[0]) * k;
-            _tasAcc[0] += ((tas - pTAS) / dt - _tasAcc[0]) * k;
+            _iasAcc[0] += ((ias - pIAS) * invDt - _iasAcc[0]) * k;
+            _tasAcc[0] += ((tas - pTAS) * invDt - _tasAcc[0]) * k;
         }
     }
 }
