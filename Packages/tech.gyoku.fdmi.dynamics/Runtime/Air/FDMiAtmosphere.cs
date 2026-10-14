@@ -15,23 +15,54 @@ namespace FDMi.dynamics
     public class FDMiAtmosphere : FDMiBehaviour
     {
         [Header("Wiring")]
+        public string PositionPath = "~/Physics/Position";
+        [FDMiDataPath(nameof(PositionPath))]
         public FDMiVector3 Position; // 機体位置 (シーン原点基準) [m]
+        public string KmPositionPath = "~/Physics/KmPosition";
+        [FDMiDataPath(nameof(KmPositionPath))]
         public FDMiVector3 KmPosition; // シーン原点の標高オフセット [km]
 
         [Header("Sea-level reference")]
+        public string GroundPressurePath = "~/Physics/GroundPressure";
+
+        [FDMiDataPath(nameof(GroundPressurePath))]
         public FDMiFloat GroundPressure; // 海面気圧 [Pa]
+        public string GroundTemperaturePath = "~/Physics/GroundTemperature";
+
+        [FDMiDataPath(nameof(GroundTemperaturePath))]
         public FDMiFloat GroundTemperature; // 海面気温 [K]
 
         [Header("Outputs (SI)")]
+        public string AltitudePath = "~/Physics/Altitude";
+
+        [FDMiDataPath(nameof(AltitudePath))]
         public FDMiFloat Altitude; // 標高 [m]
+        public string SATPath = "~/Physics/SAT";
+
+        [FDMiDataPath(nameof(SATPath))]
         public FDMiFloat SAT; // 静気温 [K]
+        public string StaticPressure = "~/Physics/StaticPressure";
+
+        [FDMiDataPath(nameof(StaticPressure))]
         public FDMiFloat Pressure; // 静圧 [Pa]
+        public string RhoPath = "~/Physics/Rho";
+
+        [FDMiDataPath(nameof(RhoPath))]
         public FDMiFloat Rho; // 空気密度 [kg/m3]
+        public string SonicSpeedPath = "~/Physics/SonicSpeed";
+
+        [FDMiDataPath(nameof(SonicSpeedPath))]
         public FDMiFloat SonicSpeed; // 音速 [m/s]
 
-        Vector3[] _pos, _km;
-        float[] _gndP, _gndT;
-        float[] _alt, _sat, _p, _rho, _sonic;
+        Vector3[] _pos;
+        Vector3[] _km;
+        float[] _gndP;
+        float[] _gndT;
+        float[] _alt;
+        float[] _sat;
+        float[] _p;
+        float[] _rho;
+        float[] _sonic;
 
         void Start()
         {
@@ -53,7 +84,8 @@ namespace FDMi.dynamics
                 h = 0f;
             _alt[0] = h;
 
-            float t, p;
+            float t;
+            float p;
             if (h <= 11000f)
             {
                 t = _gndT[0] - 0.0065f * h;
