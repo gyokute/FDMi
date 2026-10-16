@@ -5,6 +5,7 @@ using VRC.Udon;
 
 namespace FDMi.core
 {
+    [DefaultExecutionOrder(1000)]
     public class FDMiObjectActivateByBoolean : FDMiBehaviour
     {
         public string ValuePath = "~/InZone";
@@ -13,6 +14,11 @@ namespace FDMi.core
         public FDMiBool Value;
 
         public bool onWhenDisable;
+
+        private void Start()
+        {
+            OnChange();
+        }
 
         public void OnChange()
         {

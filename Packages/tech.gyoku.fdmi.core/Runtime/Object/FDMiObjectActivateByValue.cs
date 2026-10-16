@@ -5,6 +5,7 @@ using VRC.Udon;
 
 namespace FDMi.core
 {
+    [DefaultExecutionOrder(1000)]
     public class FDMiObjectActivateByValue : FDMiBehaviour
     {
         public string ValuePath = "~/InZone";
