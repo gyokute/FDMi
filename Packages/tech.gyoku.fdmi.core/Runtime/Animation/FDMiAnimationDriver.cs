@@ -1,11 +1,14 @@
-﻿using UdonSharp;
+using UdonSharp;
 using UnityEngine;
-using VRC.SDKBase;
-using VRC.Udon;
 
 namespace FDMi.core
 {
-    public class FDMiAnimationDriver : FDMiBehaviour
+    /// <summary>
+    /// FDMiData の値を AnimationCurve で加工して Animator パラメータへ出力するドライバ群の基底クラス。
+    /// valuePathHash は Editor 拡張が Animator.StringToHash(parameterName) を焼き込むため手編集しない。
+    /// 出力タイミング(Update / FDMiData コールバック)は派生クラスが定義する。
+    /// </summary>
+    public abstract class FDMiAnimationDriver : FDMiBehaviour
     {
         [SerializeField]
         private Animator animator;
@@ -13,21 +16,15 @@ namespace FDMi.core
         [SerializeField]
         private string parameterName;
 
-        public string valuePath;
+        // 焼き込み値としてScene/Prefabへの永続化が必要なため [HideInInspector] public (表示と焼き込みは FDMiAnimationDriverEditor / BakeAnimatorParameterHashUseCase)
+        [HideInInspector]
+        public int valuePathHash;
 
-        [FDMiDataPath(nameof(valuePath))]
-        public FDMiData parameterValue;
+        public AnimationCurve outputCurve;
 
-        [Header("Output = (Value + Offset) * Scale")]
-        [SerializeField]
-        private float scale = 1f;
-
-        [SerializeField]
-        private float offset = 0f;
-
-        void Update()
+        protected void Apply(float value)
         {
-            animator.SetFloat(parameterName, (parameterValue.GetFloat() + offset) * scale);
+            animator.SetFloat(valuePathHash, outputCurve.Evaluate(value));
         }
     }
 }
