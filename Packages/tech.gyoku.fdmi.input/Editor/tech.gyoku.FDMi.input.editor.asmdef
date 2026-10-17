@@ -9,7 +9,8 @@
         "GUID:42e902da7d990e044bc9d3bf13382464",
         "GUID:6490804aa441dfe4b88eb56cccbdf081",
         "GUID:f753245ab42c25c4ab387e72c2df5b41",
-        "GUID:760c6e38a9fa8ca409c497aec9abe202"
+        "GUID:760c6e38a9fa8ca409c497aec9abe202",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"

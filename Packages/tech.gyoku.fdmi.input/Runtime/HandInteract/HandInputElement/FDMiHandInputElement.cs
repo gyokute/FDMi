@@ -10,6 +10,9 @@ namespace FDMi.input
 {
     public abstract class FDMiHandInputElement : FDMiBehaviour
     {
+        [Tooltip("What this input can do. Shown on the hand input display.")]
+        public string description;
+
         private float[] axisValues = new float[5];
 
         public virtual void WhileSelect(FDMiHandInputGroup group) { }

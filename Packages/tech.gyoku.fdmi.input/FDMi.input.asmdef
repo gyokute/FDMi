@@ -6,7 +6,8 @@
         "UdonSharp.Runtime",
         "UdonSharp.Editor",
         "VRC.Udon.Serialization.OdinSerializer",
-        "FDMi.core"
+        "FDMi.core",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
