@@ -12,7 +12,7 @@ namespace FDMi.core.Editor.Inspector
     {
         List<IFDMiAutoSetupUseCase> fDMiAutoSetupUseCases;
 
-        void OnEnable()
+        protected virtual void OnEnable()
         {
             if (fDMiAutoSetupUseCases == null)
             {
