@@ -52,6 +52,13 @@ namespace FDMi.core.Editor.Tests
         public FDMiData targetField;
     }
 
+    // テスト用 MonoBehaviour: [FDMiDataPathConst] でリテラルパスを直接指定（ペアフィールドを持たない）
+    class BehaviourWithConstPath : MonoBehaviour
+    {
+        [FDMiDataPathConst("~/Some/Path")]
+        public FDMiData targetField;
+    }
+
     // テスト用 MonoBehaviour: 属性が指すペアフィールドが string 型でない
     class BehaviourWithNonStringPairField : MonoBehaviour
     {
@@ -269,6 +276,26 @@ namespace FDMi.core.Editor.Tests
 
             Assert.AreEqual(0, stub.ReceivedPaths.Count);
             Assert.IsNull(mb.targetField);
+        }
+
+        [Test]
+        public void Execute_ConstPathLiteral_ResolvesUsingAttributePath()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithConstPath>();
+            var dataGo = NewGO("dataObj");
+            var data = dataGo.AddComponent<FDMiBool>();
+
+            var stub = new StubRepository { ReturnValues = new FDMiData[] { data } };
+            var useCase = new ResolveDataPathsUseCase(stub);
+
+            useCase.Execute(mb);
+
+            Assert.AreEqual(1, stub.ReceivedPaths.Count);
+            Assert.AreEqual(2, stub.ReceivedPaths[0].Namespaces.Count);
+            Assert.AreEqual("~", stub.ReceivedPaths[0].Namespaces[0]);
+            Assert.AreEqual("Path", stub.ReceivedPaths[0].DataName);
+            Assert.AreEqual(data, mb.targetField);
         }
     }
 }

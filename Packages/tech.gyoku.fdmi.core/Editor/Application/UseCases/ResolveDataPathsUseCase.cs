@@ -14,8 +14,8 @@ namespace FDMi.core.Editor.Application.UseCases
     /// </summary>
     public class ResolveDataPathsUseCase : IFDMiAutoSetupUseCase
     {
-        static readonly Dictionary<Type, (FieldInfo field, FDMiDataPathAttribute attr)[]> _cache =
-            new Dictionary<Type, (FieldInfo, FDMiDataPathAttribute)[]>();
+        static readonly Dictionary<Type, (FieldInfo field, string pairField, string constPath)[]> _cache =
+            new Dictionary<Type, (FieldInfo, string, string)[]>();
 
         readonly IFDMiDataRepository _repository;
 
@@ -35,8 +35,9 @@ namespace FDMi.core.Editor.Application.UseCases
             : this(new SceneFDMiDataRepository()) { }
 
         /// <summary>
-        /// 対象オブジェクトの [FDMiDataPathAttribute] 付きフィールドを解決して代入する。
-        /// パス文字列は属性が指す PathFieldName のフィールドの現在値（SerializedProperty 経由）から取得する。
+        /// 対象オブジェクトの FDMiDataPath 系属性（FDMiDataPathAttribute / FDMiDataPathConstAttribute）付きフィールドを解決して代入する。
+        /// FDMiDataPathConstAttribute 付きフィールドは属性のリテラルパスから取得する。
+        /// それ以外のパス文字列は属性が指す PathFieldName のフィールドの現在値（SerializedProperty 経由）から取得する。
         /// 配列フィールドには一致した FDMiData を全件、非配列フィールドには先頭の1件を割り当てる。
         /// ペアフィールドが存在しない・string型でない、または解決結果が0件の場合は何もしない（前回値を維持し、ログも出力しない）。
         /// </summary>
@@ -52,13 +53,25 @@ namespace FDMi.core.Editor.Application.UseCases
                 return;
 
             var so = new SerializedObject(target);
-            foreach (var (field, attr) in entries)
+            foreach (var (field, pairField, constPath) in entries)
             {
-                var pathProp = so.FindProperty(attr.PathFieldName);
-                if (pathProp == null || pathProp.propertyType != SerializedPropertyType.String)
+                // Const 属性はリテラルパスを直接保持する。ペア属性は serialized string フィールドの現在値を使う。
+                string pathText;
+                if (constPath != null)
+                {
+                    pathText = constPath;
+                }
+                else
+                {
+                    var pathProp = so.FindProperty(pairField);
+                    pathText = pathProp != null && pathProp.propertyType == SerializedPropertyType.String
+                        ? pathProp.stringValue
+                        : null;
+                }
+                if (pathText == null)
                     continue;
 
-                var path = FDMiDataPath.Parse(pathProp.stringValue);
+                var path = FDMiDataPath.Parse(pathText);
                 var isArray = field.FieldType.IsArray;
                 var elementType = isArray ? field.FieldType.GetElementType() : field.FieldType;
 
@@ -92,20 +105,24 @@ namespace FDMi.core.Editor.Application.UseCases
         }
 
         /// <summary>
-        /// 型ごとの [FDMiDataPathAttribute] 付きフィールドをキャッシュから取得する。
+        /// 型ごとの FDMiDataPath 系属性（FDMiDataPathAttribute / FDMiDataPathConstAttribute）付きフィールドをキャッシュから取得する。
         /// キャッシュがない場合はリフレクションで取得してキャッシュする。
         /// </summary>
-        static (FieldInfo, FDMiDataPathAttribute)[] GetCachedEntries(Type type)
+        static (FieldInfo, string, string)[] GetCachedEntries(Type type)
         {
             if (_cache.TryGetValue(type, out var cached))
                 return cached;
 
-            var result = new List<(FieldInfo, FDMiDataPathAttribute)>();
+            var result = new List<(FieldInfo, string, string)>();
             foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 var attr = field.GetCustomAttribute<FDMiDataPathAttribute>();
                 if (attr != null)
-                    result.Add((field, attr));
+                    result.Add((field, attr.PathFieldName, null));
+
+                var constAttr = field.GetCustomAttribute<FDMiDataPathConstAttribute>();
+                if (constAttr != null)
+                    result.Add((field, null, constAttr.Path));
             }
             var entries = result.ToArray();
             _cache[type] = entries;
