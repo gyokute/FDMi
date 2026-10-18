@@ -29,6 +29,14 @@ namespace FDMi.dynamics.Editor
             return chord > 0f ? wing.sectionArea[i] / chord : 0f;
         }
 
+        // 区間の翼面内の翼幅方向 (コードに直交)。描画と装置のヒンジ線はこちらの向きを使う。
+        // spanNormal は後退角を含む翼幅軸なので、コードに直交しない (そのまま描くと面がねじれる)。
+        // この向きと spanNormal のなす角が後退角になる。
+        public static Vector3 PlanformSpan(FDMiWing wing, int i)
+        {
+            return Vector3.ProjectOnPlane(wing.spanNormal[i], wing.chordNormal[i]).normalized;
+        }
+
         // 機体座標の軸。色は Unity の Scene 表示と同じ (赤 = +X 右、緑 = +Y 上、青 = +Z 前)。
         public static void DrawBodyFrame(float length)
         {
@@ -59,7 +67,7 @@ namespace FDMi.dynamics.Editor
             float chord = wing.sectionChord[i];
             Vector3 le = wing.coordPos[i] - wing.chordNormal[i] * (0.25f * chord);
             Vector3 te = wing.coordPos[i] + wing.chordNormal[i] * (0.75f * chord);
-            Vector3 half = wing.spanNormal[i] * (0.5f * SectionWidth(wing, i));
+            Vector3 half = PlanformSpan(wing, i) * (0.5f * SectionWidth(wing, i));
             le0 = le - half;
             le1 = le + half;
             te1 = te + half;
@@ -114,7 +122,7 @@ namespace FDMi.dynamics.Editor
             {
                 if (device.sectionMul[i] == 0f)
                     continue;
-                Vector3 span = wing.spanNormal[i].normalized;
+                Vector3 span = PlanformSpan(wing, i);
                 Vector3 chord = wing.chordNormal[i].normalized;
                 float chordLength = wing.sectionChord[i];
                 // 覆う区間は sectionMul が 0 以外。値は効きの倍率であって幅ではないので、

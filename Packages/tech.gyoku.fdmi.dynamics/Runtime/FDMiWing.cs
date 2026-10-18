@@ -7,9 +7,12 @@ namespace FDMi.dynamics
     // 複数区間の一点空力モデル。V1 (tag 1.0.0 の FDMi_wing) の計算をそのまま持ち込んだ。
     // 区間ごとの対気速度から Cl/Cd/Cm カーブを引き、合力と合モーメントを機体 Rigidbody に渡す。
     //
-    // 座標はすべて機体固定 (body ローカル、+Z = 前方、+X = 右)。本コンポーネントの transform は使わない。
+    // 区間の値は機体固定 (body ローカル、+Z = 前方、+X = 右)。本コンポーネントの transform は
+    // 区間の値には使わない。平面形 (leadingEdge / trailingEdge) だけは翼ローカルで、
+    // 翼の transform の位置と回転がそのまま翼の取付位置と取付角 (迎角) になる。
     // 区間は coordPos / spanNormal / chordNormal / sectionChord / sectionArea の配列で与える。
-    // V1 の Editor が wingTip/wingToe から焼き付けていた値であり、いまは直接編集する。
+    // この5本は平面形から Editor が body ローカルへ直して焼き付ける (FDMiWingPlanform)。
+    // 手で直接編集してもよく、その場合は次の焼き付けまでその値が使われる。
     // 配列は翼面1枚の全域 (左右の翼端まで) を覆う。面積の合計がその翼の面積になる。
     //
     // V1 からの変更は入力の受け方だけ。SaccFlight の airData/sharedBool を FDMiFloat/FDMiVector3 に置き換え、
@@ -60,9 +63,17 @@ namespace FDMi.dynamics
     // 地面効果も吹き下ろしも水平翼を前提にする。翼面が鉛直な尾翼では高さの解釈が変わり、
     // 地面効果は効き過ぎる。その用途では heightInput と sourceWing を配線しない。
     //
-    // 扱わない: スパン方向の積分、後退角とマッハの3次元補正 (後退角は上式に tan²Λ を1項足す
-    // だけなので、必要になった時に1フィールド追加する)、後流欠損 (動圧比。制動板の後流が下流翼の
-    // 動圧を落とす分は持たない)、失速の切り方、超音速、三角翼の渦揚力。
+    // 後退角は翼幅軸 (spanNormal) の向きとして効く。平面形の 1/4 弦点 (空力中心) を結ぶ線の向きで、
+    // 区間の気流からこの向きの成分を落とすので、垂直流れは V cosΛ、迎角は翼面内 (tanα/cosΛ)、
+    // マッハ補正は有効マッハ M cosΛ で引かれる。揚力傾斜が下がり、同じ迎角でも揚力が減り、
+    // 抗力上昇の始まるマッハが上がる (後退翼の狙い)。
+    // ハンドブックの DATCOM/レイマーの式は 3次元揚力傾斜に (1 + tan²Λ/β²) を1項足す形だが、
+    // この投影が既に cosΛ を持つので併用すると二重計上になる (高 AR では両者は一致し、
+    // 有限 AR の差は AR=7・Λ=25° で 3% 程度)。翼幅と面積はコードに直交する向きで測るので、
+    // 後退翼のアスペクト比は投影翼幅で下がる。
+    //
+    // 扱わない: スパン方向の積分、後流欠損 (動圧比。制動板の後流が下流翼の動圧を落とす分は持たない)、
+    // 失速の切り方、超音速、三角翼の渦揚力、翼端の後退角が0でない場合の翼端失速。
     public class FDMiWing : FDMiBehaviour
     {
         [Header("配線")]
@@ -100,6 +111,7 @@ namespace FDMi.dynamics
         // 空力中心。力の作用点であり、対気速度の測定点でもある。単位は m。
         public Vector3[] coordPos;
         // 翼幅方向の単位ベクトル。区間の気流はこの方向の成分を落とす。
+        // 後退角と上反角を含む実際の翼幅軸 (simple sweep theory の「翼に平行な流れは効かない」向き)。
         // 迎え角と揚力の符号はこの向きで決まる。水平翼では右翼端向き (+X) にそろえる。
         // 左翼端向きにすると迎え角の符号が反転し、キャンバー付きのカーブでは揚力が逆になる。
         public Vector3[] spanNormal;
@@ -107,7 +119,7 @@ namespace FDMi.dynamics
         public Vector3[] chordNormal;
         // 区間の平均コード長。Cm 項の基準長。単位は m。
         public float[] sectionChord;
-        // 区間の面積。単位は m^2。
+        // 区間の面積。コード長 × コードに直交する幅 (投影平面形の面積)。単位は m^2。
         public float[] sectionArea;
 
         [Header("カーブ (区間ごと)")]
@@ -124,9 +136,16 @@ namespace FDMi.dynamics
 
         [Header("平面形 (設計値)")]
         // 翼幅。アスペクト比、地面効果の高さ、上流翼からの上下差の基準。単位は m。
+        // Editor の焼き付けが投影翼幅 (コードに直交する幅の合計) で上書きする。
         public float span = 12f;
         // 翼型の2次元揚力傾斜。clAlpha の直線部の傾きに合わせる。薄翼の 2π を初期値とする。単位は 1/rad。
         public float airfoilLiftSlope = 6.283185f;
+        // 前縁の位置。区間の境界 (station) ごとに1点で、区間数 + 1 点。単位は m。
+        // 翼ローカル (本コンポーネントの transform 基準)。Editor が body ローカルへ直して焼き付ける。
+        // 左翼端から右翼端の順に並べる (翼幅軸を右向きにそろえる規則がこの順を前提にする)。
+        public Vector3[] leadingEdge = new Vector3[0];
+        // 後縁の位置。leadingEdge と同じ長さ。区間 i は station i と i+1 の間にできる台形。
+        public Vector3[] trailingEdge = new Vector3[0];
 
         [Header("設計値")]
         // 面積の全体倍率。V1 の翼面積補正。
