@@ -20,8 +20,9 @@ namespace FDMi.dynamics
     // 傾きと同じ向きに揚力が出るのではなく、傾きで生じた横流れを打ち消す向きに出る。結果として
     // 上を向いた姿勢なら上向き、横向きの姿勢なら横向きの力になり、迎角と横滑りで同じ式が効く。
     //
-    // 軸力は 2.x の FDMiDragBody (NAL-SP-00012) と同じ式と係数にする。
-    //   cdA = 0.5 (cdp + λ l/d) π d,  Drag = ρ V² cdA
+    // 軸力の等価抗力面積は 2.x の FDMiDragBody (NAL-SP-00012) の式をそのまま使う。
+    //   cdA = 0.5 (cdp + λ l/d) π d,  Drag = 0.5 ρ V² cdA
+    // 2.x は Drag = ρ V² cdA としていたが、等価抗力面積の定義どおり標準の動圧に揃えた。
     //
     // 区間分割はしない。DATCOM の body-alone も最終的には合力と CP に縮退する。
     // 力の作用点は centerOfPressure 1点。重心回りのモーメントは作用点のずれから出る。
@@ -115,10 +116,12 @@ namespace FDMi.dynamics
             Vector3 perp = u - axis * a;
             float p = perp.magnitude;
 
+            // 動圧。軸力と係数の基準。
+            float q = 0.5f * rho * v2;
             // 垂直力。ポテンシャル項と粘性クロスフロー項を1項にまとめた形。
             Vector3 force = perp * (-rho * (_smax * a + _crossflowK * p));
             // 軸力。摩擦と底面抗力。
-            force -= axis * (rho * _cdA * v2);
+            force -= axis * (q * _cdA);
 
             totalForce = force;
             totalMoment = Vector3.Cross(centerOfPressure - body.centerOfMass, force);
@@ -127,9 +130,9 @@ namespace FDMi.dynamics
 
             // 計測値。風軸の揚力・抗力は body 軸の垂直力・軸力を α で回して出す。
             float invSpeed = 1f / u.magnitude;
-            float invQS = 1f / (0.5f * rho * v2 * _smax);
+            float invQS = 1f / (q * _smax);
             float cn = rho * (_smax * a + _crossflowK * p) * p * invQS;
-            float ca = rho * _cdA * v2 * invQS;
+            float ca = _cdA / _smax;
             CN = cn;
             CL = (cn * a - ca * p) * invSpeed;
             CD = (cn * p + ca * a) * invSpeed;
