@@ -37,8 +37,19 @@ namespace FDMi.input.Editor
 
             var elements = new List<FDMiHandInputElement>();
             var parentNameSpace = group.GetComponentInParent<FDMiNamespace>();
-            if(parentNameSpace)
-                elements.AddRange(parentNameSpace.GetComponentsInChildren<FDMiHandInputElement>(true));
+            if (parentNameSpace)
+            {
+                var defaultGroup = group as FDMiDefaultInputGroup;
+                foreach (var element in parentNameSpace.GetComponentsInChildren<FDMiHandInputElement>(true))
+                {
+                    // DFUNC は既定 Group (matchingTag 一致) にのみ割り当てる。
+                    // 接触 Group に入ると接触中も Pad・Trigger が機能選択に奪われる。
+                    if (element is FDMiHandDFUNC dfunc
+                        && !(defaultGroup && dfunc.matchingTag == defaultGroup.matchingTag))
+                        continue;
+                    elements.Add(element);
+                }
+            }
 
             serializedObject.Update();
             SetArray(serializedObject.FindProperty(nameof(FDMiHandInputGroup.Trackers)), trackers.ToArray());

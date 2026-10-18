@@ -94,7 +94,8 @@ namespace FDMi.input.Editor
         private static FDMiHandInputElement[] CollectContentElements(FDMiHandInputGroup group)
         {
             // Display 自身も要素として InputElements に登録されているため、行の生成対象からは除く。
-            return group.InputElements.Where(e => e && e is not FDMiHandInputDisplay).ToArray();
+            // DFUNC の表示は FDMiHandDFUNCDisplay が担うため、こちらも除く。
+            return group.InputElements.Where(e => e && e is not FDMiHandInputDisplay && e is not FDMiHandDFUNC).ToArray();
         }
 
         private static bool IsUpToDate(FDMiHandInputGroup group, FDMiHandInputElement[] content)
