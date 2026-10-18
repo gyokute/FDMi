@@ -1,127 +1,304 @@
-using System;
+using System.Collections.Generic;
 using FDMi.core.Editor.Inspector;
 using UnityEditor;
 using UnityEngine;
 
 namespace FDMi.dynamics.Editor
 {
-    // 翼の区間定義を Scene にワイヤーフレームで出す。区間数はここで操作する。
-    // 区間配列・カーブ配列と、装置の区間配列をまとめて同じ長さにするので、長さ違いのまま実行して
-    // 添字が外れることがない (FDMiWing の固定更新は coordPos の長さで全配列を引く)。
+    // 平面形 (前縁・後縁の点) から区間の値を焼き付け、区間ごとの設定を1画面で済ませる。
+    //   - 前縁・後縁は Scene のハンドルと一覧の Vector3 の両方で置ける
+    //   - コード長・面積・翼幅・coordPos・翼幅軸 (後退角) は焼き付けで決まる (FDMiWingPlanform)
+    //   - 平面形は翼ローカル。翼の transform を動かす・回すと、その位置と取付角になる
     // 配線 (body / bodyAero / controlSurface) の自動解決は core の IFDMiAutoSetupUseCase がやる。
+    // 生の配列・設計値・計測値は既定の Inspector に任せて折りたたむ (V1 の FDMi_wing_Editor と同じ構成)。
     [CustomEditor(typeof(FDMiWing))]
     public class FDMiWingEditor : FDMiBehaviourEditor
     {
+        // Scene でハンドルを出す station。Editor のみ (保存しない)。
+        int _station;
+        // 既定の Inspector の開閉。Editor のみ。
+        bool _foldRaw;
+
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             FDMiWing wing = (FDMiWing)target;
+            Bake(wing);
+
+            DrawWiring(wing);
+            DrawStations(wing);
+            DrawCurves(wing);
+            DrawTotal(wing);
+
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField("区間 (Editor)", EditorStyles.boldLabel);
-
-            int current = wing.coordPos != null ? wing.coordPos.Length : 0;
-            // 区間数はここで決める。配列の長さが区間の定義そのもので、データから意図した数を導けない。
-            // DelayedIntField なので入力中 (Enter まで) は配列に触らない。
-            EditorGUI.BeginChangeCheck();
-            int count = EditorGUILayout.DelayedIntField("区間数", current);
-            if (EditorGUI.EndChangeCheck() && count >= 0 && count != current)
-                SetSectionCount(wing, count);
-
-            float widthSum = 0f;
-            float areaSum = 0f;
-            for (int i = 0; i < current; i++)
-            {
-                widthSum += FDMiAeroGeometry.SectionWidth(wing, i);
-                areaSum += wing.sectionArea[i];
-            }
-            EditorGUILayout.LabelField("区間幅の合計", widthSum.ToString("F2") + " m (span " + wing.span.ToString("F2") + " m)");
-            EditorGUILayout.LabelField("面積の合計", (areaSum * wing.wingAreaCoef).ToString("F1") + " m2");
-            if (GUILayout.Button("span に区間幅の合計 (" + widthSum.ToString("F2") + " m) を焼き付ける"))
-            {
-                Undo.RecordObject(wing, "FDMiWing span");
-                wing.span = widthSum;
-                EditorUtility.SetDirty(wing);
-            }
+            _foldRaw = EditorGUILayout.Foldout(_foldRaw, "配線・生の値 (既定の Inspector)");
+            if (_foldRaw)
+                base.OnInspectorGUI();
         }
 
         void OnSceneGUI()
         {
             FDMiWing wing = (FDMiWing)target;
+            // transform を動かした時 (Scene のギズモ) も追従させる。
+            Bake(wing);
+
+            // 平面形は翼ローカルなので翼の transform で描く。ハンドルもこの座標で動かす。
+            using (new Handles.DrawingScope(wing.transform.localToWorldMatrix))
+            {
+                DrawPlanform(wing);
+            }
+            // 焼き付いた区間は body ローカルなので機体の transform で描く。
             Transform frame = FDMiAeroGeometry.Frame(wing.body, wing.transform);
             using (new Handles.DrawingScope(frame.localToWorldMatrix))
             {
                 FDMiAeroGeometry.DrawBodyFrame(wing.span * 0.2f);
                 FDMiAeroGeometry.DrawCenterOfMass(wing.body != null ? wing.body.centerOfMass : Vector3.zero, wing.span * 0.02f);
-                if (wing.coordPos == null)
-                    return;
-                for (int i = 0; i < wing.coordPos.Length; i++)
-                {
-                    FDMiAeroGeometry.DrawSection(wing, i, new Color(0.3f, 0.8f, 1f, 1f));
-                    FDMiAeroGeometry.DrawSectionAxes(wing, i, wing.span * 0.1f);
-                    // 単位は書かない。区間が並ぶと文字が重なるため (値はコード長 [m] と面積 [m2])。
-                    Handles.Label(wing.coordPos[i], "Sec" + i + " c=" + wing.sectionChord[i].ToString("F2") + " S=" + wing.sectionArea[i].ToString("F1"));
-                }
-                // 装置の舵面も一緒に出す。翼を選べば全面の絵が1枚で見える。
-                if (wing.controlSurface != null)
-                    for (int i = 0; i < wing.controlSurface.Length; i++)
-                        if (wing.controlSurface[i] != null)
-                            FDMiAeroGeometry.DrawDevice(wing, wing.controlSurface[i], new Color(1f, 0.6f, 0.2f, 1f));
+                DrawSections(wing);
             }
         }
 
-        // 区間数を翼と装置に同時に反映する。値は残し、伸びた分だけ既定値 (カーブは空 = 揚力0) にする。
-        // 装置を翼の子から探すのは自動解決と同じ規則 (FDMiControlSurface は自分の翼を持たない)。
-        static void SetSectionCount(FDMiWing wing, int count)
+        // 焼き付け。値が変わったときだけ scene を汚す。transform の移動は Undo が持つので、
+        // ここでは Undo を記録しない (次に描くときに同じ値へ焼き直る)。
+        static void Bake(FDMiWing wing)
         {
-            FDMiControlSurface[] devices = wing.GetComponentsInChildren<FDMiControlSurface>(true);
-            UnityEngine.Object[] objects = new UnityEngine.Object[devices.Length + 1];
-            objects[0] = wing;
-            for (int i = 0; i < devices.Length; i++)
-                objects[i + 1] = devices[i];
-            Undo.RecordObjects(objects, "FDMiWing 区間数");
+            if (FDMiWingPlanform.Bake(wing))
+                EditorUtility.SetDirty(wing);
+        }
 
-            Resize(ref wing.coordPos, count);
-            Resize(ref wing.spanNormal, count);
-            Resize(ref wing.chordNormal, count);
-            Resize(ref wing.sectionChord, count);
-            Resize(ref wing.sectionArea, count);
-            Resize(ref wing.clAlpha, count);
-            Resize(ref wing.cdAlpha, count);
-            Resize(ref wing.clMach, count);
-            Resize(ref wing.cdMach, count);
-            Resize(ref wing.cmAlpha, count);
-            Resize(ref wing.alpha, count);
-            FillCurves(wing.clAlpha);
-            FillCurves(wing.cdAlpha);
-            FillCurves(wing.clMach);
-            FillCurves(wing.cdMach);
-            FillCurves(wing.cmAlpha);
+        void DrawWiring(FDMiWing wing)
+        {
+            EditorGUILayout.LabelField("平面形 (前縁・後縁)", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "前縁・後縁を翼ローカル [m] で置く。コード長・面積・翼幅・coordPos・翼幅軸 (後退角) はここから焼き付く。"
+                    + " station は左翼端から右翼端の順に並べる。翼の位置と取付角は transform で決める。",
+                MessageType.None
+            );
+            int devices = wing.controlSurface != null ? wing.controlSurface.Length : 0;
+            EditorGUILayout.LabelField(
+                "配線",
+                "body " + (wing.body != null ? wing.body.name : "なし")
+                    + " / 胴体 " + (wing.bodyAero != null ? wing.bodyAero.name : "なし")
+                    + " / 装置 " + devices
+            );
+        }
 
-            for (int i = 0; i < devices.Length; i++)
+        // station の一覧。区間 i は station i と i+1 の間。行は station、行間に焼き付く区間の値を出す。
+        void DrawStations(FDMiWing wing)
+        {
+            int stations = FDMiWingPlanform.Stations(wing);
+            int sections = Mathf.Max(stations - 1, 0);
+            using (new EditorGUILayout.HorizontalScope())
             {
-                Resize(ref devices[i].sectionMul, count);
-                Resize(ref devices[i].alpha, count);
-                Resize(ref devices[i].cl, count);
-                Resize(ref devices[i].cd, count);
-                Resize(ref devices[i].scale, count);
+                if (GUILayout.Button("区間 +", GUILayout.Width(64f)))
+                    SetSectionCount(wing, sections + 1);
+                if (GUILayout.Button("区間 −", GUILayout.Width(64f)))
+                    SetSectionCount(wing, Mathf.Max(sections - 1, 0));
+                EditorGUILayout.LabelField("区間 " + sections + " / station " + stations);
+            }
+            if (stations == 0)
+                return;
+
+            // 数値は直接書き換えず、変わったときだけまとめて反映する (Undo を1手にまとめる)。
+            Vector3[] leadingEdge = (Vector3[])wing.leadingEdge.Clone();
+            Vector3[] trailingEdge = (Vector3[])wing.trailingEdge.Clone();
+            int removeAt = -1;
+            _station = Mathf.Clamp(_station, 0, stations - 1);
+
+            // station を選ぶ番号ボタンまで「変更」と見なさないよう、BeginChangeCheck ではなく
+            // 前後の値を比べる。
+            bool changed = false;
+            for (int j = 0; j < stations; j++)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    // 番号を押すと、その station のハンドルを Scene に出す。
+                    if (GUILayout.Toggle(j == _station, (j + 1).ToString(), "Button", GUILayout.Width(24f)))
+                        _station = j;
+                    Vector3 leading = EditorGUILayout.Vector3Field("前", leadingEdge[j]);
+                    if (leading != leadingEdge[j])
+                        changed = true;
+                    leadingEdge[j] = leading;
+                }
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    // 番号の欄と同じ幅を空けて、前後を縦にそろえる。
+                    EditorGUILayout.LabelField("", GUILayout.Width(24f));
+                    Vector3 trailing = EditorGUILayout.Vector3Field("後", trailingEdge[j]);
+                    if (trailing != trailingEdge[j])
+                        changed = true;
+                    trailingEdge[j] = trailing;
+                    if (GUILayout.Button("×", GUILayout.Width(20f)))
+                        removeAt = j;
+                }
+                if (j < sections)
+                    DrawSolvedSection(leadingEdge, trailingEdge, j);
+            }
+            if (changed)
+            {
+                Undo.RecordObject(wing, "FDMiWing 平面形");
+                wing.leadingEdge = leadingEdge;
+                wing.trailingEdge = trailingEdge;
+                Bake(wing);
+            }
+            if (removeAt >= 0)
+                RemoveStation(wing, removeAt);
+        }
+
+        // 焼き付く区間の値。数値の確認用 (Scene のラベルと同じ値)。
+        static void DrawSolvedSection(Vector3[] leadingEdge, Vector3[] trailingEdge, int i)
+        {
+            FDMiWingPlanform.Section section;
+            string text = "  Sec" + i;
+            if (FDMiWingPlanform.Solve(leadingEdge, trailingEdge, i, out section))
+                text += "   コード " + section.chord.ToString("F2") + " m   幅 " + section.width.ToString("F2")
+                    + " m   面積 " + section.area.ToString("F1") + " m2   後退角 " + section.sweepDeg.ToString("F1") + " deg";
+            else
+                text += "   前縁と後縁が同じ (置くと区間になる)";
+            EditorGUILayout.LabelField(text, EditorStyles.miniLabel);
+        }
+
+        // カーブは区間ごとに持つが、同じ翼型を使うことが多い。Sec0 を全 section に配る。
+        static void DrawCurves(FDMiWing wing)
+        {
+            if (GUILayout.Button("Sec0 のカーブを全 section に複製"))
+                CopyCurves(wing);
+        }
+
+        void DrawTotal(FDMiWing wing)
+        {
+            // 焼き付いた区間から合計と後退角を出す。角度は回転で変わらないので平面形から直接解く。
+            int sections = wing.sectionArea != null ? wing.sectionArea.Length : 0;
+            float area = 0f;
+            float sweep = 0f;
+            float sweepFactor = 0f;
+            for (int i = 0; i < sections; i++)
+            {
+                area += wing.sectionArea[i];
+                FDMiWingPlanform.Section section;
+                if (!FDMiWingPlanform.Solve(wing.leadingEdge, wing.trailingEdge, i, out section))
+                    continue;
+                sweep += section.sweepDeg * section.area;
+                sweepFactor += Mathf.Cos(section.sweepDeg * Mathf.Deg2Rad) * section.area;
             }
 
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("合計", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("翼幅 span", wing.span.ToString("F2") + " m (投影翼幅の焼き付け値)");
+            EditorGUILayout.LabelField("面積", (area * wing.wingAreaCoef).ToString("F1") + " m2");
+            EditorGUILayout.LabelField("アスペクト比", area > 0f ? (wing.span * wing.span / (area * wing.wingAreaCoef)).ToString("F2") : "-");
+            // 後退角は翼幅軸の向きとして効く。代表値は面積加重平均 (屈折翼でも1つにまとめる)。
+            EditorGUILayout.LabelField(
+                "後退角",
+                (area > 0f ? (sweep / area).ToString("F1") : "-") + " deg (面積加重平均) / 有効揚力傾斜 cosΛ "
+                    + (area > 0f ? (sweepFactor / area).ToString("F3") : "-")
+            );
+        }
+
+        // 焼き付いた区間。平面形の輪郭と重なる (重ならないときは焼き付けが古い)。
+        void DrawSections(FDMiWing wing)
+        {
+            if (wing.coordPos == null)
+                return;
+            for (int i = 0; i < wing.coordPos.Length; i++)
+            {
+                FDMiAeroGeometry.DrawSection(wing, i, new Color(0.3f, 0.8f, 1f, 1f));
+                FDMiAeroGeometry.DrawSectionAxes(wing, i, wing.span * 0.1f);
+                // 単位は書かない。区間が並ぶと文字が重なるため (コード長 [m] と面積 [m2])。
+                Handles.Label(wing.coordPos[i], "Sec" + i + " c=" + wing.sectionChord[i].ToString("F2") + " S=" + wing.sectionArea[i].ToString("F1"));
+            }
+            // 装置の舵面も一緒に出す。翼を選べば全面の絵が1枚で見える。
+            if (wing.controlSurface != null)
+                for (int i = 0; i < wing.controlSurface.Length; i++)
+                    if (wing.controlSurface[i] != null)
+                        FDMiAeroGeometry.DrawDevice(wing, wing.controlSurface[i], new Color(1f, 0.6f, 0.2f, 1f));
+        }
+
+        // 平面形の点。前縁・後縁を点で示し、番号を押した station だけドラッグできる。
+        // 座標は翼ローカル (DrawingScope の行列の中で完結する)。
+        void DrawPlanform(FDMiWing wing)
+        {
+            int stations = FDMiWingPlanform.Stations(wing);
+            if (stations == 0)
+                return;
+            float dot = Mathf.Max(wing.span * 0.012f, 0.05f);
+            for (int j = 0; j < stations; j++)
+            {
+                Handles.color = j == _station ? new Color(1f, 0.9f, 0.2f, 1f) : new Color(0.85f, 0.85f, 0.85f, 0.7f);
+                Handles.SphereHandleCap(0, wing.leadingEdge[j], Quaternion.identity, dot, EventType.Repaint);
+                Handles.SphereHandleCap(0, wing.trailingEdge[j], Quaternion.identity, dot, EventType.Repaint);
+                Handles.DrawLine(wing.leadingEdge[j], wing.trailingEdge[j]);
+            }
+            // 前縁・後縁を結んだ平面形の輪郭。
+            Handles.color = new Color(1f, 1f, 0.4f, 1f);
+            for (int j = 1; j < stations; j++)
+            {
+                Handles.DrawLine(wing.leadingEdge[j - 1], wing.leadingEdge[j]);
+                Handles.DrawLine(wing.trailingEdge[j - 1], wing.trailingEdge[j]);
+            }
+            if (_station < 0 || _station >= stations)
+                return;
+
+            Handles.Label(wing.leadingEdge[_station], "前縁 " + (_station + 1));
+            Handles.Label(wing.trailingEdge[_station], "後縁 " + (_station + 1));
+            EditorGUI.BeginChangeCheck();
+            Vector3 leadingEdge = Handles.PositionHandle(wing.leadingEdge[_station], Quaternion.identity);
+            Vector3 trailingEdge = Handles.PositionHandle(wing.trailingEdge[_station], Quaternion.identity);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(wing, "FDMiWing 平面形");
+                wing.leadingEdge[_station] = leadingEdge;
+                wing.trailingEdge[_station] = trailingEdge;
+                Bake(wing);
+                Repaint();
+            }
+        }
+
+        // 区間数の変更。翼と装置の区間配列をそろえて焼き直す。
+        static void SetSectionCount(FDMiWing wing, int sections)
+        {
+            UnityEngine.Object[] objects = FDMiWingPlanform.Targets(wing);
+            Undo.RecordObjects(objects, "FDMiWing 区間数");
+            FDMiWingPlanform.SetSectionCount(wing, sections);
             for (int i = 0; i < objects.Length; i++)
                 EditorUtility.SetDirty(objects[i]);
         }
 
-        static void Resize<T>(ref T[] array, int count)
+        // station を1点消して前詰めする。区間数が1つ減る。
+        static void RemoveStation(FDMiWing wing, int index)
         {
-            Array.Resize(ref array, count);
+            UnityEngine.Object[] objects = FDMiWingPlanform.Targets(wing);
+            Undo.RecordObjects(objects, "FDMiWing station 削除");
+            List<Vector3> leadingEdge = new List<Vector3>(wing.leadingEdge);
+            List<Vector3> trailingEdge = new List<Vector3>(wing.trailingEdge);
+            leadingEdge.RemoveAt(index);
+            trailingEdge.RemoveAt(index);
+            wing.leadingEdge = leadingEdge.ToArray();
+            wing.trailingEdge = trailingEdge.ToArray();
+            FDMiWingPlanform.Bake(wing);
+            for (int i = 0; i < objects.Length; i++)
+                EditorUtility.SetDirty(objects[i]);
         }
 
-        // 空のカーブは 0 を返すが、null は評価できない。
-        static void FillCurves(AnimationCurve[] curves)
+        static void CopyCurves(FDMiWing wing)
         {
-            for (int i = 0; i < curves.Length; i++)
-                if (curves[i] == null)
-                    curves[i] = new AnimationCurve();
+            Undo.RecordObject(wing, "FDMiWing カーブ複製");
+            Copy(wing.clAlpha);
+            Copy(wing.cdAlpha);
+            Copy(wing.clMach);
+            Copy(wing.cdMach);
+            Copy(wing.cmAlpha);
+            EditorUtility.SetDirty(wing);
+        }
+
+        static void Copy(AnimationCurve[] curves)
+        {
+            if (curves == null || curves.Length == 0 || curves[0] == null)
+                return;
+            for (int i = 1; i < curves.Length; i++)
+            {
+                curves[i] = new AnimationCurve(curves[0].keys);
+                curves[i].preWrapMode = curves[0].preWrapMode;
+                curves[i].postWrapMode = curves[0].postWrapMode;
+            }
         }
     }
 }
