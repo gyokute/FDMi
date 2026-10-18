@@ -11,29 +11,14 @@ namespace FDMi.sync
         [Tooltip("Sacc vehicle root (SaccEntity on the same GameObject). Set by Editor; field name must stay EntityControl.")]
         public UdonSharpBehaviour EntityControl;
         [Tooltip("Sync body on the same vehicle root.")]
-        public FDMiEcefSync vehicleSync;
-        [Tooltip("Turn off while Sacc owns motion (pilot seated). On = FDMi follows Sacc each frame.")]
-        public bool followSacc = true;
+        public FDMiGeodeticObjectSync vehicleSync;
 
-        UdonSharpBehaviour cachedVehicle;
-        Transform vehicleTransform;
+        const string SaccEntityTypeName = "SaccFlightAndVehicles.SaccEntity";
         bool registered;
 
         void Start()
         {
-            vehicleTransform = vehicleSync && vehicleSync.target ? vehicleSync.target : transform;
-            CacheVehicle();
             Register();
-        }
-
-        void Update()
-        {
-            if (!followSacc || !vehicleSync || !vehicleTransform)
-                return;
-            if (!vehicleSync.origin)
-                return;
-            if (Networking.IsOwner(vehicleSync.gameObject))
-                vehicleSync.CaptureAndSend(false);
         }
 
         public void Register()
@@ -43,8 +28,12 @@ namespace FDMi.sync
             CacheVehicle();
             if (!EntityControl)
                 return;
+            // `as UdonSharpBehaviour[]` だと UdonSharp binder(BinderSyntaxVisitor.VisitBinaryExpression)が
+            // NullReferenceException で落ちる(SDK 3.10.5 時点)。直接 cast + null ガードで回避する。
             object extensions = EntityControl.GetProgramVariable("ExtensionUdonBehaviours");
-            UdonSharpBehaviour[] behaviours = extensions as UdonSharpBehaviour[];
+            if (extensions == null)
+                return;
+            UdonSharpBehaviour[] behaviours = (UdonSharpBehaviour[])extensions;
             if (behaviours == null)
                 return;
             for (int i = 0; i < behaviours.Length; i++)
@@ -60,23 +49,31 @@ namespace FDMi.sync
             registered = true;
         }
 
+        /// <summary>SaccEntity を型名で探す(Editor の AutoSetup と同じ探索)。</summary>
         void CacheVehicle()
         {
-            if (!EntityControl)
-                EntityControl = GetComponent<UdonSharpBehaviour>();
-            cachedVehicle = EntityControl;
+            if (EntityControl)
+                return;
+            UdonSharpBehaviour[] behaviours = GetComponents<UdonSharpBehaviour>();
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i].GetUdonTypeName() == SaccEntityTypeName)
+                {
+                    EntityControl = behaviours[i];
+                    return;
+                }
+            }
+            Debug.LogWarning("FDMiSaccBridge: " + SaccEntityTypeName + " が同一 GameObject に無いため SFEXT 連携を登録できない: " + gameObject.name);
         }
 
         public void SFEXT_O_PilotEnter()
         {
-            followSacc = true;
             if (vehicleSync)
                 vehicleSync.CaptureAndSend(true);
         }
 
         public void SFEXT_G_PilotEnter()
         {
-            followSacc = true;
         }
 
         public void SFEXT_O_TakeOwnership()

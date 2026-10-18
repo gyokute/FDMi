@@ -52,25 +52,39 @@ namespace FDMi.sync
             baked = true;
         }
 
-        public Vector3 UnityToEcefOffsetM(Vector3 unityM)
+        /// <summary>
+        /// 原点からの ECEF オフセットで指定した位置での ENU 基底(ECEF→Unity)。
+        /// チャンクは ECEF 直交系なのでチャンク番号は厳密だが、ENU 基底自体は緯度経度依存で回るため
+        /// 遠距離でも成立するよう逆算は double で行う。チャンク通過時のみの呼出を想定。
+        /// </summary>
+        public Quaternion ENUAt(Vector3 offsetM)
         {
             if (!baked)
                 Bake();
-            return eastEcef * unityM.x + northEcef * unityM.z + upEcef * unityM.y;
-        }
-
-        public Vector3 EcefOffsetToUnityM(Vector3 offsetM)
-        {
-            if (!baked)
-                Bake();
-            return new Vector3(Vector3.Dot(offsetM, eastEcef), Vector3.Dot(offsetM, upEcef), Vector3.Dot(offsetM, northEcef));
-        }
-
-        public float GeodeticHeightM(Vector3 unityM)
-        {
-            if (!baked)
-                Bake();
-            return Vector3.Dot(UnityToEcefOffsetM(unityM), upEcef);
+            double px = originEcefM.x + offsetM.x;
+            double py = originEcefM.y + offsetM.y;
+            double pz = originEcefM.z + offsetM.z;
+            double p = System.Math.Sqrt(px * px + pz * pz);
+            double b = semiMajorM * System.Math.Sqrt(1.0 - eccentricitySq);
+            double theta = System.Math.Atan2(py * semiMajorM, p * b);
+            double sinTheta = System.Math.Sin(theta);
+            double cosTheta = System.Math.Cos(theta);
+            // 測地緯度は Bowring 逆算。位置ベクトル素直の geocentric 緯度だと Bake の geodetic 基底と
+            // 0.18 度(赤道付近で最大 0.19 度)ずれ、計器表示と描画が食い違う。
+            // 分子は第二離心率 e'^2 * b(= a²/b − b)。e^2 * a では 0.0002 度残る。
+            double lat = System.Math.Atan2(py + (semiMajorM * semiMajorM / b - b) * sinTheta * sinTheta * sinTheta,
+                                            p - eccentricitySq * semiMajorM * cosTheta * cosTheta * cosTheta);
+            double lon = System.Math.Atan2(pz, px);
+            double sinLat = System.Math.Sin(lat);
+            double cosLat = System.Math.Cos(lat);
+            double sinLon = System.Math.Sin(lon);
+            double cosLon = System.Math.Cos(lon);
+            Vector3 east = new Vector3((float)-sinLon, 0f, (float)cosLon);
+            Vector3 north = new Vector3((float)(-sinLat * cosLon), (float)cosLat, (float)(-sinLat * sinLon));
+            Vector3 up = new Vector3((float)(cosLat * cosLon), (float)sinLat, (float)(cosLat * sinLon));
+            // LookRotation(forward=north, upward=up) は列 (east, up, north) の Unity→ECEF 回転。
+            // 必要なのは ECEF→Unity なので逆を返す。
+            return Quaternion.Inverse(Quaternion.LookRotation(north, up));
         }
     }
 }

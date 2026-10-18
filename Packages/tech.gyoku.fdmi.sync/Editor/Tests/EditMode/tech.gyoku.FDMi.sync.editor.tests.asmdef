@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "FDMi.sync",
+        "FDMi.core",
         "tech.gyoku.FDMi.sync.editor",
         "UdonSharp.Runtime",
         "UnityEngine.TestRunner",

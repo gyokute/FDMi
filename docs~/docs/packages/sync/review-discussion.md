@@ -232,3 +232,38 @@
 - 3モデルは**判定（差し戻し）で一致**。最も重い指摘は **Respawn 所有権奪取（T1）** で、単なる表示不具合ではなく Sacc のシミュレーション権を奪う実害。根本原因は `CaptureAndSend` に隠れた暗黙 `SetOwner` であり、これを意味的イベントへ分離すれば T1・T5 を同時に解消できる。
 - 送信ループ系（T1/T2/T3/T4/T7/T8）に P0〜P1 が集中しており、骨格（ECEF オフセット＋整数量子化、Sacc 無改変の自己登録、Editor ベイク＋Start 遅延ベイク）は3モデルとも高評価。修正は局所的で設計破壊を伴わない。
 - 争点となった事項の結論: ①Respawn＝IsOwner ガード採用（「SetOwner なし再送」は単独不可、根因は暗黙 SetOwner の除去）。②dt=0＝順序入替が正しい（GLM/Deepseek の引用不一致は実物確認が必要）。③PlayerAnchor＝per-player 生成（最善は PlayerObject 化）が正解、ゲート撤廃単独は不可。④GeodeticHeightM＝originHeightM 加算は実装修正、曲率は仕様追記。⑤Longcat の座席同一 GO 要件＝**真**（公式で裏付け、confidence 過小）。⑥テスト同語反復＝**妥当**（実装参照テストへ置換）。
+
+---
+
+## 5. 反映状況(実装側の決定と現在のコード)
+
+本節は 2026-10-18 時点の実装(`FDMiGeodetic*` に改名後のコード)に対する反映記録。
+判断の理由(Why not)は各ファイルのコメントに置いてある。
+
+| 論点 | 状態 | 実装 |
+|---|---|---|
+| T1 Respawn 所有権奪取 | **採用**(実装済) | `CaptureAndSend` から暗黙 `SetOwner` を撤去し、非オーナーは no-op。所有権取得は `FDMiSeatAnchor.Interact` と Sacc の `SFEXT_O_*` のみ |
+| T2 dt=0 / T3 freezeLeft | 該当なし | V2 外挿器ベースの実装に該当機構が無い(補間凍結を移植していない) |
+| T4 Bridge 毎フレーム送信 | **採用**(実装済) | Bridge の `Update` を撤去し、`CaptureAndSend(false)` は `TrySerialize` の interval ゲートを通る |
+| T5 PlayerAnchor 所有権 | 設計変更で解決 | PlayerObject 化ではなく assigner が per-player に割り当て、master が `SetOwner`。IsOwner ゲートは正しいまま |
+| T6/T8 姿勢のみ変化・アイドル判定 | **採用**(実装済) | `TrySerialize` が 1 cm 量子化位置 + 姿勢 + 速度の量子化値を比較。静止機は送らない |
+| T7 IsClogged の再送喪失 | **採用**(実装済) | lastSent は送信成功後にコミット(`IsClogged` 中は次フレーム再試行) |
+| T9 非オーナーへの velocity 適用 | 却下 | 非オーナーは外挿位置を transform/body に置く。kinematic 化はしない(設計判断) |
+| T10 GeodeticHeightM | 却下+削除 | 未使用だったためメソッドごと削除。曲率は overview の「適用範囲」に追記 |
+| T11 EntityControl 型検査 | **採用**(実装済) | 型名 `SaccFlightAndVehicles.SaccEntity` で解決。未解決なら警告 |
+| T12 初回デシリアライズ前の原点スナップ | **採用**(実装済) | `OnDeserialization` を受けるまで PlayerPosition は transform を触らない |
+| T13 seatView 追従の適用範囲 | 仕様に明記 | seatView を機体の子に置き localPosition = seatOffsetM(遠隔は追従しない) |
+| T14 降車時の古姿勢送信 | 該当なし | `OnStationExited` は送信しない |
+| T15 座席の同一 GO 要件 | **採用**(実装済) | `[RequireComponent(typeof(VRCStation))]` + overview に明記 |
+| T16 headingSource の Tooltip 矛盾 | **採用**(実装済) | 「空 = 機体ルート姿勢に従う」へ Tooltip を修正 |
+| T17 followSacc 死フラグ | **採用**(実装済) | フィールドごと削除 |
+| T18 FirstOrigin | 仕様で許容 | 複数原点シーンは対象外(AutoSetup は最初に見つかった 1 つを使う) |
+| T19 テストの同語反復 | **採用**(実装済) | 1 cm 量子化・チャンク折り畳み・月距離・ENU 基底・短 Quat 往復の実装参照テストへ置換 |
+| T20 曲率の適用範囲 | **採用**(仕様追記) | overview「適用範囲」(flat-earth 近似、数十 km 規模) |
+| (新規) 位置同期の再設計 | **採用** | 粗部 int チャンク(1 chunk = 655.36 m) + 細部 short(1 cm、short 全域 = 1 chunk)。絶対位置を float で実体化しないため、距離によらず 1 cm 格子 |
+| (新規) root 切替(車体の原点固定) | **採用**(実装済) | 着席で `changeRootRefPoint(vehicleSync)`、降車で Manager へ戻す。root がフレーム原点かつフレーム姿勢になり、root 自身は毎フレーム厳密に原点・無回転 |
+| (新規) ピン留めは位置と回転の両方 | **V2 と同じ** | root 車体を毎フレーム原点・無回転に固定し、位置と回転を論理姿勢へ累算。機体ローカル軸 = フレーム軸になり、重力・空力は `Inverse(FrameRotationEcef) * gravityEcef` で機体ローカルに落とせる(dynamics の入力) |
+| (新規) フレームは root の厳密姿勢 | **V2 と同じ** | 原点 = root の論理位置そのもの(セル量子化しない)、姿勢 = root の論理姿勢。root 自身は厳密に原点・無回転、世界は root からの相対で毎フレーム描き直す |
+| (新規) ワールド側の追従 | **採用**(実装済) | `FDMiGeodeticWorldAnchor`(V2 `FDMiRelativeGroundSync` 相当)。地面などをこの下に置けば、地形コライダーごとフレームに追従し衝突判定も正しいまま。素の参照点でも可 |
+| (新規) 切替時のアバター整合 | **採用**(実装済) | `rebaseFrame` が論理位置を切替前のフレームで読み直し(`oldOrigin` + `oldFrameRot * avatarPos`)、`FrameShift` のずれ分を `TeleportTo` する。着席中は VRChat が座席へ置き直すので触らない |
+| (新規) 非オーナーの描画更新 | **採用**(実装済) | `FDMiGeodeticObjectSync.Update` が非オーナーで `windupPositionAndRotation()` を呼び、受信値の外挿を毎フレーム描画する(旧実装は capture のみで描画更新が無かった) |
