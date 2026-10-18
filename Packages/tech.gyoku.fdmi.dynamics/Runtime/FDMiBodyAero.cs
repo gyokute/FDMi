@@ -10,6 +10,8 @@ namespace FDMi.dynamics
     //
     // 座標はすべて機体固定 (body ローカル、+Z = 前方、+X = 右、+Y = 上)。本コンポーネントの transform は使わない。
     // 対気速度は FDMiAirData.AirSpeed と同じ「機体速度 - 風」とする。翼 (V1 移植) の「風 - 機体速度」とは符号が逆。
+    // 入力の FDMiData はパス文字列 (FDMiDataPath) で名前解決する。~ は機体 (名前空間ルート) の起点。
+    // body は Editor が機体から解決する。
     //
     // 垂直力は DATCOM の body-alone 推算 (Jorgensen のクロスフロー法) の縮退。円断面の細長体では
     //   CN = 2 sinα cosα + Cdc (Ap/Smax) sin²α
@@ -27,14 +29,25 @@ namespace FDMi.dynamics
     // 区間分割はしない。DATCOM の body-alone も最終的には合力と CP に縮退する。
     // 力の作用点は centerOfPressure 1点。重心回りのモーメントは作用点のずれから出る。
     // 90 度を超える迎角では第1項の符号が反転するが、旅客機の通常飛行では起こらないので扱わない。
+    //
+    // 翼との干渉で胴体側が担うのは、この垂直力そのもの。翼の吹き下ろしは受けない。後流の下向き
+    // 成分は速度ベクトルに既に含まれており、垂直力はクロスフローで決まるので、吹き下ろしの項を
+    // 胴体側にも足すと二重に効く。直径は FDMiWing が読んで翼側の持上げ倍率に使う。
+    // 地面効果も持たない。鏡像渦が効くのは翼の循環で、円断面のクロスフローには同じ機構がない。
     public class FDMiBodyAero : FDMiBehaviour
     {
         [Header("配線")]
-        // 力を加える機体の Rigidbody。
+        // 力を加える機体の Rigidbody。Editor が機体 (名前空間ルート) から解決する。
         public Rigidbody body;
+        public string WindPath = "~/Physics/Wind";
+
         // 風速ベクトル。世界座標。未接続なら無風。単位は m/s。
+        [FDMiDataPath(nameof(WindPath))]
         public FDMiVector3 windInput;
+        public string DensityPath = "~/Physics/Rho";
+
         // 空気密度。未接続なら rho0 を使う。単位は kg/m^3。
+        [FDMiDataPath(nameof(DensityPath))]
         public FDMiFloat densityInput;
 
         [Header("形状 (カプセル)")]
@@ -44,7 +57,7 @@ namespace FDMi.dynamics
         public float length = 38f;
         // 最大直径。基準面積 Smax = π d^2/4 と平面形面積 Ap = d l に効く。単位は m。
         public float diameter = 4f;
-        // 合力の作用点 (CP)。body ローカル。単位は m。
+        // 合力の作用点 (CP)。body ローカル。単位は m。Editor の焼き付けは transform の位置を入れる。
         public Vector3 centerOfPressure = Vector3.zero;
 
         [Header("係数")]
