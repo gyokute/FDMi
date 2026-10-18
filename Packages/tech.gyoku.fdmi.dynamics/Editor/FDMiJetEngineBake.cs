@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace FDMi.dynamics.Editor
 {
-    // FDMiJetEngine の設計値から実行時面積 (_a8/_afan/_tt4dK/_dHfD/_dHcD/_wfMax) を焼き付ける。
+    // FDMiJetEngine の設計値から実行時面積 (_a8/_tt4dK/_dHfD/_dHcD/_wfMax) を焼き付ける。
     // Editor 側の通常 C# で動くため、Udon の制約は受けない。
     // ランタイムに SizeAreas() はない。設計値を変えたら Editor が自動で焼き直す。
     // 静止最大推力 = ISA SL (15℃, 101.325kPa)・速度 0・スロットル全開の推力
@@ -29,7 +29,6 @@ namespace FDMi.dynamics.Editor
             // fan 直径と BPR からコア面積・fan 面積を導く。
             float fanArea = Mathf.PI * Mathf.Pow(e.fanDiameter * 0.5f, 2f);
             e.coreAreaM2 = fanArea / (1f + e.bypassRatio);
-            e._afan = fanArea;
 
             e._tt4dK = e.tt4maxC + 273.15f;
 
@@ -42,11 +41,11 @@ namespace FDMi.dynamics.Editor
             e._dHfD = dHf;
             e._dHcD = dHc;
             float tt4 = e._tt4dK;
-            float tt5 = tt4 - dHc / cp;
-            float pr5 = Mathf.Pow(1f - dHc / (cp * tt4 * e.etaTurb), g / (g - 1f));
+            float tt5 = tt4 - dHc / e.cpHot;
+            float pr5 = Mathf.Pow(1f - dHc / (e.cpHot * tt4 * e.etaTurb), g / (g - 1f));
             float dHlt = (1f + e.bypassRatio) * dHf;
-            float tt15 = tt5 - dHlt / cp;
-            float pr15 = Mathf.Pow(1f - dHlt / (cp * tt5 * e.etaTurb), g / (g - 1f));
+            float tt15 = tt5 - dHlt / e.cpHot;
+            float pr15 = Mathf.Pow(1f - dHlt / (e.cpHot * tt5 * e.etaTurb), g / (g - 1f));
             float epr = pr5 * pr15 * e.burnerPR * e.corePR * e.fanPR;
             float etr = tt15 / tt0;
             // 0.75 = 圧縮機面流量関数比 Wc_face/Wc_choke (設計流量 = 0.75·Wc_choke·A_core·Pt0/√Tt0。マジックではない)
@@ -76,13 +75,13 @@ namespace FDMi.dynamics.Editor
 
             float tt4 = e._tt4dK;
             float dHc = e._dHcD;   // N2 = 1
-            float tH = 1f - dHc / (cp * tt4);
+            float tH = 1f - dHc / (e.cpHot * tt4);
             float tt5 = tt4 * tH;
             float pr5 = Mathf.Pow(1f - (1f / e.etaTurb) * (1f - tH), adiab);
             float dHht = cp * (tt5 - tt4);
 
             float dHlt = -(1f + e.bypassRatio) * e._dHfD;  // N1 = 1
-            float tL = 1f + dHlt / (cp * Mathf.Max(1f, tt5));
+            float tL = 1f + dHlt / (e.cpHot * Mathf.Max(1f, tt5));
             float tt15 = tt5 * tL;
             float pr15 = Mathf.Pow(1f - (1f / e.etaTurb) * (1f - tL), adiab);
 

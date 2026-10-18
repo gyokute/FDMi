@@ -22,7 +22,7 @@ namespace FDMi.dynamics.Editor
                 EditorUtility.SetDirty(e);
             }
 
-            if (e._a8 <= 0f || e._afan <= 0f)
+            if (e._a8 <= 0f || e.coreAreaM2 <= 0f)
             {
                 EditorGUILayout.HelpBox("未焼き付け。設計値を触ると自動で焼き付く。", MessageType.Warning);
                 if (GUILayout.Button("焼き付ける"))
@@ -37,8 +37,8 @@ namespace FDMi.dynamics.Editor
             EditorGUILayout.HelpBox(
                 "焼き付け: A8 "
                     + e._a8.ToString("F5")
-                    + " m2、Afan "
-                    + e._afan.ToString("F4")
+                    + " m2、Core A "
+                    + e.coreAreaM2.ToString("F4")
                     + " m2。"
                     + "静止最大推力 (ISA SL・V0・全開): "
                     + r.thrustN.ToString("F0")

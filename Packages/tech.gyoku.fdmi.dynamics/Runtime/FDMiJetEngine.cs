@@ -27,6 +27,12 @@ namespace FDMi.dynamics
         [FDMiDataPath(nameof(fuelSWPath))]
         public FDMiBool FuelSW;
 
+        // thrust reverser lever (0 = stowed, 1 = full reverse)
+        public string reverserPath = "Reverser";
+
+        [FDMiDataPath(nameof(reverserPath))]
+        public FDMiFloat Reverser;
+
         // Aerodynamic state
         // Mach number, optional (null = V/sqrt(gamma R T))
         public string TASPath = "~/Physics/References/TAS";
@@ -71,10 +77,16 @@ namespace FDMi.dynamics
         [FDMiDataPath(nameof(fuelPath))]
         public FDMiFloat fuelFlow;
 
-        // EGT[K]
-        public string EGTPath = "EGT";
+        // ITT[K]: HPT exit (tt5). Thermocouple-measured -> 2-node sensor lag in FixedUpdate.
+        public string ittPath = "ITT";
 
-        [FDMiDataPath(nameof(EGTPath))]
+        [FDMiDataPath(nameof(ittPath))]
+        public FDMiFloat ITT;
+
+        // EGT[K]: LPT exit (tt15). Thermocouple-measured (CF6=T49, JT9D=Tt7) -> 2-node sensor lag in FixedUpdate.
+        public string egtPath = "EGT";
+
+        [FDMiDataPath(nameof(egtPath))]
         public FDMiFloat EGT;
 
         // fan spool
@@ -99,7 +111,7 @@ namespace FDMi.dynamics
         public float etaWind = 0.07f; // fraction of ram enthalpy driving the spools (M0.8 cruise -> N1~0.21)
         public float tauRam = 5.0f; // ram-air reservoir lag [s]: bus jitter absorbed before the cbrt map (rate only)
         public float spoolStopN = 0.025f; // rotation-stop release [rating ratio]: latched 0 releases only above this
-        public float tauEGT = 2.5f; // lumped metal/sensor heat capacity [s]
+        public float tauProbe = 2.5f; // ITT/EGT sensor+metal lumped heat capacity [s] (shared)
         public float lightOffN2 = 0.08f; // ignition S-curve scale [0,1]; idle で ign≈1 になる尺度(点火窓は N2 5–15%)
         public float overspeedMargin = 1.20f; // overspeed clamp factor vs rating (N2/N1 clamp only)
 
@@ -115,8 +127,17 @@ namespace FDMi.dynamics
         public float OPR = 29.3f;
         public float bypassRatio = 4.4f;
 
+        // リバース対象の流路。高バイパス比のカスケード型はファン流のみ反転しコアは前向きを維持する (N2ReverseEnable=false)。
+        // ターゲット型 (旧式低バイパス) はコア流も反転するため N2ReverseEnable=true。
+        public bool N1ReverseEnable = true;
+        public bool N2ReverseEnable = false;
+
         public float burnerPR = 1.0f;
         public float tt4maxC = 1096f; // burner exit at 100%
+
+        // 区間定数近似: 圧縮側は cp が式中で相殺し温度不変 (γのみ寄与)、実効があるのは膨張側 ΔT = W/cp のみ。
+        // EngineSim-UA 変数モード (cp(T) 3次式+燃料質量) との設計点差は 8-14K で tt4maxC 較定余裕に埋もれ、step 増分ゼロ。
+        public float cpHot = 1220f; // 膨張側燃焼ガス平均比熱 [J/(kg K)] (燃料質量込み)
 
         [Header("各部の断熱圧縮効率。調整不要。")]
         public float etaFan = 1.0f;
@@ -128,7 +149,6 @@ namespace FDMi.dynamics
         [Header("Bake results (Editor が設定。触らない)")]
         public float corePR = 21.86f;
         public float _a8 = 0.22631f;
-        public float _afan;
         public float coreAreaM2;
         public float _tt4dK = 1363.15f;
         public float _wfMax = 2.0f; // SL static full-throttle valve flow [kg/s] (Bake sets, provisional until baked)
@@ -142,9 +162,10 @@ namespace FDMi.dynamics
         private float R = 287.05f; // specific gas constant for air [J/(kg K)]
         private float g0 = 9.80665f; // standard gravity [m/s^2]
         private float adiabaticFactor = 3.5f; // (gamma/(gamma-1))
+        private const float cpAir = 1005f; // 圧縮側冷間比熱 [J/(kg K)]
         #endregion
 
-        // Bake 済み値 (_tt4dK/_afan/coreAreaM2/_a8/corePR/_dHfD/_dHcD) を使う。計算は Editor (FDMiJetEngineBake) のみ。
+        // Bake 済み値 (_tt4dK/coreAreaM2/_a8/corePR/_dHfD/_dHcD) を使う。計算は Editor (FDMiJetEngineBake) のみ。
 
         void Start()
         {
@@ -157,7 +178,9 @@ namespace FDMi.dynamics
             _throttle = Throttle.data;
             _starter = Starter.data;
             _fuelSw = FuelSW.data;
+            _reverser = Reverser.data;
             _fuelFlow = fuelFlow.data;
+            _itt = ITT.data;
             _egt = EGT.data;
             _n1Arr = n1.data;
             _n2Arr = n2.data;
@@ -171,8 +194,10 @@ namespace FDMi.dynamics
         float _ramC1 = 0f; // LP ram reservoir (windmill), lagged by tauN1
         float _starterC = 0f; // starter output reservoir (spool-up lag), lagged by tauStarter
         float _thrEff = 0f;
-        float _egtS = 288.15f; // sensor/metal node [K]
-        float _egtGas = 288.15f; // SolveThrust writes gas node [K]
+        float _ittS = 288.15f; // ITT sensor/metal node [K]
+        float _ittGas = 288.15f; // SolveThrust writes gas node (tt5) [K]
+        float _egtS = 288.15f; // EGT sensor/metal node [K]
+        float _egtGas = 288.15f; // SolveThrust writes gas node (tt15) [K]
 
         void FixedUpdate()
         {
@@ -229,7 +254,7 @@ namespace FDMi.dynamics
             _n2Arr[0] = _n2;
 
             // 準定常熱力学は実スプールで駆動 (TR-515 p.3-4)。Tt4/Tt4max ≈ N2/N2max の熱スロットル則。
-            // 床は不要(根因2の修理で EGT が N2 に対して単調になる)。C12 gate も不要。
+            // 床は不要(根因2の修理で ITT が N2 に対して単調になる)。C12 gate も不要。
             _thrEff = fuelV * _n2;
             float thrustSS = SolveThrust();
             body.AddForceAtPosition(transform.forward * thrustSS, transform.position, ForceMode.Force);
@@ -238,9 +263,12 @@ namespace FDMi.dynamics
             float densCorr = (pt0 / 101325f) / Mathf.Sqrt(Mathf.Max(0.01f, tt0 / 288.15f));
             _fuelFlow[0] = u * _wfMax * densCorr;
 
-            // EGT: gas node (SolveThrust writes _egtGas = tt5, HPT 出口, already throttle-scaled)
+            // ITT/EGT: gas node (SolveThrust writes _ittGas = tt5 / _egtGas = tt15, already throttle-scaled)
             //      -> sensor/metal single-node first-order lag. Blend by ign so crank (unlit) stays at OAT.
-            _egtS += (Mathf.Max(tt0 + (_egtGas - tt0) * ign, tt0) - _egtS) * (dt / (tauEGT + dt));
+            float kProbe = dt / (tauProbe + dt);
+            _ittS += (Mathf.Max(tt0 + (_ittGas - tt0) * ign, tt0) - _ittS) * kProbe;
+            _itt[0] = _ittS;
+            _egtS += (Mathf.Max(tt0 + (_egtGas - tt0) * ign, tt0) - _egtS) * kProbe;
             _egt[0] = _egtS;
         }
 
@@ -248,6 +276,7 @@ namespace FDMi.dynamics
         float[] _throttle;
         bool[] _starter;
         bool[] _fuelSw;
+        float[] _reverser;
         float[] _sat;
         float[] _staticPressure;
         float[] _mach;
@@ -255,6 +284,7 @@ namespace FDMi.dynamics
         float[] _dynamicPressure;
         float[] _tas;
         float[] _fuelFlow;
+        float[] _itt;
         float[] _egt;
         float[] _n1Arr;
         float[] _n2Arr;
@@ -275,32 +305,27 @@ namespace FDMi.dynamics
                 pr2 = 1f - 0.075f * Mathf.Pow(fmach - 1f, 1.35f);
             float tt2 = tt0;
             float pt2 = pt0 * pr2;
-            float cp2 = Cp(tt0);
 
             // ---- 圧縮機: 比仕事 ∝ N² (固定幾何)。設計比仕事を N² 則で縮尺する ----
             float dHf = _dHfD * _n1 * _n1;
-            float tt13 = tt2 + dHf / cp2;
+            float tt13 = tt2 + dHf / cpAir;
             float tr13 = tt13 / tt2;
             float pr13 = Mathf.Pow(1f + etaFan * (tr13 - 1f), adiabaticFactor);
-            float cp13 = Cp(tt13);
             float dHc = _dHcD * _n2 * _n2;
-            float tt3 = tt13 + dHc / cp13;
+            float tt3 = tt13 + dHc / cpAir;
             float tr3 = tt3 / tt13;
             float pr3 = Mathf.Pow(1f + etaComp * (tr3 - 1f), adiabaticFactor);
-            float cp3 = Cp(tt3);
 
             // ---- バーナ ----
             float tt4 = Mathf.Max(_tt4dK * _thrEff, tt3); // 燃料 OFF でも Tt4 ≥ Tt3 (数値ガード兼 物理下限)
-            float cp4 = Cp(tt4);
 
             // ---- タービン: 軸仕事収支 (secant 廃止) ----
             float dHht = -dHc;                       // HPT は HPC を駆動 (負 = ガスが仕事を渡す)
-            float tH = 1f + dHht / (cp4 * tt4);
+            float tH = 1f + dHht / (cpHot * tt4);
             float tt5 = tt4 * tH;
-            float cp5 = Cp(tt5);
             float pr5 = Mathf.Pow(1f - (1f / etaTurb) * (1f - tH), adiabaticFactor);
             float dHlt = -(1f + bypassRatio) * dHf;  // LPT はファン(+バイパス)を駆動
-            float tL = 1f + dHlt / (cp5 * Mathf.Max(1f, tt5));
+            float tL = 1f + dHlt / (cpHot * Mathf.Max(1f, tt5));
             float tt15 = tt5 * tL;
             float pr15 = Mathf.Pow(1f - (1f / etaTurb) * (1f - tL), adiabaticFactor);
 
@@ -319,7 +344,12 @@ namespace FDMi.dynamics
                 Mathf.Max(0f, 2f * R / Mathf.Max(1e-6f, fac) * etr * tt0 * etaNoz * (1f - Mathf.Pow(npr, -fac)))
             );
             float pexit = npr <= 1.893f ? ps0 : 0.52828f * pt8;
-            float fg = uexit + (pexit - ps0) * _a8 / Mathf.Max(1e-6f, eair);
+            // Reverser: 有効流路のグロス推力 (運動量+圧力項) を (1-2r) で反転 (r=0.5 で 0、r=1 で全反転)。
+            // ラムドラグは反転させない (吸込は依然 V0 で入る): 全反転時の制動力 = 逆噴射グロス + ラム。
+            float rev = Mathf.Clamp(_reverser[0], 0f, 1f);
+            float coreRev = N2ReverseEnable ? 1f - 2f * rev : 1f;
+            float fanRev = N1ReverseEnable ? 1f - 2f * rev : 1f;
+            float fg = coreRev * (uexit + (pexit - ps0) * _a8 / Mathf.Max(1e-6f, eair));
             // fan nozzle
             float facF = 1.0f / adiabaticFactor;
             float snpr = pt13 / Mathf.Max(1e-6f, ps0);
@@ -327,7 +357,7 @@ namespace FDMi.dynamics
                 Mathf.Max(0f, 2f * R / Mathf.Max(1e-6f, facF) * tt13 * etaNoz * (1f - Mathf.Pow(snpr, -facF)))
             );
             float pfexit = snpr <= 1.893f ? ps0 : 0.52828f * pt13;
-            fg += bypassRatio * ues + (pfexit - ps0) * bypassRatio * coreAreaM2 / Mathf.Max(1e-6f, eair);
+            fg += fanRev * (bypassRatio * ues + (pfexit - ps0) * bypassRatio * coreAreaM2 / Mathf.Max(1e-6f, eair));
 
             float dram = u0ms * (1f + bypassRatio);
             float fnet = fg - dram;
@@ -335,14 +365,10 @@ namespace FDMi.dynamics
 
             // gas node for the 2-node heat capacity (FixedUpdate lags the sensor node).
             // Fuel output moved to metered valve flow in FixedUpdate (Bake-scaled _wfMax).
-            _egtGas = tt5; // EGT プローブは HPT 出口 (Tt5)
+            _ittGas = tt5; // ITT プローブ: HPT 出口 (Tt5)
+            _egtGas = tt15; // EGT プローブ: LPT 出口 (Tt15) — CF6=T49, JT9D=Tt7 の計測位置
             return fnN;
         }
 
-        // 等 cp 近似 (EngineSim-UA の Rankine 多項式は採用しない)
-        private static float Cp(float tK)
-        {
-            return 1005f;
-        }
     }
 }
