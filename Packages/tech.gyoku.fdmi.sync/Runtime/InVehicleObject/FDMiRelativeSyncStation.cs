@@ -1,4 +1,4 @@
-﻿using FDMi.core;
+using FDMi.core;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -27,8 +27,8 @@ namespace FDMi.sync
         {
             // FDMiPlayerPosition lpp = syncManager.localPlayerPosition;
             // lpp.inVehicle = false;
-            if (!refPoint.isRoot && isChangeRootRefPoint)
-                syncManager.changeRootRefPoint(refPoint);
+            if (refPoint.isRoot && isChangeRootRefPoint)
+                syncManager.changeRootRefPoint(syncManager);
         }
     }
 }

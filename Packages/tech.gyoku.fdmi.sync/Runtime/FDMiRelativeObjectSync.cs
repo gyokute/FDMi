@@ -14,16 +14,20 @@ namespace FDMi.sync
         [UdonSynced] public short[] syncedAngularVel = new short[3];
         [UdonSynced] public short[] syncedChunkPosition = new short[3];
 
+        // Why-not: getViewPosition との差では C 更新分が A に混入するため pin 値との差で積分する。
+        protected Vector3 pinnedPos = Vector3.zero;
+
         public override void initReferencePoint()
         {
             base.initReferencePoint();
             body.useGravity = false;
 
             isRoot = false;
-            setPosition(body.position);
+            setPositionAbsolute(body.position);
             setRotation(body.rotation);
             ResetSyncStuff();
             transform.SetParent(null);
+            pinnedPos = body.position;
         }
         public override void OnPlayerJoined(VRCPlayerApi player)
         {
@@ -39,8 +43,6 @@ namespace FDMi.sync
             if (!Networking.IsOwner(gameObject)) whenSynced();
             transform.position = getViewPosition();
             transform.rotation = getViewRotation();
-            prevRootPos = rootRefPoint._position;
-            prevRootRot = rootRefPoint._rotation;
             if (body)
             {
                 body.position = transform.position;
@@ -48,6 +50,8 @@ namespace FDMi.sync
                 body.transform.position = transform.position;
                 body.transform.rotation = transform.rotation;
             }
+            // Why-not: base を呼ばない override で pin し直さないと切換時の bp - pinnedPos が旧 C との差になり A が飛ぶ。
+            pinnedPos = getViewPosition();
         }
 
         private Vector3 tentativeVel;
@@ -62,51 +66,42 @@ namespace FDMi.sync
             _velocity = tentativeVel;
             body.velocity = Quaternion.Inverse(_rotation) * _velocity;
         }
-        Vector3 prevRootPos = Vector3.zero;
-        Quaternion prevRootRot = Quaternion.identity;
         void FixedUpdate()
         {
             if (!isInit) return;
             if (Networking.IsOwner(gameObject) && !body.isKinematic)
             {
-                Quaternion br = body.rotation;
-                Vector3 bp = body.position;
                 if (isRoot)
                 {
-                    setRotation((_rotation * br).normalized);
-                    setPosition(_rotation * bp + _position);
-                    body.position = Vector3.zero;
+                    Quaternion qOld = _rotation;
+                    Vector3 bp = body.position;
+                    Quaternion br = body.rotation;
+                    setRotation((qOld * br).normalized);
+                    // Why-not: getViewPosition との差ではなく pin 値との差を旧回転で回して自 fine に足す。view は C 更新で動くため ΔC が混入する。
+                    setPosition(_position + qOld * (bp - pinnedPos));
+                    body.position = getViewPosition();
                     body.rotation = Quaternion.identity;
                     body.velocity = Quaternion.Inverse(br) * body.velocity;
-
-                    // gravity: central (ECEF)
-                    Vector3 selfTotalM = getTotalPositionM();
-                    float r = selfTotalM.magnitude;
-                    Vector3 g = selfTotalM * (-MU_EARTH / (r * r * r));
-                    body.AddForce(Quaternion.Inverse(_rotation) * g, ForceMode.Acceleration);
+                    pinnedPos = body.position;
                 }
                 else
                 {
-                    Quaternion smr = syncManager.localRotation;
-                    Vector3 smp = syncManager.localPosition;
-                    Vector3 rbdp = Vector3.zero;
-                    if (rootRefPoint.body)
-                    {
-                        smr = rootRefPoint.body.rotation * smr;
-                        rbdp = rootRefPoint.body.position;
-                    }
-
-                    setRotation((Quaternion.Inverse(smr) * br).normalized);
-                    setPosition(Quaternion.Inverse(smr) * (bp - smp - rbdp));
+                    FDMiReferencePoint R = rootRefPoint;
+                    Quaternion qr = R._rotation;
+                    Vector3 C = syncManager.localCell;
+                    Vector3 bp = body.position;
+                    Quaternion br = body.rotation;
+                    _chunkPosition = R._chunkPosition;
+                    _posMm[0] = R._posMm[0];
+                    _posMm[1] = R._posMm[1];
+                    _posMm[2] = R._posMm[2];
+                    // Why-not: setPosition は上書きのため R._position を落とすと fine が消え total が A_R + C + Q_R·bp にならない。
+                    setPosition(R._position + C + qr * bp);
+                    // Why-not: br は view 姿勢 (getViewRotation) なので絶対姿勢へは Q_R を掛けて戻す。
+                    // Inverse(Q_R) を掛けると毎フレーム Q_R⁻² が前置され姿勢が回り続ける。
+                    setRotation((qr * br).normalized);
                     body.rotation = getViewRotation();
                     body.position = getViewPosition();
-                    // body.velocity = Quaternion.Inverse(rbr) * body.velocity;
-
-                    // gravity: central (ECEF), evaluated at self position composed from root
-                    Vector3 selfTotalM = rootRefPoint.getTotalPositionM() + rootRefPoint._rotation * getTotalPositionM();
-                    float r = selfTotalM.magnitude;
-                    Vector3 g = selfTotalM * (-MU_EARTH / (r * r * r));
-                    body.AddForce(Quaternion.Inverse(rootRefPoint._rotation) * g, ForceMode.Acceleration);
                 }
             }
             else
@@ -116,10 +111,6 @@ namespace FDMi.sync
                 body.position = getViewPosition();
                 body.transform.position = getViewPosition();
                 body.transform.rotation = getViewRotation();
-                Vector3 selfTotalM = rootRefPoint.getTotalPositionM() + rootRefPoint._rotation * getTotalPositionM();
-                float r = selfTotalM.magnitude;
-                Vector3 g = selfTotalM * (-MU_EARTH / (r * r * r));
-                body.AddForce(Quaternion.Inverse(rootRefPoint._rotation) * g, ForceMode.Acceleration);
             }
         }
 
@@ -141,14 +132,7 @@ namespace FDMi.sync
                 {
                     _velocity = Vector3.zero;
                 }
-                // if (parentRefPoint.index == rootRefPoint.index)
-                // {
-                //     setRotation((btr * parentRefPoint._rotation).normalized);
-                //     setPosition(parentRefPoint._rotation * btp + parentRefPoint._position + 1000f * (parentRefPoint.syncedKmPos - syncedKmPos));
-                //     _velocity = parentRefPoint._rotation * body.velocity;
-                // }
                 // Serialize
-
                 TrySerialize();
             }
             if (!Networking.IsOwner(gameObject))
@@ -174,18 +158,29 @@ namespace FDMi.sync
         #region Interpolated
         protected override void TrySerialize()
         {
-            // Try Serialize.
-            if (Time.time > nextUpdateTime)
+            if (Time.time > nextUpdateTime && !Networking.IsClogged)
             {
+                bool changed = Vector3.Distance(prevPostedPos, _position) > 0.01f || Quaternion.Angle(prevPostedRot, _rotation) > 0.75f;
                 for (int i = 0; i < 3; i++)
                 {
-                    syncedPosition[i] = _posMm[i] + (int)Mathf.Round(_position[i] * 1000f);
-                    syncedChunkPosition[i] = (short)_chunkPosition[i];
+                    int mm = _posMm[i] + (int)Mathf.Round(_position[i] * 1000f);
+                    int ch = (int)_chunkPosition[i];
+                    if (mm >= MM_PER_CHUNK) { mm -= MM_PER_CHUNK; ch += 1; }
+                    else if (mm <= -MM_PER_CHUNK) { mm += MM_PER_CHUNK; ch -= 1; }
+                    if (mm != syncedPosition[i] || (short)ch != syncedChunkPosition[i]) changed = true;
+                    syncedPosition[i] = mm;
+                    // Why-not: chunk を short に収める。±32767 chunk を超える遠方は送れない。
+                    if (ch > 32767) ch = 32767;
+                    else if (ch < -32767) ch = -32767;
+                    syncedChunkPosition[i] = (short)ch;
                 }
+                if (!changed) return;
                 syncedRotation = PackQuaternion(_rotation);
                 syncedAngularVel = PackOmega(body.angularVelocity);
                 syncedVel = _velocity;
                 RequestSerialization();
+                prevPostedPos = _position;
+                prevPostedRot = _rotation;
                 nextUpdateTime = Time.time + updateInterval;
             }
         }
@@ -193,6 +188,8 @@ namespace FDMi.sync
         private double lastSyncedTime;
         private float localSyncedTime, syncedInterval = 100000f;
         private Vector3 lastVel, lastPos;
+        private Vector3 prevPostedPos = Vector3.zero;
+        private Quaternion prevPostedRot = Quaternion.identity;
         private int[] lastSyncedMm = new int[3];
         private Vector3 lastSyncedChunk = Vector3.zero;
         private Vector3 syncTargetM = Vector3.zero;
@@ -206,9 +203,15 @@ namespace FDMi.sync
         {
             for (int i = 0; i < 3; i++)
             {
-                syncedPosition[i] = _posMm[i] + (int)Mathf.Round(_position[i] * 1000f);
-                lastSyncedMm[i] = syncedPosition[i];
-                syncedChunkPosition[i] = (short)_chunkPosition[i];
+                int mm = _posMm[i] + (int)Mathf.Round(_position[i] * 1000f);
+                int ch = (int)_chunkPosition[i];
+                if (mm >= MM_PER_CHUNK) { mm -= MM_PER_CHUNK; ch += 1; }
+                else if (mm <= -MM_PER_CHUNK) { mm += MM_PER_CHUNK; ch -= 1; }
+                if (ch > 32767) ch = 32767;
+                else if (ch < -32767) ch = -32767;
+                syncedPosition[i] = mm;
+                lastSyncedMm[i] = mm;
+                syncedChunkPosition[i] = (short)ch;
             }
             lastSyncedChunk = _chunkPosition;
             syncTargetM = _position;
@@ -243,21 +246,21 @@ namespace FDMi.sync
             syncedInterval = (float)Networking.CalculateServerDeltaTime(lastSyncedTime, prevSyncedTime);
             syncedInterval = Mathf.Max(syncedInterval, updateInterval);
             localSyncedTime = Time.time;
-            // position: syncedPosition holds total mm int.
-            // Why-not: 差分だけ残差 _position に畳んで world 連続を保つ。絶対値をそのまま _position に入れると float ULP で壊れる。
+            // Why-not: 粗部にスナップし残差は捨てる。Δを残差にも畳むと総位置が二重計上になる。
             lastVel = _velocity;
-            syncTargetM = _position;
-            for (int i = 0; i < 3; i++)
+            if (!Networking.IsOwner(gameObject))
             {
-                int dMm = syncedPosition[i] - lastSyncedMm[i];
-                lastSyncedMm[i] = syncedPosition[i];
-                _posMm[i] = syncedPosition[i];
-                float dChunkM = (syncedChunkPosition[i] - lastSyncedChunk[i]) * M_PER_CHUNK;
-                lastSyncedChunk[i] = syncedChunkPosition[i];
-                _chunkPosition[i] = syncedChunkPosition[i];
-                syncTargetM[i] += dMm * 0.001f + dChunkM;
+                for (int i = 0; i < 3; i++)
+                {
+                    lastSyncedMm[i] = syncedPosition[i];
+                    _posMm[i] = syncedPosition[i];
+                    lastSyncedChunk[i] = syncedChunkPosition[i];
+                    _chunkPosition[i] = syncedChunkPosition[i];
+                }
+                _position = Vector3.zero;
+                syncTargetM = Vector3.zero;
+                lastPos = Vector3.zero;
             }
-            lastPos = _position;
             // rotation
             Vector3 pSyncedOmega = _syncedOmega;
             _syncedRot = UnpackQuaternion(syncedRotation);

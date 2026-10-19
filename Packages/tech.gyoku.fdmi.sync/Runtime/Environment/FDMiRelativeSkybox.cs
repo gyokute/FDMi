@@ -1,4 +1,4 @@
-﻿
+
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -11,13 +11,13 @@ namespace FDMi.sync
     {
         void Start()
         {
-            setPosition(transform.position);
+            setPositionAbsolute(transform.position);
             _rotation = transform.rotation;
         }
         void Update()
         {
             if (syncManager.localPlayerPosition)
-                transform.position = syncManager.localPlayerPosition._position;
+                transform.position = syncManager.localPlayerPosition.getViewPosition();
             transform.rotation = getViewRotation();
         }
         public override void windupPositionAndRotation()

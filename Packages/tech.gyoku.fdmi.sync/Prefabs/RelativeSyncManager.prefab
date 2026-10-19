@@ -76,8 +76,8 @@ MonoBehaviour:
   IdleMovementRange: 0.35
   IdleRotationRange: 5
   refPoints: []
-  localRootRefPoint: {fileID: 0}
-  localPlayerPosition: {fileID: 0}
+  localRootRefPoint: {fileID: 8684246722110468199}
+  localPlayerPosition: {fileID: 909116188111468461}
   localRotation: {x: 0, y: 0, z: 0, w: 0}
   localPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &8684246722110468198

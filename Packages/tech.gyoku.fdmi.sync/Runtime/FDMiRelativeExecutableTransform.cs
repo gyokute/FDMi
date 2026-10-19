@@ -16,7 +16,7 @@ namespace FDMi.sync
         public override void initReferencePoint()
         {
             base.initReferencePoint();
-            setPosition(parentRefPoint.transform.InverseTransformPoint(transform.position));
+            setPositionAbsolute(parentRefPoint.transform.InverseTransformPoint(transform.position));
             _rotation = Quaternion.Inverse(parentRefPoint.transform.rotation) * transform.rotation;
         }
         public override Vector3 getViewPosition()
@@ -71,8 +71,15 @@ namespace FDMi.sync
             {
                 for (int i = 0; i < 3; i++)
                 {
-                    syncedPosition[i] = _posMm[i] + (int)Mathf.Round(_position[i] * 1000f);
-                    syncedChunkPosition[i] = (short)_chunkPosition[i];
+                    int mm = _posMm[i] + (int)Mathf.Round(_position[i] * 1000f);
+                    int ch = (int)_chunkPosition[i];
+                    if (mm >= MM_PER_CHUNK) { mm -= MM_PER_CHUNK; ch += 1; }
+                    else if (mm <= -MM_PER_CHUNK) { mm += MM_PER_CHUNK; ch -= 1; }
+                    syncedPosition[i] = mm;
+                    // Why-not: chunk を short に収める。±32767 chunk を超える遠方は送れない。
+                    if (ch > 32767) ch = 32767;
+                    else if (ch < -32767) ch = -32767;
+                    syncedChunkPosition[i] = (short)ch;
                 }
                 syncedRotation = PackQuaternion(_rotation);
                 RequestSerialization();
@@ -86,7 +93,7 @@ namespace FDMi.sync
             {
                 setPosition(transform.localPosition);
                 _rotation = transform.localRotation;
-                if (Vector3.Distance(prevPos, _position) > 0.005f || Quaternion.Dot(prevRot, _rotation) > 0.005f)
+                if (Vector3.Distance(prevPos, _position) > 0.005f || Quaternion.Angle(prevRot, _rotation) > 0.5f)
                     TrySerialize();
                 prevPos = _position;
                 prevRot = _rotation;

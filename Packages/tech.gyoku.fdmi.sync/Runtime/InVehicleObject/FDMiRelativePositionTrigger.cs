@@ -69,13 +69,12 @@ namespace FDMi.sync
 
         public void TeleportLocalPlayer(Transform teleportPosition)
         {
-            VRCPlayerApi localPlayer = Networking.LocalPlayer;
-            syncManager.localPlayerPosition._position = teleportPosition.position;
-            for (int i = 0; i < 3; i++) syncManager.localPlayerPosition._posMm[i] = refPoint._posMm[i];
-            syncManager.localPlayerPosition._chunkPosition = refPoint._chunkPosition;
+            // Why-not: 旧実装はワールド座標を _position (root フレームの fine) に直接代入し、
+            // refPoint の粗部をコピーしていた。再アンカーは changeRootRefPoint に任せ、
+            // アバターだけをテレポートする。
             syncManager.changeRootRefPoint(refPoint);
             InZone.Data = true;
-            localPlayer.TeleportTo(teleportPosition.position, teleportPosition.rotation);
+            Networking.LocalPlayer.TeleportTo(teleportPosition.position, teleportPosition.rotation);
         }
 
         public void ExitLocalPlayer()

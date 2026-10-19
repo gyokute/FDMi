@@ -12,36 +12,17 @@ namespace FDMi.sync
         public float disableKmPos = 9999f;
         void Start()
         {
+            setPositionAbsolute(transform.position);
+            _rotation = transform.rotation;
             transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
-            // setPosition(transform.position);
-            // _rotation = transform.rotation;
         }
         public void Update()
         {
-            // Vector3 relativePos = getViewPosition();
-            // if (relativePos.magnitude * 0.001f < disableKmPos - 1)
-            // {
-            //     gameObject.SetActive(true);
-            // }
-            // else
-            // {
-            //     gameObject.SetActive(false);
-            // }
             transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
 
         public override void windupPositionAndRotation()
         {
-            // base.windupPositionAndRotation();
-            // Vector3 relativePos = getViewPosition();
-            // if (relativePos.magnitude * 0.001f < disableKmPos - 1)
-            // {
-            //     gameObject.SetActive(true);
-            // }
-            // else
-            // {
-            //     gameObject.SetActive(false);
-            // }
             transform.SetPositionAndRotation(getViewPosition(), getViewRotation());
         }
     }
