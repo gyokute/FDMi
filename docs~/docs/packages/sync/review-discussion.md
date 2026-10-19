@@ -2,7 +2,7 @@
 
 ## 0. 対象と方法
 
-- 対象: `tech.gyoku.fdmi.sync` の設計仕様（`overview.md` および仕様中に提示されたコード）。
+- 対象: `FDMi.sync` の設計仕様（`overview.md` および仕様中に提示されたコード）。
 - レビュアー: GLM 5.3（15件 / Udon・同期視点）、Deepseek v4.1 flash（7件 / 座標・運動学視点）、Longcat 2.5 free（7件 / Sacc・座席視点）。計29指摘。
 - 統合方針: 同一根因は1論点に統合（29→19論点）。
 - 事実確認: VRChat 公式ドキュメント、UdonSharp 公式、SaccFlightAndVehicles 実コード（`Packages/io.github.sacchan-vrc.sacc-flight-and-vehicles/Scripts`）、FDMi core `FDMiDataSync.cs` を直接参照。

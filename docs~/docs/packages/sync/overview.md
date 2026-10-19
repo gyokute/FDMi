@@ -58,6 +58,37 @@ V2(`FDMi-2022`)の「km-carry + 毎フレーム原点解決」を ECEF フレー
 - 素の `FDMiGeodeticReferencePoint` を各構造物に付ける。
 - これらを使わない(シーン記述のまま Unity に置く)場合、root 切替後にワールドが置き去りになり、車体だけが原点に固定されて見える。
 
+## V2 から移植した周辺機能
+
+本体(参照点・マネージャ・車両同期・プレイヤー)に加えて、V2 の同期パッケージの残りを移植した。
+
+| V3 (FDMiGeodetic*) | V2 元 | 役割 |
+|---|---|---|
+| `WorldAnchor` | `FDMiRelativeGroundSync` | 静的構造物をフレームに追従させる(地形コライダーごと動く) |
+| `HorizontalGround` | `FDMiRelativeHorizontalFixedGround` | 水平方向はフレーム直下に張り付き、高さだけ論理位置に従う地面 |
+| `Skybox` | `FDMiRelativeSkybox` | 空ドーム。プレイヤーのフレーム内位置に置き、フレーム逆回転で ECEF 固定に見せる |
+| `SkyboxMaterialByAltitude` | `FDMiSkyboxMaterialtByAltitude` | 高度に応じて空ドームの `_Exposure` を変える |
+| `PositionTrigger` | `FDMiRelativePositionTrigger` | ゾーン侵入でフレーム(root)を切り替える。`FDMiBool InZone` を配る |
+| `PlayerTeleporter` | `FDMiPlayerPositionTeleporter` | ゾーン間テレポート(出る側を退出 → 入る側へフレーム移譲) |
+| `ExecutableTransform` | `FDMiRelativeExecutableTransform` | 親に対するローカル姿勢を同期(機内の可動部。フレーム原点は引かない) |
+| `PositionData` | `FDMiPositionData` | 参照点の論理状態を FDMiVector3/FDMiQuaternion で配る |
+| `PlayerAltitude` | `FDMiPlayerAbsoluteAltitude` | ローカルプレイヤーの絶対高度(楕円体高, m)を FDMiFloat で配る |
+
+`PositionTrigger` は `syncManager.isRoot`(既定は Manager が root)を見て二重切替を防ぐ。`FDMiSeatAnchor` と違い
+VRCStation に依らないので、機内区画・デッキのような「入ったらこの機体を基準にする」領域に使う。
+
+### 移植しなかったもの(構造が吸収済み)
+
+- `FDMiRelativeSyncOnlyIsRoot` / `FDMiRelativeSyncModelTransform` / `FDMiRelativeSyncStation(Manager)`:
+  root 車体を毎フレーム原点・無回転に固定する本方式では、機体モデルは既に原点にあるため
+  「モデルだけ原点へ引き剥がす」機構は不要。座席は `FDMiSeatAnchor` が同じ役割を担う。
+- `FDMiRelativeObjectSyncManager` / `FDMiReferencePoint` / `FDMiRelativeObjectSync` / `FDMiPlayerPosition` /
+  `FDMiPlayerPositionAssigner` / `FDMiPlayerSyncManager`: それぞれ `FDMiGeodeticSyncManager` /
+  `FDMiGeodeticReferencePoint` / `FDMiGeodeticObjectSync` / `FDMiGeodeticPlayerPosition` /
+  `FDMiGeodeticPlayerPositionAssigner` / `FDMiGeodeticPlayerSyncManager` として既に移植済み。
+- V2 core の `FDMiObjectManager.SubscribeOwnerManagement`: 所有権は意味的イベント(座席 Interact / Sacc の O イベント)
+  で取る方式に置き換えたため、core 側のフックは持たない。
+
 ## プレイヤー
 
 - 各プレイヤーに `FDMiGeodeticPlayerPosition`(参照点)をマスターが割り当てる(`FDMiGeodeticPlayerSyncManager` + `FDMiGeodeticPlayerPositionAssigner`、整合自動修復付き)。
