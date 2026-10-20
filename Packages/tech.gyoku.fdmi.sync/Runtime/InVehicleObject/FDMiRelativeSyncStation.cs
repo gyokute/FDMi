@@ -29,6 +29,9 @@ namespace FDMi.sync
             // lpp.inVehicle = false;
             if (refPoint.isRoot && isChangeRootRefPoint)
                 syncManager.changeRootRefPoint(syncManager);
+            // Why-not: 降車時の傾き直しは root 切替とは切り離す。座席 exit そのものを起点に 1f 遅延で立て直す。
+            FDMiPlayerPosition lpp = syncManager.localPlayerPosition;
+            if (lpp) lpp.SendCustomEventDelayedFrames("LevelUprightAfterSeatExit", 1);
         }
     }
 }

@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 2
+    SerializedFormat: 0
     SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
@@ -63,6 +63,7 @@ MonoBehaviour:
   _position: {x: 0, y: 0, z: 0}
   _velocity: {x: 0, y: 0, z: 0}
   _chunkPosition: {x: 0, y: 0, z: 0}
+  _posMm: 000000000000000000000000
   _rotation: {x: 0, y: 0, z: 0, w: 0}
   _isRoot: 1
   parentRefPoint: {fileID: 8684246722110468199}
@@ -77,9 +78,10 @@ MonoBehaviour:
   IdleRotationRange: 5
   refPoints: []
   localRootRefPoint: {fileID: 8684246722110468199}
-  localPlayerPosition: {fileID: 909116188111468461}
+  localPlayerPosition: {fileID: 0}
   localRotation: {x: 0, y: 0, z: 0, w: 0}
   localPosition: {x: 0, y: 0, z: 0}
+  localCell: {x: 0, y: 0, z: 0}
 --- !u!114 &8684246722110468198
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -132,18 +134,18 @@ PrefabInstance:
     - target: {fileID: 909116188111468461, guid: 59c8362df0193074ba94e7a570b932c3, type: 3}
       propertyPath: serializationData.Prefab
       value: 
-      objectReference: {fileID: 909116188111468461, guid: 59c8362df0193074ba94e7a570b932c3, type: 3}
-    - target: {fileID: 909116188111468461, guid: 59c8362df0193074ba94e7a570b932c3, type: 3}
-      propertyPath: serializationData.SerializedFormat
-      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 909116188111468461, guid: 59c8362df0193074ba94e7a570b932c3, type: 3}
-      propertyPath: serializationData.SerializedBytes.Array.size
+      propertyPath: serializationData.SerializedFormat
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 909116188111468461, guid: 59c8362df0193074ba94e7a570b932c3, type: 3}
+      propertyPath: serializationData.SerializedBytes.Array.size
+      value: 28
+      objectReference: {fileID: 0}
+    - target: {fileID: 909116188111468461, guid: 59c8362df0193074ba94e7a570b932c3, type: 3}
       propertyPath: serializationData.SerializationNodes.Array.size
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 909116188111468461, guid: 59c8362df0193074ba94e7a570b932c3, type: 3}
       propertyPath: serializationData.SerializedBytes.Array.data[0]

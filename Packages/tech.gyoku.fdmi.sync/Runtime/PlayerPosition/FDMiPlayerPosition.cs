@@ -43,13 +43,22 @@ namespace FDMi.sync
             if (!prev) return;
             if (prev.index == value) return;
             FDMiReferencePoint nr = syncManager.localRootRefPoint;
-            // Why-not: 保存値 (A_P, Q_P) は絶対のため親替えで書き換えない。変えるのはアバター位置のみ。
+            // Why-not: 位置 (A_P) は絶対のため親替えで書き換えない。姿勢だけは新座標系の Y に合わせて立て直す。
             Vector3 T = viewForRoot(nr);
             Quaternion TR = (Quaternion.Inverse(nr._rotation) * _rotation).normalized;
-            // Why-not: TeleportTo が速度を消すため SetVelocity 用の現在速度は Teleport の前に取る。
+            // Why-not: 原点が変わると TR に旧座標系の傾きが残り、ワールドに戻っても機体の傾きを引きずる。
+            // 上下 (X/Y 回転) は新座標系の Y に合わせ、向き (Z) は切替前を保つ。
+            Vector3 fwd = TR * Vector3.forward;
+            fwd.y = 0f;
+            if (fwd.sqrMagnitude > 0.000001f)
+            {
+                TR = Quaternion.LookRotation(fwd.normalized, Vector3.up);
+                _rotation = (nr._rotation * TR).normalized;
+            }
+            // Why-not: TeleportTo が速度を消すため SetVelocity 用の現在速度は Teleport の前に取る。Get/SetVelocity は共にワールドなので回さない。
             Vector3 v = localPlayer.GetVelocity();
             localPlayer.TeleportTo(T, TR, VRC_SceneDescriptor.SpawnOrientation.Default, false);
-            localPlayer.SetVelocity(Quaternion.Inverse(nr._rotation) * v);
+            localPlayer.SetVelocity(v);
             TrySerialize();
         }
 
@@ -67,6 +76,9 @@ namespace FDMi.sync
                 ResetSyncTime();
                 initReferencePoint();
                 SendCustomEventDelayedFrames(nameof(RespawnLocalPlayer), 1);
+                // Why-not: 初回着席はこの一回限り。LateUpdate で毎フレーム再着席すると搭乗中の座席を奪い返すうえ、
+                // PlayMode では exit/enter が毎フレーム繰り返されるためポーリングは持たない (v2.1.2 も一回限りだった)。
+                SendCustomEventDelayedFrames(nameof(useSeat), 1);
             }
             else
             {
@@ -96,36 +108,22 @@ namespace FDMi.sync
             RequestSerialization();
         }
 
-        public override void OnStationEntered(VRCPlayerApi player)
+        // Why-not: OnStationEntered/Exited (自 GO の anchor 専用) で tracker の SetActive を切らない。
+        // boarding 時の exit で追跡が止まるうえ、無効化した behaviour の delayed 自復帰に依存する。座席と追跡は無関係 (isMine で追う)。
+        // Why-not: 降車の傾き直しは座席 exit 側 (FDMiRelativeSyncStation.FDMiOnSeatExit) が起点。root 切替とは切り離す。
+        public void LevelUprightAfterSeatExit()
         {
-            if (isMine) gameObject.SetActive(true);
-        }
-
-        public override void OnStationExited(VRCPlayerApi player)
-        {
-            if (isMine)
-            {
-                gameObject.SetActive(false);
-                SendCustomEventDelayedFrames(nameof(SetActive), 5);
-            }
-        }
-        public void SetActive()
-        {
-            gameObject.SetActive(true);
-        }
-
-        private Collider[] localOverlaps = new Collider[32];
-        public LayerMask playerLocalLayer;
-        public bool IsPlayerInStation()
-        {
-            VRCPlayerApi.TrackingData avatarRoot = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.AvatarRoot);
-            int overlapCount = Physics.OverlapSphereNonAlloc(avatarRoot.position, 1f, localOverlaps, playerLocalLayer);
-            if (overlapCount == 0) return false;
-            for (int i = 0; i < overlapCount; i++)
-            {
-                if (!Utilities.IsValid(localOverlaps[i])) return false;
-            }
-            return true;
+            if (!isMine || !Utilities.IsValid(localPlayer)) return;
+            // Why-not: 位置 T と保存姿勢 _rotation には触らない。直すのはアバターのワールド姿勢だけであり、次 LateUpdate が再取得して追従する。
+            Vector3 p = localPlayer.GetPosition();
+            Vector3 v = localPlayer.GetVelocity();
+            Vector3 fwd = localPlayer.GetRotation() * Vector3.forward;
+            fwd.y = 0f;
+            if (fwd.sqrMagnitude < 0.000001f) return;
+            Quaternion level = Quaternion.LookRotation(fwd.normalized, Vector3.up);
+            localPlayer.TeleportTo(p, level, VRC_SceneDescriptor.SpawnOrientation.Default, false);
+            // Why-not: TeleportTo が速度を消すため事前に取って戻す。Get/SetVelocity は共にワールドなので回さない。
+            localPlayer.SetVelocity(v);
         }
         #endregion
 
@@ -178,43 +176,44 @@ namespace FDMi.sync
 
         public void LateUpdate()
         {
-            if (isMine)
+            if (!isMine)
             {
-                if (!IsPlayerInStation()) useSeat();
-                FDMiReferencePoint R = syncManager.localRootRefPoint;
-                Quaternion qr = R._rotation;
-                Vector3 C = syncManager.localCell;
-                Vector3 u = localPlayer.GetPosition();
-                _chunkPosition = R._chunkPosition;
-                _posMm[0] = R._posMm[0];
-                _posMm[1] = R._posMm[1];
-                _posMm[2] = R._posMm[2];
-                // Why-not: setPosition は上書きのため R._position を引数に含める。ゼロ化してから呼ぶと fine が落ちる。
-                bool coarseChanged = setPosition(R._position + C + qr * u);
-                _rotation = (qr * localPlayer.GetRotation()).normalized;
-                _velocity = qr * localPlayer.GetVelocity();
-                Vector3 Cnew = coarseCellFor(this, R);
-                if (Cnew != C)
-                {
-                    Vector3 dC = Cnew - C;
-                    // Why-not: windup は getViewPosition 経由で新 C を読むため localCell を先に確定する。
-                    syncManager.localCell = Cnew;
-                    localPlayer.TeleportTo(u - Quaternion.Inverse(qr) * dC, localPlayer.GetRotation());
-                    syncManager.onChangeLocalPlayerChunkPosition();
-                }
-                else
-                {
-                    syncManager.localCell = Cnew;
-                }
-                if (coarseChanged || Vector3.Distance(prevPostedPos, _position) > 0.01f || Quaternion.Angle(prevPostedRot, _rotation) > 0.75f)
-                {
-                    TrySerialize();
-                    prevPostedPos = _position;
-                    prevPostedRot = _rotation;
-                }
+                transform.SetPositionAndRotation(getViewPositionInterpolated(), getViewRotationInterpolated());
                 return;
             }
-            transform.SetPositionAndRotation(getViewPositionInterpolated(), getViewRotationInterpolated());
+            // Why-not: OnPlayerJoined 前 (localPlayer 未確定) は追跡しない。初回着席は OnPlayerJoined の useSeat 一回限り。
+            if (!Utilities.IsValid(localPlayer)) return;
+            FDMiReferencePoint R = syncManager.localRootRefPoint;
+            Quaternion qr = R._rotation;
+            Vector3 C = syncManager.localCell;
+            Vector3 u = localPlayer.GetPosition();
+            _chunkPosition = R._chunkPosition;
+            _posMm[0] = R._posMm[0];
+            _posMm[1] = R._posMm[1];
+            _posMm[2] = R._posMm[2];
+            // Why-not: setPosition は上書きのため R._position を引数に含める。ゼロ化してから呼ぶと fine が落ちる。
+            bool coarseChanged = setPosition(R._position + C + qr * u);
+            _rotation = (qr * localPlayer.GetRotation()).normalized;
+            _velocity = qr * localPlayer.GetVelocity();
+            Vector3 Cnew = coarseCellFor(this, R);
+            if (Cnew != C)
+            {
+                Vector3 dC = Cnew - C;
+                // Why-not: windup は getViewPosition 経由で新 C を読むため localCell を先に確定する。
+                syncManager.localCell = Cnew;
+                localPlayer.TeleportTo(u - Quaternion.Inverse(qr) * dC, localPlayer.GetRotation());
+                syncManager.onChangeLocalPlayerChunkPosition();
+            }
+            else
+            {
+                syncManager.localCell = Cnew;
+            }
+            if (coarseChanged || Vector3.Distance(prevPostedPos, _position) > 0.01f || Quaternion.Angle(prevPostedRot, _rotation) > 0.75f)
+            {
+                TrySerialize();
+                prevPostedPos = _position;
+                prevPostedRot = _rotation;
+            }
         }
 
         protected override void TrySerialize()

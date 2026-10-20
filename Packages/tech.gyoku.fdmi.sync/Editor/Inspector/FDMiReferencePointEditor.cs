@@ -1,4 +1,5 @@
 using FDMi.core.Editor.Inspector;
+using FDMi.sync.Editor.Presentation;
 using UnityEditor;
 using UnityEngine;
 
@@ -47,6 +48,12 @@ namespace FDMi.sync.Editor
 
         void BakeFromTransform(FDMiReferencePoint rp)
         {
+            // Why-not: Preview 中の transform は相対値 (小)。真値として焼くと破壊操作になるため Bake のみ禁じる (表示は変えない)。
+            if (SphericalGroundPlacerWindow.IsPreviewingGlobal)
+            {
+                EditorUtility.DisplayDialog("PREVIEW中", "プレビュー値を焼けません。先に解除(Undo)してください。", "OK");
+                return;
+            }
             // Why-not: Udon 側 setPosition を呼ばず Editor 側 C# で計算する。
             // ランタイム Start() での取り込みを不要にし、AGENTS.md「予め計算できるものは Editor で」に従う。
             // 別途 FDMiRelativeGroundSync.Start に setPosition 復活が入っても、
@@ -67,7 +74,9 @@ namespace FDMi.sync.Editor
 
         // FDMiReferencePoint.setPosition と同一の剥離計算 (500 m 閾値・1 km 丸め・1 chunk 上限の反復)。
         // float / Mathf の同一式なので IEEE754 単精度演算が一致し、Bake 結果はランタイム再計算と同一になる。
-        static void BakeCalc(Vector3 pos, int[] srcMm, Vector3 srcChunk,
+        // Why-not: private にせず internal static に開く。球面プレーサ (PlaceGroundsUseCase) が
+        // 同一式を再実装すると drift の温床になるため、唯一の真実として共有する。
+        internal static void BakeCalc(Vector3 pos, int[] srcMm, Vector3 srcChunk,
             out Vector3 position, out int[] posMm, out Vector3 chunkPosition)
         {
             Vector3 v = pos, k = srcChunk;
