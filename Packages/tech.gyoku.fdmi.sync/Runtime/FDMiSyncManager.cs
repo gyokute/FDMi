@@ -11,8 +11,12 @@ namespace FDMi.sync
     [DefaultExecutionOrder(1000)]
     public class FDMiSyncManager : UdonSharpBehaviour
     {
-        // §9.4 / U-05。プレイヤー登録表の長さ。ワールドの Maximum Capacity 以下であること (V-17)。
+        // §3.3 / U-05。プレイヤー登録表の長さ。ワールドの Maximum Capacity 以下であること (V-17)。
         public const int PLAYER_SLOTS = 80;
+
+        // §3.3 / §7.3 / §7.4。rebase の閾値と移動量の単位。
+        public const float REBASE_DISTANCE_M = 1000f;
+        public const long REBASE_QUANTUM_MM = 1000000L;
 
         [Header("Editor 焼き (E-05)")]
         public FDMiSyncAnchor[] anchors;
@@ -21,8 +25,10 @@ namespace FDMi.sync
         public FDMiSyncAnchor defaultAnchor;
 
         public FDMiSyncAnchor _root;
+
         // ローカルプレイヤーのアンカー。suspend の判定に使う (§8.3)。
         public FDMiSyncPlayer _localPlayerAnchor;
+
         // Networking.LocalPlayer のキャッシュ。Start で 1 回だけ読む (§5.4 手順 1b)。
         public VRCPlayerApi localPlayer;
 
@@ -35,12 +41,17 @@ namespace FDMi.sync
         // 原点。同期しない。クライアントごとに独立 (§7.1)。
         public long[] originMm = new long[3];
         public Quaternion originRot = Quaternion.identity;
-        public float rebaseDistanceM = 1000f;
+        public float rebaseDistanceM = REBASE_DISTANCE_M;
 
         public int _frameStampMs;
         public int _physicsStampMs;
         public int _fixedDeltaMs = 20;
         public bool _viewsDirty = true;
+
+        // 毎フレーム view を書くアンカーのキャッシュ (§9.1)。Start が型に 1 回だけ問い合わせる。
+        // Why-not: 焼き値に持たない。静的・動的の区分は型が唯一の真実であり、焼き直しで食い違わせない。
+        [System.NonSerialized]
+        public bool[] _writesViewEveryFrame = new bool[0];
         public int _suspendUntilFrame = -1;
         public int _nowMs;
 
@@ -55,7 +66,13 @@ namespace FDMi.sync
             _fixedDeltaMs = (int)FDMiSyncMath.RoundHalfAwayFromZero(Time.fixedDeltaTime * 1000f);
             localPlayer = Networking.LocalPlayer;
 
-            for (int i = 0; i < anchors.Length; i++) anchors[i]._Init(this);
+            for (int i = 0; i < anchors.Length; i++)
+                anchors[i]._Init(this);
+
+            // 手順 2 の直後。静的 view を毎フレーム書かないための区分を 1 回だけ確定する (§9.1 / §12.3)。
+            _writesViewEveryFrame = new bool[anchors.Length];
+            for (int i = 0; i < anchors.Length; i++)
+                _writesViewEveryFrame[i] = anchors[i]._WritesViewEveryFrame();
 
             // 手順 3 は手順 2 の後。GetAbsoluteMm は _Init が確定した _localAbs を返す。
             initialAnchor.GetAbsoluteMm(originMm);
@@ -78,16 +95,20 @@ namespace FDMi.sync
             _nowMs = Networking.GetServerTimeInMilliseconds();
 
             _frameStampMs = _physicsStampMs + _fixedDeltaMs;
-            if (FDMiSyncMath.DeltaInt(_frameStampMs, _nowMs) > 0) _frameStampMs = _nowMs;
+            if (FDMiSyncMath.DeltaInt(_frameStampMs, _nowMs) > 0)
+                _frameStampMs = _nowMs;
 
-            if (_ShouldRebase()) _Rebase();
+            if (_ShouldRebase())
+                _Rebase();
 
-            for (int i = 0; i < anchors.Length; i++) anchors[i]._Tick(_frameStampMs, _nowMs);
+            for (int i = 0; i < anchors.Length; i++)
+                anchors[i]._Tick(_frameStampMs, _nowMs);
 
             // §8.3。suspend が止めるのはローカルプレイヤーのアンカーだけ。全体を early return しない。
             bool suspended = Time.frameCount <= _suspendUntilFrame;
             for (int i = 0; i < _playerAnchorCount; i++)
-                if (!suspended || _playerAnchors[i] != _localPlayerAnchor) _playerAnchors[i]._Tick(_frameStampMs, _nowMs);
+                if (!suspended || _playerAnchors[i] != _localPlayerAnchor)
+                    _playerAnchors[i]._Tick(_frameStampMs, _nowMs);
 
             _UpdateAllViews();
         }
@@ -110,20 +131,26 @@ namespace FDMi.sync
             {
                 long delta = _playerAbsMm[i] - originMm[i];
                 // 整数除算は 0 方向の切り捨て。r は delta と同じ符号を持つ (§7.5)。
-                long q = delta / 1000000L;
-                long r = delta - q * 1000000L;
-                if (r >= 500000L) q = q + 1L;
-                else if (r <= -500000L) q = q - 1L;
-                _shiftMm[i] = q * 1000000L;
+                long q = delta / REBASE_QUANTUM_MM;
+                long r = delta - q * REBASE_QUANTUM_MM;
+                if (r >= 500000L)
+                    q = q + 1L;
+                else if (r <= -500000L)
+                    q = q - 1L;
+                _shiftMm[i] = q * REBASE_QUANTUM_MM;
             }
 
             // 全軸で shift が 0 なら手順 4〜6 を skip する (§7.4)。
-            if (_shiftMm[0] == 0L && _shiftMm[1] == 0L && _shiftMm[2] == 0L) return;
+            if (_shiftMm[0] == 0L && _shiftMm[1] == 0L && _shiftMm[2] == 0L)
+                return;
 
-            for (int i = 0; i < 3; i++) originMm[i] = originMm[i] + _shiftMm[i];
+            for (int i = 0; i < 3; i++)
+                originMm[i] = originMm[i] + _shiftMm[i];
 
-            for (int i = 0; i < anchors.Length; i++) anchors[i]._ShiftToView();
-            for (int i = 0; i < _playerAnchorCount; i++) _playerAnchors[i]._ShiftToView();
+            for (int i = 0; i < anchors.Length; i++)
+                anchors[i]._ShiftToView();
+            for (int i = 0; i < _playerAnchorCount; i++)
+                _playerAnchors[i]._ShiftToView();
 
             // 手順 5 は自由移動のプレイヤーだけ。着席中は TeleportTo を呼ばない (§7.4 / §8.4)。
             if ((_localPlayerAnchor == null || _localPlayerAnchor._seatIndex < 0) && localPlayer != null)
@@ -147,41 +174,52 @@ namespace FDMi.sync
         public void _SwitchRootCore(FDMiSyncAnchor next, bool seated)
         {
             // §8.1。suspend 中は新しい SwitchRoot* を受け付けない。
-            if (Time.frameCount <= _suspendUntilFrame) return;
-            if (next == null) return;
-            if (next == _root) { _UpdateAllViews(); return; }
+            if (Time.frameCount <= _suspendUntilFrame)
+                return;
+            if (next == null)
+                return;
+            if (next == _root)
+            {
+                _UpdateAllViews();
+                return;
+            }
 
-            Quaternion oldOriginRot = originRot;                                   // 2
+            Quaternion oldOriginRot = originRot; // 2
             Vector3 oldVelFef = FDMiSyncMath.QRotate(oldOriginRot, localPlayer.GetVelocity()); // 3
 
             // 手順 4 は旧原点でプレイヤーの絶対姿勢を捕獲する。手順 5 の後では view が変わり再現できない。
             AbsFromView(localPlayer.GetPosition(), _playerAbsMm);
             Quaternion qPlayer = FDMiSyncMath.QMul(originRot, localPlayer.GetRotation());
 
-            next.GetAbsoluteMm(_tmpOrigin);                                        // 5
-            originMm[0] = _tmpOrigin[0]; originMm[1] = _tmpOrigin[1]; originMm[2] = _tmpOrigin[2];
+            next.GetAbsoluteMm(_tmpOrigin); // 5
+            originMm[0] = _tmpOrigin[0];
+            originMm[1] = _tmpOrigin[1];
+            originMm[2] = _tmpOrigin[2];
             originRot = next.GetAbsoluteRotation();
-            _root = next;                                                          // 6
+            _root = next; // 6
 
-            if (!seated)                                                           // 7
+            if (!seated) // 7
             {
                 localPlayer.TeleportTo(ViewFromAbs(_playerAbsMm), ViewRotFromAbs(qPlayer));
                 localPlayer.SetVelocity(ViewVectorFromAbs(oldVelFef));
             }
 
-            for (int i = 0; i < anchors.Length; i++) anchors[i]._ShiftToView();     // 8
-            for (int i = 0; i < _playerAnchorCount; i++) _playerAnchors[i]._ShiftToView();
+            for (int i = 0; i < anchors.Length; i++)
+                anchors[i]._ShiftToView(); // 8
+            for (int i = 0; i < _playerAnchorCount; i++)
+                _playerAnchors[i]._ShiftToView();
 
-            for (int i = 0; i < anchors.Length; i++)                               // 9
+            for (int i = 0; i < anchors.Length; i++) // 9
             {
                 Rigidbody b = anchors[i].body;
-                if (b == null) continue;
+                if (b == null)
+                    continue;
                 // 旧 frame → FEF → 新 frame の順に回す。
                 Vector3 velFef = FDMiSyncMath.QRotate(oldOriginRot, b.velocity);
                 b.velocity = FDMiSyncMath.QRotate(FDMiSyncMath.QInv(originRot), velFef);
             }
 
-            _suspendUntilFrame = Time.frameCount + 1;                               // 10
+            _suspendUntilFrame = Time.frameCount + 1; // 10
             _viewsDirty = true;
             _UpdateAllViews();
         }
@@ -210,7 +248,9 @@ namespace FDMi.sync
 
         public void GetOriginMm(long[] dst)
         {
-            dst[0] = originMm[0]; dst[1] = originMm[1]; dst[2] = originMm[2];
+            dst[0] = originMm[0];
+            dst[1] = originMm[1];
+            dst[2] = originMm[2];
         }
 
         public Quaternion GetOriginRot()
@@ -241,7 +281,8 @@ namespace FDMi.sync
         // §9.4。登録の唯一の経路。FDMiSyncPlayer.Start から呼ぶ。
         public void _RegisterPlayerAnchor(FDMiSyncPlayer a)
         {
-            if (_playerAnchorCount >= PLAYER_SLOTS) return;
+            if (_playerAnchorCount >= PLAYER_SLOTS)
+                return;
             _playerAnchors[_playerAnchorCount] = a;
             _playerAnchorCount = _playerAnchorCount + 1;
         }
@@ -252,7 +293,8 @@ namespace FDMi.sync
             int id = p.playerId;
             for (int i = 0; i < _playerAnchorCount; i++)
             {
-                if (_playerAnchors[i].playerId != id) continue;
+                if (_playerAnchors[i].playerId != id)
+                    continue;
                 _playerAnchorCount = _playerAnchorCount - 1;
                 _playerAnchors[i] = _playerAnchors[_playerAnchorCount];
                 _playerAnchors[_playerAnchorCount] = null;
@@ -260,13 +302,15 @@ namespace FDMi.sync
             }
         }
 
-        // §9.1。静的アンカーは _viewsDirty が真のときだけ書く (§12.3)。
+        // §9.1。静的アンカーは _viewsDirty が真のときだけ書く (§12.3)。区分は Start のキャッシュで判定する。
         public void _UpdateAllViews()
         {
             bool dirty = _viewsDirty;
             for (int i = 0; i < anchors.Length; i++)
-                if (dirty || !anchors[i].isStatic) anchors[i]._ApplyView();
-            for (int i = 0; i < _playerAnchorCount; i++) _playerAnchors[i]._ApplyView();
+                if (dirty || _writesViewEveryFrame[i])
+                    anchors[i]._ApplyView();
+            for (int i = 0; i < _playerAnchorCount; i++)
+                _playerAnchors[i]._ApplyView();
             _viewsDirty = false;
         }
     }

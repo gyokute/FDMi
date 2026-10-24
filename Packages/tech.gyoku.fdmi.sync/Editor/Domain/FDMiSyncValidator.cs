@@ -76,6 +76,10 @@ namespace FDMi.sync.Editor.Domain
                 for (int j = i + 1; j < stations.Length; j++)
                     if (stations[j] != null && stations[j].seatIndex == s.seatIndex)
                         r.Errors.Add("V-06: seatIndex " + s.seatIndex + " が重複しています。");
+
+                // E-03: E-04 と同じ式で再計算し、焼き値と一致することを確認する (§11.1)。
+                if (s.vehicleAnchor != null && s.GetComponent<VRCStation>() != null)
+                    ValidateSeatRel(s, r);
             }
 
             // V-07 / V-08: FDMiAnchorTrigger。
@@ -152,22 +156,24 @@ namespace FDMi.sync.Editor.Domain
             else if (!Contains(anchors, manager.initialAnchor))
                 r.Errors.Add("V-11: initialAnchor が anchors[] に含まれません。");
 
-            // V-12: isStatic なら body が kinematic、動的アンカーの body は非 kinematic。
+            // V-12: 静的なら body が kinematic、動的アンカーの body は非 kinematic。
             // V-13: 動的アンカーの GameObject に ObjectSync を付けない (§11.3)。
             for (int i = 0; i < anchors.Length; i++)
             {
                 FDMiSyncAnchor a = anchors[i];
                 if (a == null) continue;
 
+                bool isStatic = FDMiSyncAnchorFields.IsStatic(a);
+
                 // Why-not: VRC_ObjectSync は静止時に同期を止め、同じ GameObject の [UdonSynced] も凍結させる。
                 // SDK3 の型名は VRC_ObjectSync ではなく VRCObjectSync である。
-                if (!a.isStatic && a.GetComponent<VRCObjectSync>() != null)
+                if (!isStatic && a.GetComponent<VRCObjectSync>() != null)
                     r.Errors.Add("V-13: " + Name(a) + " は動的アンカーですが ObjectSync が付いています。");
 
                 if (a.body == null) continue;
-                if (a.isStatic && !a.body.isKinematic)
-                    r.Warnings.Add("V-12: " + Name(a) + " は isStatic ですが body が kinematic ではありません。");
-                if (!a.isStatic && a.body.isKinematic)
+                if (isStatic && !a.body.isKinematic)
+                    r.Warnings.Add("V-12: " + Name(a) + " は静的ですが body が kinematic ではありません。");
+                if (!isStatic && a.body.isKinematic)
                     r.Warnings.Add("V-12: " + Name(a) + " は動的ですが body が kinematic です。");
             }
 
@@ -182,10 +188,29 @@ namespace FDMi.sync.Editor.Domain
             return r;
         }
 
+        // V-06 / E-03。E-04 の焼き値を、シーンから同じ式で再計算した値と比較する。
+        // Why-not: 焼き直しを忘れたシーンを検出するのがこの比較の目的である。式は FDMiEarth.SeatRel に
+        // 1 つだけ置き、焼き (E-04) と検証 (E-03) の両方がそれを呼ぶ (§11.1)。
+        static void ValidateSeatRel(FDMiStationAnchor s, Result r)
+        {
+            int[] relMm = new int[3];
+            Quaternion relRot;
+            FDMiEarth.SeatRel(s, relMm, out relRot);
+
+            bool sameMm = relMm[0] == s._bakedSeatRelMm[0]
+                && relMm[1] == s._bakedSeatRelMm[1]
+                && relMm[2] == s._bakedSeatRelMm[2];
+            if (!sameMm || Quaternion.Angle(relRot, s._bakedSeatRelRot) > 1e-3f)
+                r.Errors.Add("V-06: " + Name(s) + " の席の相対姿勢が E-04 の焼き値と一致しません。焼き直してください。");
+        }
+
         // V-03。基準はアンカーの姿勢原点 (body またはアンカーの transform)。view.position を基準にしない。
+        // Why-not: 静的アンカーを対象にしない。_rot を同期せず、焼き値が全クライアントで同一なので、
+        // 量子化は「同期誤差」ではなく定数の tilt になる (§4.5「姿勢を同期しない静的部分」)。
+        // 10 km の地形を 1 個の静的アンカーで持つ設計を許す。
         static void ValidateLeverArm(FDMiSyncAnchor a, Result r)
         {
-            if (a == null) return;
+            if (a == null || FDMiSyncAnchorFields.IsStatic(a)) return;
             Vector3 origin = (a.body != null) ? a.body.transform.position : a.transform.position;
             Renderer[] renderers = a.GetComponentsInChildren<Renderer>();
             float worst = 0f;
@@ -219,14 +244,14 @@ namespace FDMi.sync.Editor.Domain
         }
 
         // V-15。親が動くとコピーがその運動を継承する。
-        // Why-not: VRCPlayerObject の親自身がアンカーでない場合があるため、Rigidbody と isStatic の両方を見る。
+        // Why-not: VRCPlayerObject の親自身がアンカーでない場合があるため、Rigidbody とアンカーの型の両方を見る。
         static bool HasMovingAncestor(Transform t)
         {
             for (Transform p = t.parent; p != null; p = p.parent)
             {
                 if (p.GetComponent<Rigidbody>() != null) return true;
                 FDMiSyncAnchor a = p.GetComponent<FDMiSyncAnchor>();
-                if (a != null && !a.isStatic) return true;
+                if (a != null && !FDMiSyncAnchorFields.IsStatic(a)) return true;
             }
             return false;
         }

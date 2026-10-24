@@ -9,7 +9,6 @@ namespace FDMi.sync.Editor.Tests
     // テスト名は仕様文として読めること (t-wada の 4 象限: テスト = What)。
     public class FDMiSyncMathTests
     {
-        const float Q_SCALE = 32767f;
         // §4.5 の誤差上限。
         const double MAX_ANGLE_ERROR_RAD = 6.104e-5;
 

@@ -10,7 +10,7 @@ namespace FDMi.sync
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
     public class FDMiSyncMath : UdonSharpBehaviour
     {
-        public const float Q_SCALE = 32767f;
+        public const int Q_SCALE = 32767;
 
         // §4.2。round half away from zero の唯一の実装。
         // Why-not: Mathf.Round は banker's rounding なので tie で期待値とずれる。(long)x 単独では tie が落ちる。
@@ -56,7 +56,7 @@ namespace FDMi.sync
             float z = q.z;
             float w = q.w;
             float n = Mathf.Sqrt(x * x + y * y + z * z + w * w);
-            if (n < 1e-6f) { dst[0] = 0; dst[1] = 0; dst[2] = 0; dst[3] = 32767; return; }
+            if (n < 1e-6f) { dst[0] = 0; dst[1] = 0; dst[2] = 0; dst[3] = (short)Q_SCALE; return; }
             float inv = 1f / n;
             x = x * inv;
             y = y * inv;
@@ -86,16 +86,18 @@ namespace FDMi.sync
         // short の範囲 (−32768..32767) の負側代表 −32768 が現れる。|c| ≤ 32767 を保証する。
         static short PackComponent(float u)
         {
-            return (short)ClampL(RoundHalfAwayFromZero(u * Q_SCALE), -32767L, 32767L);
+            return (short)ClampL(RoundHalfAwayFromZero(u * Q_SCALE), -Q_SCALE, Q_SCALE);
         }
 
         // §4.5 の復元。手順 4 の正規化は必須 (clamp が働くと |v| が 1 からずれる)。
         public static Quaternion UnpackQuat(short[] src)
         {
-            float x = src[0] / Q_SCALE;
-            float y = src[1] / Q_SCALE;
-            float z = src[2] / Q_SCALE;
-            float w = src[3] / Q_SCALE;
+            // Why-not: `src[i] / Q_SCALE` と書かない。Q_SCALE は int なので整数除算になり、
+            // |c| < Q_SCALE の成分がすべて 0 に落ちる (§4.5 復元手順 1 は (float)c_i / Q_SCALE)。
+            float x = (float)src[0] / Q_SCALE;
+            float y = (float)src[1] / Q_SCALE;
+            float z = (float)src[2] / Q_SCALE;
+            float w = (float)src[3] / Q_SCALE;
             float s = x * x + y * y + z * z + w * w;
             // 正常な符号化出力の s は 1 ± 6.2e-5。この分岐は零・破損だけを identity に落とす。
             if (s < 0.5f) return Quaternion.identity;

@@ -38,11 +38,20 @@ namespace FDMi.sync.Editor.Application.UseCases
                     stations.RemoveAt(i);
 
             // 手順 3 / 6: 先に基準姿勢を確定し、その後に全アンカーを焼く。
-            long[] pRef = new long[3];
+            // Why-not: full 精度の basis を基準にしない。Runtime の originRot は UnpackQuat(_rot) なので、
+            // 焼きだけ full 精度にすると Editor と Runtime で view が δ_ref だけずれる (§3.6)。
+            // 原点から 10 km で最大 0.61 m のずれと、rebase 時の跳びになる。基準は焼き値そのものを使う。
             FDMiEarth.LatLonAltToAbsMm(manager.initialAnchor.latitude, manager.initialAnchor.longitude,
-                manager.initialAnchor.height, pRef);
-            Quaternion qRef = FDMiEarth.BasisWithYaw(manager.initialAnchor.latitude,
-                manager.initialAnchor.longitude, manager.initialAnchor.yaw);
+                manager.initialAnchor.height, FDMiSyncAnchorFields.AbsMm(manager.initialAnchor));
+            FDMiSyncMath.PackQuat(FDMiEarth.BasisWithYaw(manager.initialAnchor.latitude,
+                manager.initialAnchor.longitude, manager.initialAnchor.yaw), FDMiSyncAnchorFields.Rot(manager.initialAnchor));
+
+            long[] refAbs = FDMiSyncAnchorFields.AbsMm(manager.initialAnchor);
+            long[] pRef = new long[3];
+            pRef[0] = refAbs[0];
+            pRef[1] = refAbs[1];
+            pRef[2] = refAbs[2];
+            Quaternion qRef = FDMiSyncMath.UnpackQuat(FDMiSyncAnchorFields.Rot(manager.initialAnchor));
 
             for (int i = 0; i < anchors.Count; i++)
                 BakeAnchor(anchors[i], manager.initialAnchor, pRef, qRef);
@@ -68,18 +77,18 @@ namespace FDMi.sync.Editor.Application.UseCases
         {
             if (a == null) return;
 
-            bool placeByLatLon = a.isStatic || a == reference;
+            bool placeByLatLon = FDMiSyncAnchorFields.IsStatic(a) || a == reference;
             if (placeByLatLon)
             {
-                FDMiEarth.LatLonAltToAbsMm(a.latitude, a.longitude, a.height, a._absMm);
-                FDMiSyncMath.PackQuat(FDMiEarth.BasisWithYaw(a.latitude, a.longitude, a.yaw), a._rot);
+                FDMiEarth.LatLonAltToAbsMm(a.latitude, a.longitude, a.height, FDMiSyncAnchorFields.AbsMm(a));
+                FDMiSyncMath.PackQuat(FDMiEarth.BasisWithYaw(a.latitude, a.longitude, a.yaw), FDMiSyncAnchorFields.Rot(a));
             }
             else
             {
                 // 動的アンカーはスポーン姿勢。Unity のワールド座標がそのまま view 座標である (§7.1)。
                 Transform t = (a.body != null) ? a.body.transform : (a.view != null ? a.view : a.transform);
-                FDMiEarth.ViewToAbsMm(pRef, qRef, t.position, a._absMm);
-                FDMiSyncMath.PackQuat(qRef * t.rotation, a._rot);
+                FDMiEarth.ViewToAbsMm(pRef, qRef, t.position, FDMiSyncAnchorFields.AbsMm(a));
+                FDMiSyncMath.PackQuat(qRef * t.rotation, FDMiSyncAnchorFields.Rot(a));
             }
 
             // E-07: Snap 補助。transform.rotation = q_ref⁻¹ ⊗ q_basis ⊗ R_y(yaw)。
@@ -87,8 +96,8 @@ namespace FDMi.sync.Editor.Application.UseCases
             {
                 Transform t = (a.body != null) ? a.body.transform : a.transform;
                 t.SetPositionAndRotation(
-                    FDMiEarth.AbsMmToView(pRef, qRef, a._absMm),
-                    Quaternion.Inverse(qRef) * FDMiSyncMath.UnpackQuat(a._rot));
+                    FDMiEarth.AbsMmToView(pRef, qRef, FDMiSyncAnchorFields.AbsMm(a)),
+                    Quaternion.Inverse(qRef) * FDMiSyncMath.UnpackQuat(FDMiSyncAnchorFields.Rot(a)));
             }
 
             EditorUtility.SetDirty(a);
@@ -106,18 +115,7 @@ namespace FDMi.sync.Editor.Application.UseCases
 
             VRCStation station = s.GetComponent<VRCStation>();
             if (s.vehicleAnchor != null && station != null)
-            {
-                Transform vehicle = (s.vehicleAnchor.body != null) ? s.vehicleAnchor.body.transform
-                    : (s.vehicleAnchor.view != null ? s.vehicleAnchor.view : s.vehicleAnchor.transform);
-                Transform seat = (station.stationEnterPlayerLocation != null)
-                    ? station.stationEnterPlayerLocation
-                    : station.transform;
-                Vector3 p = vehicle.InverseTransformPoint(seat.position);
-                s._bakedSeatRelMm[0] = (int)FDMiEarth.RoundHalfAwayFromZero(p.x * 1000.0);
-                s._bakedSeatRelMm[1] = (int)FDMiEarth.RoundHalfAwayFromZero(p.y * 1000.0);
-                s._bakedSeatRelMm[2] = (int)FDMiEarth.RoundHalfAwayFromZero(p.z * 1000.0);
-                s._bakedSeatRelRot = Quaternion.Inverse(vehicle.rotation) * seat.rotation;
-            }
+                FDMiEarth.SeatRel(s, s._bakedSeatRelMm, out s._bakedSeatRelRot);
 
             EditorUtility.SetDirty(s);
         }

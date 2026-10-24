@@ -28,12 +28,12 @@ namespace FDMi.sync.Editor.Inspector
             long[] p = new long[3];
             FDMiEarth.LatLonAltToAbsMm(anchor.latitude, anchor.longitude, anchor.height, p);
             Quaternion qAbs = FDMiEarth.BasisWithYaw(anchor.latitude, anchor.longitude, anchor.yaw);
-            Quaternion qRef = FDMiSyncMath.UnpackQuat(manager.initialAnchor._rot);
+            Quaternion qRef = FDMiSyncMath.UnpackQuat(FDMiSyncAnchorFields.Rot(manager.initialAnchor));
 
             Transform t = (anchor.body != null) ? anchor.body.transform : anchor.transform;
             Undo.RecordObject(t, "FDMi Sync Snap");
             t.SetPositionAndRotation(
-                FDMiEarth.AbsMmToView(manager.initialAnchor._absMm, qRef, p),
+                FDMiEarth.AbsMmToView(FDMiSyncAnchorFields.AbsMm(manager.initialAnchor), qRef, p),
                 Quaternion.Inverse(qRef) * qAbs);
         }
     }
