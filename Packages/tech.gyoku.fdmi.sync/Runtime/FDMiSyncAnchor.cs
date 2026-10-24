@@ -62,7 +62,7 @@ namespace FDMi.sync
             return false;
         }
 
-        // §7.4 手順 4 / §8.2 手順 8。body を kinematic にせず位置・回転だけを写す。
+        // §8.2 手順 8。body を kinematic にせず位置・回転だけを写す。
         // Why-not: isKinematic を立てない。動的アンカーの owner は次の物理ステップで積分を続ける。
         public virtual void _ShiftToView()
         {

@@ -415,7 +415,7 @@ namespace FDMi.sync
             return true;
         }
 
-        // §7.4 手順 4 / §8.2 手順 8。次の _UpdateAbsolutePose の差分を 0 にするため _lastBodyPos も更新する。
+        // §8.2 手順 8。次の _UpdateAbsolutePose の差分を 0 にするため _lastBodyPos も更新する。
         public override void _ShiftToView()
         {
             _WriteViewPose();

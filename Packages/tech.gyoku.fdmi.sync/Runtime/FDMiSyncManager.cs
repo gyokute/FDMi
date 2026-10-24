@@ -4,7 +4,7 @@ using VRC.SDKBase;
 
 namespace FDMi.sync
 {
-    // §9.1。登録表・stamp・原点・rebase・root 切替・全 view 更新。
+    // §9.1。登録表・stamp・原点・root 切替・全 view 更新。
     // 同期フィールドを持たない。フレーム駆動はこの 1 個の LateUpdate と FixedUpdate (stamp 記録のみ) に限る (P-05)。
     // ExecOrder 1000: 同じ LateUpdate を持つ他スクリプトより後に走らせる (§5.2)。
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
@@ -13,10 +13,6 @@ namespace FDMi.sync
     {
         // §3.3 / U-05。プレイヤー登録表の長さ。ワールドの Maximum Capacity 以下であること (V-17)。
         public const int PLAYER_SLOTS = 80;
-
-        // §3.3 / §7.3 / §7.4。rebase の閾値と移動量の単位。
-        public const float REBASE_DISTANCE_M = 1000f;
-        public const long REBASE_QUANTUM_MM = 1000000L;
 
         [Header("Editor 焼き (E-05)")]
         public FDMiSyncAnchor[] anchors;
@@ -41,7 +37,6 @@ namespace FDMi.sync
         // 原点。同期しない。クライアントごとに独立 (§7.1)。
         public long[] originMm = new long[3];
         public Quaternion originRot = Quaternion.identity;
-        public float rebaseDistanceM = REBASE_DISTANCE_M;
 
         public int _frameStampMs;
         public int _physicsStampMs;
@@ -55,7 +50,6 @@ namespace FDMi.sync
         public int _suspendUntilFrame = -1;
         public int _nowMs;
 
-        public long[] _shiftMm = new long[3];
         public long[] _tmpOrigin = new long[3];
         public long[] _playerAbsMm = new long[3];
 
@@ -98,9 +92,6 @@ namespace FDMi.sync
             if (FDMiSyncMath.DeltaInt(_frameStampMs, _nowMs) > 0)
                 _frameStampMs = _nowMs;
 
-            if (_ShouldRebase())
-                _Rebase();
-
             for (int i = 0; i < anchors.Length; i++)
                 anchors[i]._Tick(_frameStampMs, _nowMs);
 
@@ -110,53 +101,6 @@ namespace FDMi.sync
                 if (!suspended || _playerAnchors[i] != _localPlayerAnchor)
                     _playerAnchors[i]._Tick(_frameStampMs, _nowMs);
 
-            _UpdateAllViews();
-        }
-
-        // §7.3。着席中も GetPosition() は席の view 位置を返すため、同じ条件でよい。
-        public bool _ShouldRebase()
-        {
-            Vector3 v = localPlayer.GetPosition();
-            float m = Mathf.Max(Mathf.Abs(v.x), Mathf.Max(Mathf.Abs(v.y), Mathf.Abs(v.z)));
-            return m > rebaseDistanceM;
-        }
-
-        // §7.4。原点を 1 km の整数倍だけ動かす。_accMm は変更しない。
-        public void _Rebase()
-        {
-            // 手順 0 は原点が変わる前に取る。
-            AbsFromView(localPlayer.GetPosition(), _playerAbsMm);
-
-            for (int i = 0; i < 3; i++)
-            {
-                long delta = _playerAbsMm[i] - originMm[i];
-                // 整数除算は 0 方向の切り捨て。r は delta と同じ符号を持つ (§7.5)。
-                long q = delta / REBASE_QUANTUM_MM;
-                long r = delta - q * REBASE_QUANTUM_MM;
-                if (r >= 500000L)
-                    q = q + 1L;
-                else if (r <= -500000L)
-                    q = q - 1L;
-                _shiftMm[i] = q * REBASE_QUANTUM_MM;
-            }
-
-            // 全軸で shift が 0 なら手順 4〜6 を skip する (§7.4)。
-            if (_shiftMm[0] == 0L && _shiftMm[1] == 0L && _shiftMm[2] == 0L)
-                return;
-
-            for (int i = 0; i < 3; i++)
-                originMm[i] = originMm[i] + _shiftMm[i];
-
-            for (int i = 0; i < anchors.Length; i++)
-                anchors[i]._ShiftToView();
-            for (int i = 0; i < _playerAnchorCount; i++)
-                _playerAnchors[i]._ShiftToView();
-
-            // 手順 5 は自由移動のプレイヤーだけ。着席中は TeleportTo を呼ばない (§7.4 / §8.4)。
-            if ((_localPlayerAnchor == null || _localPlayerAnchor._seatIndex < 0) && localPlayer != null)
-                localPlayer.TeleportTo(ViewFromAbs(_playerAbsMm), localPlayer.GetRotation());
-
-            _viewsDirty = true;
             _UpdateAllViews();
         }
 
