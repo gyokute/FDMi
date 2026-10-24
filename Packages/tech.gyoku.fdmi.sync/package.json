@@ -1,11 +1,11 @@
 {
 	"name": "tech.gyoku.fdmi.sync",
 	"displayName": "FDMi - Sync",
-	"version": "2.1.2",
+	"version": "3.2.0",
 	"vpmDependencies": {
 		"tech.gyoku.fdmi.core": "^2.1.2"
 	},
-	"description": "Allowing planet-scele travel without float-prescision in VRChat.",
+	"description": "Planet-scale absolute pose sync in 1 mm fixed point (surface to atmosphere).",
 	"author": {
 		"name": "gyokute",
 		"email": "gyokutech@gmail.com",
@@ -14,6 +14,6 @@
 	"licensesUrl": "https://github.com/gyokute/FDMi/blob/main/LICENSE",
 	"license": "MIT",
 	"keywords": ["Udonsharp"],
-	"url": "https://github.com/gyokute/FDMi/releases/download/2.1.1/tech.gyoku.fdmi.sync-2.1.1.zip?",
+	"url": "https://github.com/gyokute/FDMi/releases/download/3.2.0/tech.gyoku.fdmi.sync-3.2.0.zip?",
 	"repo": "https://vpm.gyoku.tech/vpm.json"
 }

@@ -1,11 +1,9 @@
 {
-    "name": "FDMi.sync",
+    "name": "tech.gyoku.fdmi.sync",
     "rootNamespace": "",
     "references": [
         "VRC.Udon",
         "UdonSharp.Runtime",
-        "UdonSharp.Editor",
-        "VRC.Udon.Serialization.OdinSerializer",
         "FDMi.core"
     ],
     "includePlatforms": [],
