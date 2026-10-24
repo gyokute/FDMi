@@ -150,9 +150,11 @@ namespace FDMi.sync.Editor.Domain
             if (maths.Length != 0)
                 r.Warnings.Add("V-10: FDMiSyncMath が " + maths.Length + " 個の GameObject に付いています。static メソッドだけを使います。");
 
-            // V-11: initialAnchor。
+            // V-11: initialAnchor。焼きの基準は緯度経度高度を持つ静的アンカーに限る (§11.1)。
             if (manager.initialAnchor == null)
                 r.Errors.Add("V-11: initialAnchor が未設定です。");
+            else if (!(manager.initialAnchor is FDMiStaticObjectSync))
+                r.Errors.Add("V-11: initialAnchor は FDMiStaticObjectSync である必要があります。");
             else if (!Contains(anchors, manager.initialAnchor))
                 r.Errors.Add("V-11: initialAnchor が anchors[] に含まれません。");
 

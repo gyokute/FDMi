@@ -5,6 +5,7 @@ using UnityEngine;
 namespace FDMi.sync.Editor.Inspector
 {
     // E-07 Snap 補助。transform.rotation = q_ref⁻¹ ⊗ q_basis(lat, lon) ⊗ R_y(yaw) を 1 ボタンで適用する。
+    // 緯度経度高度 yaw は静的アンカーだけが持つため、動的アンカーにはボタンを出さない (§9.2.2)。
     // Why-not: 焼きの基準は initialAnchor の絶対姿勢である (§3.6)。別の基準アンカーを作らない。
     // Why-not: 基底を `Editor` と略さない。名前空間 `FDMi.sync.Editor` が型名を隠す (CS0118)。
     [CustomEditor(typeof(FDMiSyncAnchor), true)]
@@ -14,7 +15,9 @@ namespace FDMi.sync.Editor.Inspector
         {
             DrawDefaultInspector();
 
-            FDMiSyncAnchor anchor = (FDMiSyncAnchor)target;
+            FDMiStaticObjectSync anchor = target as FDMiStaticObjectSync;
+            if (anchor == null) return;
+
             EditorGUILayout.Space();
             if (!GUILayout.Button("Snap to lat/lon (E-07)")) return;
 

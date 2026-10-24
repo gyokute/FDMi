@@ -24,6 +24,12 @@ namespace FDMi.sync.Editor.Application.UseCases
                 Debug.LogError("[FDMiSync] V-11: initialAnchor が未設定です。焼きの基準 (P_ref / q_ref) を決められません。");
                 return;
             }
+            // V-11: 基準は緯度経度高度を持つ静的アンカーに限る。動的を基準にすると自分自身のスポーン姿勢が基準になり循環する。
+            if (!(manager.initialAnchor is FDMiStaticObjectSync))
+            {
+                Debug.LogError("[FDMiSync] V-11: initialAnchor は FDMiStaticObjectSync である必要があります。");
+                return;
+            }
 
             // 手順 2: 階層の深さ優先・sibling index 昇順 (アクティブのみ)。
             // V-16: VRCPlayerObject の子孫は登録表に入れない。FDMiSyncPlayer は FDMiSyncAnchor の派生なので
@@ -40,11 +46,12 @@ namespace FDMi.sync.Editor.Application.UseCases
             // 手順 3 / 6: 先に基準姿勢を確定し、その後に全アンカーを焼く。
             // Why-not: full 精度の basis を基準にしない。Runtime の originRot は UnpackQuat(_rot) なので、
             // 焼きだけ full 精度にすると Editor と Runtime で view が δ_ref だけずれる (§3.6)。
-            // 原点から 10 km で最大 0.61 m のずれと、rebase 時の跳びになる。基準は焼き値そのものを使う。
-            FDMiEarth.LatLonAltToAbsMm(manager.initialAnchor.latitude, manager.initialAnchor.longitude,
-                manager.initialAnchor.height, FDMiSyncAnchorFields.AbsMm(manager.initialAnchor));
-            FDMiSyncMath.PackQuat(FDMiEarth.BasisWithYaw(manager.initialAnchor.latitude,
-                manager.initialAnchor.longitude, manager.initialAnchor.yaw), FDMiSyncAnchorFields.Rot(manager.initialAnchor));
+            // 原点から 10 km で最大 0.61 m のずれになる。基準は焼き値そのものを使う。
+            FDMiStaticObjectSync initial = (FDMiStaticObjectSync)manager.initialAnchor;
+            FDMiEarth.LatLonAltToAbsMm(initial.latitude, initial.longitude,
+                initial.height, FDMiSyncAnchorFields.AbsMm(initial));
+            FDMiSyncMath.PackQuat(FDMiEarth.BasisWithYaw(initial.latitude,
+                initial.longitude, initial.yaw), FDMiSyncAnchorFields.Rot(initial));
 
             long[] refAbs = FDMiSyncAnchorFields.AbsMm(manager.initialAnchor);
             long[] pRef = new long[3];
@@ -54,7 +61,7 @@ namespace FDMi.sync.Editor.Application.UseCases
             Quaternion qRef = FDMiSyncMath.UnpackQuat(FDMiSyncAnchorFields.Rot(manager.initialAnchor));
 
             for (int i = 0; i < anchors.Count; i++)
-                BakeAnchor(anchors[i], manager.initialAnchor, pRef, qRef);
+                BakeAnchor(anchors[i], pRef, qRef);
 
             // 手順 4: 席の相対姿勢 (E-03 / E-04)。
             for (int i = 0; i < stations.Count; i++)
@@ -70,18 +77,19 @@ namespace FDMi.sync.Editor.Application.UseCases
             EditorUtility.SetDirty(manager);
         }
 
-        // E-01 / E-02 / E-07。
-        // Why-not: initialAnchor だけは常に緯度経度高度から焼く。動的スポーン姿勢から焼くと
-        // 基準が自分自身になり循環する (§3.6 の焼きの基準)。
-        static void BakeAnchor(FDMiSyncAnchor a, FDMiSyncAnchor reference, long[] pRef, Quaternion qRef)
+        // E-01 / E-02 / E-07。静的アンカーは焼き入力 (lat/lon/height/yaw)、動的アンカーはスポーン姿勢から焼く。
+        static void BakeAnchor(FDMiSyncAnchor a, long[] pRef, Quaternion qRef)
         {
             if (a == null) return;
 
-            bool placeByLatLon = FDMiSyncAnchorFields.IsStatic(a) || a == reference;
-            if (placeByLatLon)
+            // 緯度経度高度 yaw は静的アンカーだけが持つ (§9.2.2)。
+            FDMiStaticObjectSync staticAnchor = a as FDMiStaticObjectSync;
+            if (staticAnchor != null)
             {
-                FDMiEarth.LatLonAltToAbsMm(a.latitude, a.longitude, a.height, FDMiSyncAnchorFields.AbsMm(a));
-                FDMiSyncMath.PackQuat(FDMiEarth.BasisWithYaw(a.latitude, a.longitude, a.yaw), FDMiSyncAnchorFields.Rot(a));
+                FDMiEarth.LatLonAltToAbsMm(staticAnchor.latitude, staticAnchor.longitude, staticAnchor.height,
+                    FDMiSyncAnchorFields.AbsMm(a));
+                FDMiSyncMath.PackQuat(FDMiEarth.BasisWithYaw(staticAnchor.latitude, staticAnchor.longitude,
+                    staticAnchor.yaw), FDMiSyncAnchorFields.Rot(a));
             }
             else
             {
@@ -91,8 +99,8 @@ namespace FDMi.sync.Editor.Application.UseCases
                 FDMiSyncMath.PackQuat(qRef * t.rotation, FDMiSyncAnchorFields.Rot(a));
             }
 
-            // E-07: Snap 補助。transform.rotation = q_ref⁻¹ ⊗ q_basis ⊗ R_y(yaw)。
-            if (placeByLatLon)
+            // E-07: Snap 補助。transform.rotation = q_ref⁻¹ ⊗ q_basis ⊗ R_y(yaw)。静的だけが緯度経度を持つ。
+            if (staticAnchor != null)
             {
                 Transform t = (a.body != null) ? a.body.transform : a.transform;
                 t.SetPositionAndRotation(

@@ -4,19 +4,13 @@ using UnityEngine;
 namespace FDMi.sync
 {
     // §9.2。動的アンカーと静的アンカーに共通する、絶対姿勢の保持と view への写像。
-    // 送受信・積分・補間は FDMiDynamicObjectSync、Editor 焼き値の固定は FDMiStaticObjectSync が持つ。
+    // 送受信・積分・補間は FDMiDynamicObjectSync、Editor 焼きの入力と焼き値の固定は FDMiStaticObjectSync が持つ。
     // Why-not: 基底に同期フィールドを置いて isStatic で分岐しない。動的は Manual、静的は NoVariableSync であり、
     // [UdonSynced] を持つ型は NoVariableSync を宣言できない (§5.1 / UdonSharp)。同期モードの違いが型の違いである。
     // Why-not: 具象にしない。直接付けると _InitLocal が空のまま _Tick も送受信もしないアンカーになる。
+    // Why-not: 緯度経度高度 yaw を基底に置かない。Runtime が読まず、Editor 焼きの入力は静的アンカーだけが使う (§9.2.2)。
     public abstract class FDMiSyncAnchor : UdonSharpBehaviour
     {
-        [Header("Editor 焼きの入力。Runtime は読まない (E-01 / E-02 / E-07)")]
-        public float latitude;
-        public float longitude;
-        public float height;
-        // 接平面内のモデルの向き [deg]。q_abs = q_basis(lat, lon) ⊗ R_y(yaw) (§3.4)。
-        public float yaw;
-
         public FDMiSyncManager manager;
         public Rigidbody body;
         public Transform view;
@@ -45,29 +39,20 @@ namespace FDMi.sync
         // 焼き値から _localAbs / _localRot を確定する。動的は積分器と送信の準備もここで行う。
         public abstract void _InitLocal();
 
-        // §9.2 手順 2。静的アンカーは送受信せず、_localAbs / _localRot は _Init が確定済みである。
-        public virtual void _Tick(int frameStamp, int nowMs) { }
+        // §9.2。frameStamp / nowMs を受けて状態を進める。静的は空、動的は受信・積分・送信。
+        // 型ごとの実装を持つ。基底に空の既定を置かない (静的の空実装は FDMiStaticObjectSync)。
+        public abstract void _Tick(int frameStamp, int nowMs);
 
-        // §12.3。静的アンカーは原点が変わったときだけ書く。動的アンカーは毎フレーム書くので override する。
-        public virtual void _ApplyView()
-        {
-            if (!manager._viewsDirty) return;
-            _ApplyPose();
-        }
+        // §9.2。view を書く。毎フレーム書くかは Manager が決める (§9.1 / §12.3)。型ごとの実装を持つ。
+        public abstract void _ApplyView();
 
-        // §9.1。view を毎フレーム書く必要があるか。動的だけ true。Manager が Start で 1 回だけ問い合わせる。
+        // §9.1。view を毎フレーム書く必要があるか。Manager が Start で 1 回だけ問い合わせる。
         // Why-not: Manager に isStatic の焼き値を持たせない。型が唯一の真実であり、型と焼き値が食い違う余地を作らない。
-        public virtual bool _WritesViewEveryFrame()
-        {
-            return false;
-        }
+        public abstract bool _WritesViewEveryFrame();
 
-        // §8.2 手順 8。body を kinematic にせず位置・回転だけを写す。
+        // §7.4 手順 4 / §8.2 手順 8。body を kinematic にせず位置・回転だけを写す。
         // Why-not: isKinematic を立てない。動的アンカーの owner は次の物理ステップで積分を続ける。
-        public virtual void _ShiftToView()
-        {
-            _WriteViewPose();
-        }
+        public abstract void _ShiftToView();
 
         // body を kinematic にしてから絶対姿勢を書く。静的アンカーと他者が駆動する動的アンカーの経路。
         public void _ApplyPose()
@@ -105,11 +90,8 @@ namespace FDMi.sync
             return _localRot;
         }
 
-        // FEF 成分の m/s。静的アンカーは動かないので 0。動的アンカーが override する。
-        public virtual Vector3 GetVelocity()
-        {
-            return Vector3.zero;
-        }
+        // FEF 成分の m/s。型ごとの実装を持つ (静的は 0、動的は _localVelFef)。
+        public abstract Vector3 GetVelocity();
 
         public Vector3 GetViewPosition()
         {
