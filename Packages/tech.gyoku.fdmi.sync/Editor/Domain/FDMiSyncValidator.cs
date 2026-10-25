@@ -34,7 +34,6 @@ namespace FDMi.sync.Editor.Domain
                 r.Errors.Add("V-01: FDMiSyncManager はシーンに 1 つだけ必要です (現在 " + managers.Length + ")。");
 
             FDMiSyncAnchor[] anchors = manager.anchors ?? new FDMiSyncAnchor[0];
-            FDMiStationAnchor[] stations = manager.stations ?? new FDMiStationAnchor[0];
 
             // V-02: 全アンカーが anchors[] に 1 回だけ登録されている。
             // FDMiSyncPlayer は VRCPlayerObject の子孫なので登録表の対象外 (§11.1 / V-16)。
@@ -57,30 +56,6 @@ namespace FDMi.sync.Editor.Domain
             // V-03: Renderer.bounds の 8 隅がアンカーの姿勢原点から 130 m (警告) / 164 m (エラー)。
             for (int i = 0; i < anchors.Length; i++)
                 ValidateLeverArm(anchors[i], r);
-
-            // V-05 / V-06。
-            for (int i = 0; i < stations.Length; i++)
-            {
-                FDMiStationAnchor s = stations[i];
-                if (s == null) { r.Errors.Add("V-05: stations[" + i + "] が null です。"); continue; }
-                if (s.GetComponent<VRCStation>() == null)
-                    r.Errors.Add("V-05: " + Name(s) + " と同じ GameObject に VRCStation がありません。");
-                if (s.vehicleAnchor == null)
-                    r.Errors.Add("V-05: " + Name(s) + " の vehicleAnchor が未設定です。");
-                if (s.manager == null)
-                    r.Errors.Add("V-05: " + Name(s) + " の manager が未設定です。");
-                else if (s.manager != manager)
-                    r.Errors.Add("V-05: " + Name(s) + " の manager がシーンの FDMiSyncManager を指していません。");
-                if (s.seatIndex != i)
-                    r.Errors.Add("V-06: " + Name(s) + " の seatIndex が stations[] の添字 " + i + " と一致しません (" + s.seatIndex + ")。");
-                for (int j = i + 1; j < stations.Length; j++)
-                    if (stations[j] != null && stations[j].seatIndex == s.seatIndex)
-                        r.Errors.Add("V-06: seatIndex " + s.seatIndex + " が重複しています。");
-
-                // E-03: E-04 と同じ式で再計算し、焼き値と一致することを確認する (§11.1)。
-                if (s.vehicleAnchor != null && s.GetComponent<VRCStation>() != null)
-                    ValidateSeatRel(s, r);
-            }
 
             // V-07 / V-08: FDMiAnchorTrigger。
             FDMiAnchorTrigger[] triggers = Object.FindObjectsOfType<FDMiAnchorTrigger>();
@@ -134,7 +109,7 @@ namespace FDMi.sync.Editor.Domain
                         r.Errors.Add("V-19: " + Name(own[j]) + " の station が同じ GameObject にありません。");
                 }
 
-                // V-14: 永続化しない。前回の _absMm / _seatIndex を復元させない (§11.3)。
+                // V-14: 永続化しない。前回の _absMm を復元させない (§11.3)。
                 if (template.GetComponent<VRCEnablePersistence>() != null)
                     r.Warnings.Add("V-14: " + Name(template) + " に VRCEnablePersistence があります。永続化しません。");
 
@@ -147,9 +122,6 @@ namespace FDMi.sync.Editor.Domain
             for (int i = 0; i < anchors.Length; i++)
                 if (anchors[i] != null && IsUnderPlayerObject(anchors[i]))
                     r.Errors.Add("V-16: " + Name(anchors[i]) + " が VRCPlayerObject の子孫ですが anchors[] にあります。");
-            for (int i = 0; i < stations.Length; i++)
-                if (stations[i] != null && IsUnderPlayerObject(stations[i]))
-                    r.Errors.Add("V-16: " + Name(stations[i]) + " が VRCPlayerObject の子孫ですが stations[] にあります。");
 
             // V-10: FDMiSyncMath が GameObject に付いていない。
             FDMiSyncMath[] maths = Object.FindObjectsOfType<FDMiSyncMath>(true);
@@ -197,22 +169,6 @@ namespace FDMi.sync.Editor.Domain
             for (int i = 0; i < r.Errors.Count; i++) Debug.LogError("[FDMiSync] " + r.Errors[i]);
             for (int i = 0; i < r.Warnings.Count; i++) Debug.LogWarning("[FDMiSync] " + r.Warnings[i]);
             return r;
-        }
-
-        // V-06 / E-03。E-04 の焼き値を、シーンから同じ式で再計算した値と比較する。
-        // Why-not: 焼き直しを忘れたシーンを検出するのがこの比較の目的である。式は FDMiEarth.SeatRel に
-        // 1 つだけ置き、焼き (E-04) と検証 (E-03) の両方がそれを呼ぶ (§11.1)。
-        static void ValidateSeatRel(FDMiStationAnchor s, Result r)
-        {
-            int[] relMm = new int[3];
-            Quaternion relRot;
-            FDMiEarth.SeatRel(s, relMm, out relRot);
-
-            bool sameMm = relMm[0] == s._bakedSeatRelMm[0]
-                && relMm[1] == s._bakedSeatRelMm[1]
-                && relMm[2] == s._bakedSeatRelMm[2];
-            if (!sameMm || Quaternion.Angle(relRot, s._bakedSeatRelRot) > 1e-3f)
-                r.Errors.Add("V-06: " + Name(s) + " の席の相対姿勢が E-04 の焼き値と一致しません。焼き直してください。");
         }
 
         // V-03。基準はアンカーの姿勢原点 (body またはアンカーの transform)。view.position を基準にしない。

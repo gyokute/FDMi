@@ -1,13 +1,14 @@
-﻿using UdonSharp;
+﻿using FDMi.core;
+using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 using VRC.Udon;
 
-namespace FDMi.core
+namespace FDMi.sync
 {
     public class FDMiModelTransformFollower : FDMiBehaviour
     {
-        public string IsRootPath = "~/IsRootPath";
+        public string IsRootPath = "~/IsRoot";
 
         [FDMiDataPath(nameof(IsRootPath)), FDMiRegisterCallback(nameof(OnChange))]
         public FDMiBool IsRoot;
@@ -17,8 +18,16 @@ namespace FDMi.core
 
         public void OnChange()
         {
-            transform.parent = IsRoot.Data ? parentWhenTrue : parentWhenFalse;
-            transform.position = Vector3.zero;
+            if (IsRoot.Data)
+            {
+                transform.parent = parentWhenTrue;
+                transform.position = Vector3.zero;
+            }
+            else
+            {
+                transform.parent = parentWhenFalse;
+                transform.localPosition = Vector3.zero;
+            }
         }
     }
 }

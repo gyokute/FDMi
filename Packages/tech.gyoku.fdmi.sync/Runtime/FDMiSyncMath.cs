@@ -144,31 +144,5 @@ namespace FDMi.sync
             dstRot = QNormalize(rootRot * relRot);
         }
 
-        // §9.3。km セル (1000 m 立方) の索引。絶対 mm 座標を 1 km で割った商。
-        // Why-not: 単純な整数除算は負の値で 0 方向へ切り捨てる。床関数にそろえてセルの対称性を保つ。
-        public static long KmCellIndex(long absMm)
-        {
-            long q = absMm / 1000000L;
-            long r = absMm - q * 1000000L;
-            if (r != 0L && absMm < 0L) q -= 1L;
-            return q;
-        }
-
-        // §9.3。2 点が同じ km セルか。3 軸すべてでセルの索引が一致するかどうかで判定する。
-        public static bool SameKmCell(long[] a, long[] b)
-        {
-            return KmCellIndex(a[0]) == KmCellIndex(b[0])
-                && KmCellIndex(a[1]) == KmCellIndex(b[1])
-                && KmCellIndex(a[2]) == KmCellIndex(b[2]);
-        }
-
-        // §9.3。station の seated モード (③)。
-        // 自分 (Player.local) は false。remote は同じ Root かつ同じ km 圏内のときだけ false。
-        public static bool StationSeatedMode(bool isLocalPlayer, bool sameRoot, bool sameKmCell)
-        {
-            if (isLocalPlayer) return false;
-            if (sameRoot && sameKmCell) return false;
-            return true;
-        }
     }
 }

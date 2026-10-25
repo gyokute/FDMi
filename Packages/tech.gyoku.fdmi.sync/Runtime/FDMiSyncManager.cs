@@ -21,7 +21,6 @@ namespace FDMi.sync
 
         [Header("Editor 焼き (E-05)")]
         public FDMiSyncAnchor[] anchors;
-        public FDMiStationAnchor[] stations;
         public FDMiSyncAnchor initialAnchor;
         public FDMiManagerAnchor managerAnchor;
         public FDMiSyncAnchor defaultAnchor;
@@ -171,23 +170,18 @@ namespace FDMi.sync
 
             _viewVersion = _viewVersion + 1;
 
-            // 手順 5。自由移動のプレイヤーだけ。着席中は席の body が動くので追従する (§10.2)。
-            if (_localPlayerAnchor != null && _localPlayerAnchor._seatIndex >= 0) return;
+            // 手順 5。自由移動のプレイヤーを新しい view へ移す。着席中は root が車両になるため
+            // _ShouldRebase は走らない (§10.2)。
             localPlayer.TeleportTo(ViewFromAbs(_playerAbsMm), localPlayer.GetRotation());
         }
 
         public void SwitchRoot(FDMiSyncAnchor next)
         {
-            _SwitchRootCore(next, false);
-        }
-
-        public void SwitchRootSeated(FDMiSyncAnchor next)
-        {
-            _SwitchRootCore(next, true);
+            _SwitchRootCore(next);
         }
 
         // §8.2 の 10 段。
-        public void _SwitchRootCore(FDMiSyncAnchor next, bool seated)
+        public void _SwitchRootCore(FDMiSyncAnchor next)
         {
             // §8.1。suspend 中は新しい SwitchRoot* を受け付けない。
             if (Time.frameCount <= _suspendUntilFrame)
@@ -219,11 +213,8 @@ namespace FDMi.sync
             if (next.IsRoot != null) next.IsRoot.Data = true;
             next._SnapRootBodyToOrigin();
 
-            if (!seated) // 7
-            {
-                localPlayer.TeleportTo(ViewFromAbs(_playerAbsMm), ViewRotFromAbs(qPlayer));
-                localPlayer.SetVelocity(FDMiSyncMath.QInv(originRot) * oldVelFef);
-            }
+            localPlayer.TeleportTo(ViewFromAbs(_playerAbsMm), ViewRotFromAbs(qPlayer)); // 7
+            localPlayer.SetVelocity(FDMiSyncMath.QInv(originRot) * oldVelFef);
 
             // 手順 8 の全点再投影は _viewVersion の更新で代用する (§9.1)。
             // 各アンカーが次の FixedUpdate で版の変化に気付いて再投影する。
@@ -277,11 +268,6 @@ namespace FDMi.sync
             if (Time.frameCount > _suspendUntilFrame)
                 return false;
             return a == _localPlayerAnchor;
-        }
-
-        public FDMiStationAnchor GetStation(int index)
-        {
-            return stations[index];
         }
 
         public FDMiSyncPlayer GetLocalPlayerAnchor()

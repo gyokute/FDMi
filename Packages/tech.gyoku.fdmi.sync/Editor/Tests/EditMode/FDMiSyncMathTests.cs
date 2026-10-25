@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace FDMi.sync.Editor.Tests
 {
-    // §13.1 M-01〜M-13。Editor の通常 C# から FDMiSyncMath の static メソッドを直接呼ぶ。
+    // §13.1 M-01〜M-18。Editor の通常 C# から FDMiSyncMath の static メソッドを直接呼ぶ。
     // テスト名は仕様文として読めること (t-wada の 4 象限: テスト = What)。
     public class FDMiSyncMathTests
     {
@@ -422,36 +422,6 @@ namespace FDMi.sync.Editor.Tests
             {
                 UnityEngine.Object.DestroyImmediate(go);
             }
-        }
-
-        [Test]
-        public void M16_kmセルは1000m立方で判定し境界は床関数になる()
-        {
-            // §9.3。絶対 mm 座標を 1000 m (1,000,000 mm) で割ったセル。境界は次のセルに入る。
-            Assert.AreEqual(0L, FDMiSyncMath.KmCellIndex(0L));
-            Assert.AreEqual(0L, FDMiSyncMath.KmCellIndex(999999L));
-            Assert.AreEqual(1L, FDMiSyncMath.KmCellIndex(1000000L));
-            Assert.AreEqual(-1L, FDMiSyncMath.KmCellIndex(-1L));
-            Assert.AreEqual(-1L, FDMiSyncMath.KmCellIndex(-1000000L));
-
-            long[] a = new long[] { 1500000L, 0L, -2500000L };
-            long[] same = new long[] { 1999999L, 500000L, -2000001L };
-            long[] other = new long[] { 2000000L, 0L, 0L };
-
-            Assert.IsTrue(FDMiSyncMath.SameKmCell(a, same), "同じ km セル");
-            Assert.IsFalse(FDMiSyncMath.SameKmCell(a, other), "km セルが違う");
-        }
-
-        [Test]
-        public void M17_stationの席モードは自分と同一Root同一km圏内だけ站立になる()
-        {
-            // §9.3 の ③。自分は Seated=false。remote は同じ Root かつ同じ km 圏内のときだけ Seated=false。
-            Assert.IsFalse(FDMiSyncMath.StationSeatedMode(true, false, false), "自分は站立");
-            Assert.IsFalse(FDMiSyncMath.StationSeatedMode(true, true, true), "自分は Root と km 圏内かに関係なく站立");
-            Assert.IsFalse(FDMiSyncMath.StationSeatedMode(false, true, true), "同じ Root かつ同じ km 圏内は站立");
-            Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, true, false), "Root が同じでも km 圏外なら着席");
-            Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, false, true), "km 圏が同じでも Root が違えば着席");
-            Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, false, false), "remote は着席");
         }
 
         [Test]

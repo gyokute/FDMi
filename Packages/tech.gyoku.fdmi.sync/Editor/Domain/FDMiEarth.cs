@@ -1,10 +1,9 @@
 using System;
 using UnityEngine;
-using VRC.SDK3.Components;
 
 namespace FDMi.sync.Editor.Domain
 {
-    // §3.1 / §3.4 / E-03 / E-04 の Editor 側の唯一の実装。double で計算する。
+    // §3.1 / §3.4 の Editor 側の唯一の実装。double で計算する。
     // Why-not: Runtime では double を使わない (§1.4)。緯度経度から絶対 mm を焼くのは Editor だけで、
     // 6.371e9 mm を float にすると ulp が 512 mm になり焼けない (§4.2)。
     public static class FDMiEarth
@@ -108,25 +107,6 @@ namespace FDMi.sync.Editor.Domain
                 (float)(absMm[1] - origin[1]) * 0.001f,
                 (float)(absMm[2] - origin[2]) * 0.001f);
             return Quaternion.Inverse(qOrigin) * d;
-        }
-
-        // E-03 / E-04。車両 (body、無ければ view) から stationEnterPlayerLocation への局所姿勢。
-        // 焼き (E-04) と検証 (E-03) の両方がこの 1 関数を呼ぶ。
-        // Why-not: 同じ式を焼きと検証に 2 度書かない。片方だけ直されると検証が常に通る嘘になる (§11.1)。
-        public static void SeatRel(FDMiStationAnchor s, int[] dstMm, out Quaternion relRot)
-        {
-            VRCStation station = s.GetComponent<VRCStation>();
-            Transform vehicle = (s.vehicleAnchor.body != null) ? s.vehicleAnchor.body.transform
-                : (s.vehicleAnchor.view != null ? s.vehicleAnchor.view : s.vehicleAnchor.transform);
-            Transform seat = (station.stationEnterPlayerLocation != null)
-                ? station.stationEnterPlayerLocation
-                : station.transform;
-
-            Vector3 p = vehicle.InverseTransformPoint(seat.position);
-            dstMm[0] = (int)RoundHalfAwayFromZero(p.x * 1000.0);
-            dstMm[1] = (int)RoundHalfAwayFromZero(p.y * 1000.0);
-            dstMm[2] = (int)RoundHalfAwayFromZero(p.z * 1000.0);
-            relRot = Quaternion.Inverse(vehicle.rotation) * seat.rotation;
         }
 
         // E-09。anchor の絶対姿勢から respawnPoint への局所姿勢。

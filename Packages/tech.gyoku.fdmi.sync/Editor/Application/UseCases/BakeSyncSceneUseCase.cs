@@ -44,13 +44,9 @@ namespace FDMi.sync.Editor.Application.UseCases
             // V-16: VRCPlayerObject の子孫は登録表に入れない。FDMiSyncPlayer は FDMiSyncAnchor の派生なので
             // 型だけでは除外できない (§11.1)。
             List<FDMiSyncAnchor> anchors = Collect<FDMiSyncAnchor>(false);
-            List<FDMiStationAnchor> stations = Collect<FDMiStationAnchor>(false);
             for (int i = anchors.Count - 1; i >= 0; i--)
                 if (anchors[i] is FDMiSyncPlayer || IsUnderPlayerObject(anchors[i]))
                     anchors.RemoveAt(i);
-            for (int i = stations.Count - 1; i >= 0; i--)
-                if (IsUnderPlayerObject(stations[i]))
-                    stations.RemoveAt(i);
 
             // 手順 3 / 6: 先に基準姿勢を確定し、その後に全アンカーを焼く。
             // Why-not: full 精度の basis を基準にしない。Runtime の originRot は UnpackQuat(_rot) なので、
@@ -80,13 +76,8 @@ namespace FDMi.sync.Editor.Application.UseCases
             for (int i = 0; i < anchors.Count; i++)
                 BakeRespawn(anchors[i], pRef, qRef);
 
-            // 手順 4: 席の相対姿勢 (E-03 / E-04)。
-            for (int i = 0; i < stations.Count; i++)
-                BakeStation(stations[i], manager, i);
-
             // 手順 6: 登録表。
             manager.anchors = anchors.ToArray();
-            manager.stations = stations.ToArray();
 
             // 手順 7: VRCPlayerObject テンプレート 1 個の配線と初期姿勢 (E-06)。
             BakePlayerTemplate(manager, pRef, qRef);
@@ -173,23 +164,6 @@ namespace FDMi.sync.Editor.Application.UseCases
             if (a == null) return;
             FDMiEarth.RespawnRel(a, pRef, qRef, a._bakedRespawnRelMm, out a._bakedRespawnRelRot);
             EditorUtility.SetDirty(a);
-        }
-
-        // E-03 / E-04。基準は vehicleAnchor の body (無ければ view)。§9.5 の GetSeatAbs と同じ式。
-        static void BakeStation(FDMiStationAnchor s, FDMiSyncManager manager, int index)
-        {
-            if (s == null) return;
-
-            s.manager = manager;
-            s.seatIndex = index;
-            // §9.5: takeOwnershipOnEnter は isPilotSeat と同値。
-            s.takeOwnershipOnEnter = s.isPilotSeat;
-
-            VRCStation station = s.GetComponent<VRCStation>();
-            if (s.vehicleAnchor != null && station != null)
-                FDMiEarth.SeatRel(s, s._bakedSeatRelMm, out s._bakedSeatRelRot);
-
-            EditorUtility.SetDirty(s);
         }
 
         // E-06。スポーン地点を view 姿勢とし、焼いた initialAnchor の絶対姿勢で FEF に写す (§3.6)。
