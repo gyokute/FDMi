@@ -164,8 +164,8 @@ namespace FDMi.sync.Editor.Domain
             else if (!Contains(anchors, manager.initialAnchor))
                 r.Errors.Add("V-11: initialAnchor が anchors[] に含まれません。");
 
-            // V-12: 静的なら body が kinematic、動的アンカーの body は非 kinematic。
             // V-13: 動的アンカーの GameObject に ObjectSync を付けない (§11.3)。
+            // 物理状態は外部が所有するため、ここでは検証しない。
             for (int i = 0; i < anchors.Length; i++)
             {
                 FDMiSyncAnchor a = anchors[i];
@@ -177,12 +177,6 @@ namespace FDMi.sync.Editor.Domain
                 // SDK3 の型名は VRC_ObjectSync ではなく VRCObjectSync である。
                 if (!isStatic && a.GetComponent<VRCObjectSync>() != null)
                     r.Errors.Add("V-13: " + Name(a) + " は動的アンカーですが ObjectSync が付いています。");
-
-                if (a.body == null) continue;
-                if (isStatic && !a.body.isKinematic)
-                    r.Warnings.Add("V-12: " + Name(a) + " は静的ですが body が kinematic ではありません。");
-                if (!isStatic && a.body.isKinematic)
-                    r.Warnings.Add("V-12: " + Name(a) + " は動的ですが body が kinematic です。");
             }
 
             // V-18: 親アンカーの規則。親は anchors[] に含まれ、body を持たない。

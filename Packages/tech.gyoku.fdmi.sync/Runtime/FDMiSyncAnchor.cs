@@ -1,5 +1,6 @@
 using UdonSharp;
 using UnityEngine;
+using FDMi.core;
 
 namespace FDMi.sync
 {
@@ -15,6 +16,9 @@ namespace FDMi.sync
         public FDMiSyncManager manager;
         public Rigidbody body;
         public Transform view;
+
+        // 現在このアンカーが view origin（root）か。外部の物理制御が root 判定に使う。
+        public FDMiBool IsRoot;
 
         // 親アンカー。null は親のいないアンカー。位置は親との差分で管理する (§9.2)。
         // Why-not: 親の Transform を直接の基準にしない。親の Transform は view 書きの順序で 1 フレーム古くになりうる。
@@ -65,17 +69,15 @@ namespace FDMi.sync
             _ApplyPose();
         }
 
-        // §7.4 手順 4 / §8.2 手順 8。body を kinematic にせず位置・回転だけを写す。
-        // Why-not: isKinematic を立てない。動的アンカーの owner は次の物理ステップで積分を続ける。
+        // §7.4 手順 4 / §8.2 手順 8。位置・回転だけを写す。
         public virtual void _ShiftToView()
         {
             _ApplyPose();
         }
 
-        // body を kinematic にしてから絶対姿勢を書く。静的アンカーと他者が駆動する動的アンカーの経路。
+        // 絶対姿勢を書く。物理状態は外部が所有する。
         public void _ApplyPose()
         {
-            if (body != null) body.isKinematic = true;
             _WriteViewPose();
         }
 
@@ -125,9 +127,9 @@ namespace FDMi.sync
             _Tick(manager._frameStampMs, manager._nowMs);
         }
 
-        // §9.2。LateUpdate 相当。view を書く。
+        // §9.2。FixedUpdate で view を書く。
         // Why-not: 全アンカーの view を Manager が書かない。アンカーごとに書くので、
-        // 1 アンカー 1 LateUpdate になるが、原点が変わったときだけ書き直す規則は各アンカーが持つ (§9.1)。
+        // 1 アンカー 1 FixedUpdate になるが、原点が変わったときだけ書き直す規則は各アンカーが持つ (§9.1)。
         public void _ApplyViewDriver()
         {
             if (manager == null) return;
@@ -139,6 +141,18 @@ namespace FDMi.sync
             }
             if (_writesView) _ApplyView();
         }
+
+        // §7.4。物理ステップの前に view を書く。Manager 999 が origin を更新した後に走る。
+        public void FixedUpdate()
+        {
+            _ApplyViewDriver();
+        }
+
+        // §7.2。root のローカル所有 body を絶対姿勢へ積算して原点へ戻す。動的アンカーだけが実装する。
+        public virtual void _IntegrateRootBody() { }
+
+        // §8.2。root 切替時に body を view 原点へ置く。動的アンカーだけが実装する。
+        public virtual void _SnapRootBodyToOrigin() { }
 
         public void GetAbsoluteMm(long[] dst)
         {

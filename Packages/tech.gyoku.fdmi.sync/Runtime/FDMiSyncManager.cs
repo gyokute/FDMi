@@ -5,14 +5,14 @@ using VRC.SDKBase;
 namespace FDMi.sync
 {
     // §9.1。stamp・原点・root 切替。
-    // 同期フィールドを持たない。フレーム駆動は FixedUpdate (stamp 記録のみ) と Update (ExecOrder 1001) の 2 本だけ。
-    // アンカーは自分の Update で積分・送受信を、自分の LateUpdate で view を書く (ExecOrder 1000)。
-    // Why-not: 1 本の LateUpdate で回さない。順序が 1 フレーム内で確定しないと、
-    // 「積分 → 原点移動 → view 書き」の順が崩れて view が 1 フレーム分ずれる (§7.4)。
+    // 同期フィールドを持たない。FixedUpdate (ExecOrder 999) で root 積分・原点更新を行い、
+    // Update (ExecOrder 999) で同期時刻を渡す。アンカーは FixedUpdate (1000) で自分の view を書く。
+    // Why-not: 1 本の LateUpdate で回さない。物理ステップの前に「root 積分 → 原点移動 → view 書き」を
+    // 確定しないと、コライダーが 1 ステップずれる (§7.4)。
     // Why-not: プレイヤーアンカーの登録表を持たない。実行時に生成されるコピーは登録表から辿れない。
     // 原点が変わったことは _viewVersion で知らせる (push ではなく version 引き) (§9.4)。
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
-    [DefaultExecutionOrder(1001)]
+    [DefaultExecutionOrder(999)]
     public class FDMiSyncManager : UdonSharpBehaviour
     {
         // §3.3。rebase の閾値と移動量の単位。
@@ -23,6 +23,7 @@ namespace FDMi.sync
         public FDMiSyncAnchor[] anchors;
         public FDMiStationAnchor[] stations;
         public FDMiSyncAnchor initialAnchor;
+        public FDMiManagerAnchor managerAnchor;
         public FDMiSyncAnchor defaultAnchor;
 
         public FDMiSyncAnchor _root;
@@ -63,26 +64,41 @@ namespace FDMi.sync
             _fixedDeltaMs = (int)FDMiSyncMath.RoundHalfAwayFromZero(Time.fixedDeltaTime * 1000f);
             localPlayer = Networking.LocalPlayer;
 
-            for (int i = 0; i < anchors.Length; i++)
-                anchors[i]._Init(this);
-
-            // 手順 3 は手順 2 の後。GetAbsoluteMm は _Init が確定した _localAbs を返す。
-            initialAnchor.GetAbsoluteMm(originMm);
-            originRot = initialAnchor.GetAbsoluteRotation();
-            _root = initialAnchor;
+            // root を先に確定する。初期化中に 1 つ失敗しても view origin は壊さない。
+            if (managerAnchor != null) _root = managerAnchor;
+            else _root = initialAnchor;
+            _root.GetAbsoluteMm(originMm);
+            originRot = _root.GetAbsoluteRotation();
+            _root._SnapRootBodyToOrigin();
             _viewVersion = 1;
+
+            for (int i = 0; i < anchors.Length; i++)
+                if (anchors[i] != managerAnchor) anchors[i]._Init(this);
+
+            // manager anchor は焼き値だけで動く。継承フィールドの Udon 初期化に依存させない。
+            if (managerAnchor != null)
+            {
+                managerAnchor.manager = this;
+                managerAnchor._writesView = false;
+            }
+
+            _InitRootFlags();
         }
 
-        // §5.2 手順 1。body 位置は直前の物理ステップ終了時の値なので、fixedDeltaTime を足して時刻を合わせる (§6.8)。
+        // §5.2 / §7.2。物理ステップの前に root を積分・原点を更新し、不連続を 1 ステップ止める。
         public void FixedUpdate()
         {
             _physicsStampMs = Networking.GetServerTimeInMilliseconds();
+
+            if (_root != null) _root._IntegrateRootBody();
+
+            if (_root == managerAnchor && _ShouldRebase()) _Rebase();
+
+            _SyncOrigin();
         }
 
-        // ExecOrder 1001。アンカーの Update (1000) より後に走る。
-        // ここで rebase の判定と原点の移動を行う。アンカーの view 書き (LateUpdate) より前 (§7.4)。
-        // Why-not: アンカーの _nowMs を自分で読ませない。全ノードに同じ時刻を渡す (§6.5)。
-        // この 1 フレームの遅れは extrapolate の窓を 1 フレーム縮めるだけで、位置は変わらない (§6.5)。
+        // ExecOrder 999。アンカーの Update (1000) より前に走り、全ノードへ同じ時刻を渡す。
+        // 原点移動は FixedUpdate 側で行う。ここは同期時刻の更新だけ。
         public void Update()
         {
             _nowMs = Networking.GetServerTimeInMilliseconds();
@@ -90,8 +106,6 @@ namespace FDMi.sync
             _frameStampMs = _physicsStampMs + _fixedDeltaMs;
             if (FDMiSyncMath.DeltaInt(_frameStampMs, _nowMs) > 0)
                 _frameStampMs = _nowMs;
-
-            if (_ShouldRebase()) _Rebase();
         }
 
         // §7.3。ローカルプレイヤーの view 位置が閾値を超えたら rebase する。
@@ -124,10 +138,12 @@ namespace FDMi.sync
             }
         }
 
-        // §7.4 の rebase。原点を整数 km だけ動かし、全 view を再投影する。
+        // §7.4 の rebase。自由移動中の manager anchor と原点を整数 km だけ動かす。
         public void _Rebase()
         {
-            // 手順 0 は手順 3 で原点が変わる前に取る。
+            if (managerAnchor == null) return;
+
+            // 手順 0 は原点が変わる前に取る。
             AbsFromView(localPlayer.GetPosition(), _playerAbsMm);
 
             // 手順 1〜3。移動量は整数 km。
@@ -138,14 +154,47 @@ namespace FDMi.sync
             if (!moved) return;
 
             for (int i = 0; i < 3; i++)
+            {
+                managerAnchor._localAbs[i] = managerAnchor._localAbs[i] + _shiftMm[i];
                 originMm[i] = originMm[i] + _shiftMm[i];
+            }
 
-            // 手順 4 の全点再投影は _viewVersion の更新で代用する (§9.1)。
             _viewVersion = _viewVersion + 1;
 
             // 手順 5。自由移動のプレイヤーだけ。着席中は席の body が動くので追従する (§10.2)。
             if (_localPlayerAnchor != null && _localPlayerAnchor._seatIndex >= 0) return;
             localPlayer.TeleportTo(ViewFromAbs(_playerAbsMm), localPlayer.GetRotation());
+        }
+
+        // root の絶対姿勢を現在の view origin に写す。
+        void _SyncOrigin()
+        {
+            if (_root == null) return;
+
+            _root.GetAbsoluteMm(originMm);
+            originRot = _root.GetAbsoluteRotation();
+
+            // 自由移動中は rebase / root 切替でしか原点が変わらない。
+            // 乗車中は root body が毎 FixedUpdate 動くので、毎ステップ再投影する。
+            if (_root != managerAnchor)
+                _viewVersion = _viewVersion + 1;
+        }
+
+        void _InitRootFlags()
+        {
+            for (int i = 0; i < anchors.Length; i++)
+                if (anchors[i] != null && anchors[i].IsRoot != null)
+                    anchors[i].IsRoot.Data = false;
+            if (_root != null && _root.IsRoot != null)
+                _root.IsRoot.Data = true;
+        }
+
+        void _SetRootFlag(FDMiSyncAnchor prevRoot, FDMiSyncAnchor nextRoot)
+        {
+            if (prevRoot != null && prevRoot.IsRoot != null)
+                prevRoot.IsRoot.Data = false;
+            if (nextRoot != null && nextRoot.IsRoot != null)
+                nextRoot.IsRoot.Data = true;
         }
 
         public void SwitchRoot(FDMiSyncAnchor next)
@@ -179,12 +228,16 @@ namespace FDMi.sync
             AbsFromView(localPlayer.GetPosition(), _playerAbsMm);
             Quaternion qPlayer = FDMiSyncMath.QMul(originRot, localPlayer.GetRotation());
 
+            FDMiSyncAnchor prevRoot = _root;
+
             next.GetAbsoluteMm(_tmpOrigin); // 5
             originMm[0] = _tmpOrigin[0];
             originMm[1] = _tmpOrigin[1];
             originMm[2] = _tmpOrigin[2];
             originRot = next.GetAbsoluteRotation();
             _root = next; // 6
+            _SetRootFlag(prevRoot, next);
+            next._SnapRootBodyToOrigin();
 
             if (!seated) // 7
             {
@@ -193,17 +246,18 @@ namespace FDMi.sync
             }
 
             // 手順 8 の全点再投影は _viewVersion の更新で代用する (§9.1)。
-            // Why-not: プレイヤーアンカーの登録表を Manager が持たないため、全点を Manager から辿れない (§9.4)。
-            // 各アンカーが自分の LateUpdate で版の変化に気付いて再投影する。
+            // 各アンカーが次の FixedUpdate で版の変化に気付いて再投影する。
 
             for (int i = 0; i < anchors.Length; i++) // 9
             {
                 Rigidbody b = anchors[i].body;
                 if (b == null)
                     continue;
-                // 旧 frame → FEF → 新 frame の順に回す。
+                // 旧 frame → FEF → 新 frame の順に回す。角速度も同じ frame 変換を受ける。
                 Vector3 velFef = FDMiSyncMath.QRotate(oldOriginRot, b.velocity);
                 b.velocity = FDMiSyncMath.QRotate(FDMiSyncMath.QInv(originRot), velFef);
+                Vector3 angFef = FDMiSyncMath.QRotate(oldOriginRot, b.angularVelocity);
+                b.angularVelocity = FDMiSyncMath.QRotate(FDMiSyncMath.QInv(originRot), angFef);
             }
 
             _suspendUntilFrame = Time.frameCount + 1; // 10

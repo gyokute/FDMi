@@ -9,7 +9,7 @@ namespace FDMi.sync
     // 同期フィールドは 4 フィールド 11 要素 48 B (§4.4)。_absMm は送信スナップショットであり、
     // 積分は _accMm が持つ (§4.3)。この分離が「送った位置」と「送った stamp」を同一時点に揃える。
     // Why-not: 基底の [UdonBehaviourSyncMode] は継承されないため、派生クラスにも明示する (§5.1)。
-    // ExecOrder 1000: Manager (1001) より前に積分する。Manager は積分後の root 位置で原点を更新する (§7.1)。
+    // ExecOrder 1000: Manager (999) が root を積分・原点更新した後に、自分の view を書く (§7.1)。
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     [DefaultExecutionOrder(1000)]
     public class FDMiDynamicObjectSync : FDMiSyncAnchor
@@ -123,8 +123,54 @@ namespace FDMi.sync
                 return;
             }
 
-            _UpdateAbsolutePose();
+            // root は Manager 999 が FixedUpdate で積分済み。二重積分しない。
+            if (manager.GetRoot() != this) _UpdateAbsolutePose();
             _TrySend(frameStamp);
+        }
+
+        // §7.2。root-local physics。Manager が物理ステップの前に呼ぶ。
+        // Why-not: Update で body 差分を読まない。body を 0 に戻した後の差分を二重に拾う。
+        public override void _IntegrateRootBody()
+        {
+            if (!_initialized || !_isLocalOwner || body == null) return;
+
+            Quaternion br = body.rotation;
+            Vector3 bp = body.position;
+
+            _localRot = FDMiSyncMath.QNormalize(FDMiSyncMath.QMul(_localRot, br));
+
+            // V2 と同じく、回転更新後の絶対姿勢で位置差分を写す。
+            Vector3 dAbs = FDMiSyncMath.QRotate(_localRot, bp * 1000f);
+            _fracMm[0] = _fracMm[0] + dAbs.x;
+            _fracMm[1] = _fracMm[1] + dAbs.y;
+            _fracMm[2] = _fracMm[2] + dAbs.z;
+
+            long n0 = (long)_fracMm[0];
+            long n1 = (long)_fracMm[1];
+            long n2 = (long)_fracMm[2];
+            _accMm[0] = _accMm[0] + n0; _fracMm[0] = _fracMm[0] - (float)n0;
+            _accMm[1] = _accMm[1] + n1; _fracMm[1] = _fracMm[1] - (float)n1;
+            _accMm[2] = _accMm[2] + n2; _fracMm[2] = _fracMm[2] - (float)n2;
+            _localAbs[0] = _accMm[0]; _localAbs[1] = _accMm[1]; _localAbs[2] = _accMm[2];
+
+            body.position = Vector3.zero;
+            body.rotation = Quaternion.identity;
+            body.velocity = FDMiSyncMath.QRotate(FDMiSyncMath.QInv(br), body.velocity);
+            body.angularVelocity = FDMiSyncMath.QRotate(FDMiSyncMath.QInv(br), body.angularVelocity);
+
+            _lastBodyPos = Vector3.zero;
+            _hasLastBodyPos = true;
+            _localVelFef = FDMiSyncMath.QRotate(_localRot, body.velocity);
+        }
+
+        // §8.2。root 切替時に新しい root body を origin に置く。
+        public override void _SnapRootBodyToOrigin()
+        {
+            if (body == null) return;
+            body.position = Vector3.zero;
+            body.rotation = Quaternion.identity;
+            _lastBodyPos = Vector3.zero;
+            _hasLastBodyPos = true;
         }
 
         // §7.2。owner の積分。端数は _fracMm に繰り越す。整数丸めの毎フレーム積分は禁止 (§4.3)。
@@ -361,7 +407,7 @@ namespace FDMi.sync
             return FDMiSyncMath.QNormalize(FDMiSyncMath.QMul(spin, q1));
         }
 
-        // §6.7。書き込み順は固定: isKinematic → position/rotation → velocity → 待ち解除 → snap。
+        // §6.7。書き込み順は固定: position/rotation → velocity → 待ち解除 → snap。
         public override void OnOwnershipTransferred(VRCPlayerApi newOwner)
         {
             // §6.7 手順の先頭。送受信の分岐はこの 1 個だけを見る。
@@ -370,10 +416,8 @@ namespace FDMi.sync
 
             if (!newOwner.isLocal)
             {
-                // 旧 owner の待ちを解く。
+                // 旧 owner の待ちを解く。body の物理状態は外部の物理制御が所有する。
                 _sendPending = false;
-                // Why-not: kinematic のまま速度を書いても反映されない。
-                if (body != null) { body.velocity = Vector3.zero; body.isKinematic = true; }
                 return;
             }
 
@@ -400,7 +444,6 @@ namespace FDMi.sync
 
             if (body != null)
             {
-                body.isKinematic = false;
                 body.position = manager.ViewFromAbs(_localAbs);
                 body.rotation = manager.ViewRotFromAbs(_localRot);
                 body.velocity = manager.ViewVectorFromAbs(_latestVel);
@@ -418,10 +461,11 @@ namespace FDMi.sync
             _snap = true;
         }
 
-        // §9.2。owner は自分の body を積分しているので view を書かない。他は body を kinematic にして書く。
+        // §9.2。root のローカル所有 body だけは Manager が積分するので view を書かない。
+        // それ以外は view を書く。物理状態は外部が所有する。
         public override void _ApplyView()
         {
-            if (_isLocalOwner) return;
+            if (_isLocalOwner && manager.GetRoot() == this) return;
             _ApplyPose();
         }
 

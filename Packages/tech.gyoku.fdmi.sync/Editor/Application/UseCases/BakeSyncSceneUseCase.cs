@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using FDMi.sync.Editor.Domain;
+using UdonSharpEditor;
 using UnityEditor;
 using UnityEngine;
 using VRC.SDK3.Components;
@@ -30,6 +31,14 @@ namespace FDMi.sync.Editor.Application.UseCases
                 Debug.LogError("[FDMiSync] V-11: initialAnchor は FDMiStaticObjectSync である必要があります。");
                 return;
             }
+
+            // 自由移動中の root は Manager 上の body なしアンカー。
+            // Why-not: initialAnchor を root にしない。rebase で root が原点からずれる。
+            FDMiManagerAnchor managerAnchor = manager.GetComponent<FDMiManagerAnchor>();
+            if (managerAnchor == null)
+                managerAnchor = manager.gameObject.AddUdonSharpComponent<FDMiManagerAnchor>();
+            manager.managerAnchor = managerAnchor;
+            manager.defaultAnchor = managerAnchor;
 
             // 手順 2: 階層の深さ優先・sibling index 昇順 (アクティブのみ)。
             // V-16: VRCPlayerObject の子孫は登録表に入れない。FDMiSyncPlayer は FDMiSyncAnchor の派生なので
@@ -85,6 +94,18 @@ namespace FDMi.sync.Editor.Application.UseCases
         static void BakeAnchor(FDMiSyncAnchor a, long[] pRef, Quaternion qRef)
         {
             if (a == null) return;
+
+            // Manager anchor は initialAnchor と同じ絶対姿勢から始まる。シーンの Transform は使わない。
+            FDMiManagerAnchor managerAnchor = a as FDMiManagerAnchor;
+            if (managerAnchor != null)
+            {
+                managerAnchor._localAbs[0] = pRef[0];
+                managerAnchor._localAbs[1] = pRef[1];
+                managerAnchor._localAbs[2] = pRef[2];
+                managerAnchor._localRot = qRef;
+                EditorUtility.SetDirty(a);
+                return;
+            }
 
             // 緯度経度高度 yaw は静的アンカーだけが持つ (§9.2.2)。
             FDMiStaticObjectSync staticAnchor = a as FDMiStaticObjectSync;
