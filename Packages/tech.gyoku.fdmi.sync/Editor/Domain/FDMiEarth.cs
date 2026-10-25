@@ -128,5 +128,53 @@ namespace FDMi.sync.Editor.Domain
             dstMm[2] = (int)RoundHalfAwayFromZero(p.z * 1000.0);
             relRot = Quaternion.Inverse(vehicle.rotation) * seat.rotation;
         }
+
+        // E-09。anchor の絶対姿勢から respawnPoint への局所姿勢。
+        // Why-not: anchor の Transform を基準にしない。manager anchor の Transform は絶対姿勢
+        // (initialAnchor) と一致しないため、焼き値の絶対姿勢との差分で持つ。
+        public static void RespawnRel(FDMiSyncAnchor a, long[] pRef, Quaternion qRef, long[] dstMm,
+            out Quaternion relRot)
+        {
+            if (a.respawnPoint == null)
+            {
+                dstMm[0] = 0; dstMm[1] = 0; dstMm[2] = 0;
+                relRot = Quaternion.identity;
+                return;
+            }
+
+            long[] respawnAbs = new long[3];
+            ViewToAbsMm(pRef, qRef, a.respawnPoint.position, respawnAbs);
+            Quaternion respawnRot = qRef * a.respawnPoint.rotation;
+
+            long[] anchorAbs;
+            Quaternion anchorRot;
+            FDMiManagerAnchor managerAnchor = a as FDMiManagerAnchor;
+            if (managerAnchor != null)
+            {
+                anchorAbs = managerAnchor._localAbs;
+                anchorRot = managerAnchor._localRot;
+            }
+            else
+            {
+                anchorAbs = FDMiSyncAnchorFields.AbsMm(a);
+                anchorRot = FDMiSyncMath.UnpackQuat(FDMiSyncAnchorFields.Rot(a));
+            }
+
+            RespawnRel(anchorAbs, anchorRot, respawnAbs, respawnRot, dstMm, out relRot);
+        }
+
+        // E-09 の本体。Runtime の FDMiSyncMath.RespawnAbs と 1 対。
+        public static void RespawnRel(long[] anchorAbs, Quaternion anchorRot, long[] respawnAbs,
+            Quaternion respawnRot, long[] dstMm, out Quaternion relRot)
+        {
+            Vector3 d = Quaternion.Inverse(anchorRot) * new Vector3(
+                (float)(respawnAbs[0] - anchorAbs[0]) * 0.001f,
+                (float)(respawnAbs[1] - anchorAbs[1]) * 0.001f,
+                (float)(respawnAbs[2] - anchorAbs[2]) * 0.001f);
+            dstMm[0] = RoundHalfAwayFromZero(d.x * 1000.0);
+            dstMm[1] = RoundHalfAwayFromZero(d.y * 1000.0);
+            dstMm[2] = RoundHalfAwayFromZero(d.z * 1000.0);
+            relRot = Quaternion.Inverse(anchorRot) * respawnRot;
+        }
     }
 }

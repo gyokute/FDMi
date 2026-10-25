@@ -132,6 +132,18 @@ namespace FDMi.sync
             return QInv(qOrigin) * d;
         }
 
+        // §9.8。A_P = A_R + Rotate(Q_R, rel)。E-09 の焼き (FDMiEarth.RespawnRel) の逆変換。
+        // Why-not: Player に式を書かない。焼きと Runtime を同じ 1 対の式で検証できる。
+        public static void RespawnAbs(long[] rootAbs, Quaternion rootRot, long[] relMm, Quaternion relRot,
+            long[] dstAbs, out Quaternion dstRot)
+        {
+            Vector3 r = rootRot * new Vector3((float)relMm[0], (float)relMm[1], (float)relMm[2]);
+            dstAbs[0] = rootAbs[0] + RoundHalfAwayFromZero(r.x);
+            dstAbs[1] = rootAbs[1] + RoundHalfAwayFromZero(r.y);
+            dstAbs[2] = rootAbs[2] + RoundHalfAwayFromZero(r.z);
+            dstRot = QNormalize(rootRot * relRot);
+        }
+
         // §9.3。km セル (1000 m 立方) の索引。絶対 mm 座標を 1 km で割った商。
         // Why-not: 単純な整数除算は負の値で 0 方向へ切り捨てる。床関数にそろえてセルの対称性を保つ。
         public static long KmCellIndex(long absMm)

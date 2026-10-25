@@ -76,6 +76,10 @@ namespace FDMi.sync.Editor.Application.UseCases
             for (int i = 0; i < anchors.Count; i++)
                 BakeParent(anchors[i]);
 
+            // 手順 5.5: root 時の respawn 姿勢 (E-09)。
+            for (int i = 0; i < anchors.Count; i++)
+                BakeRespawn(anchors[i], pRef, qRef);
+
             // 手順 4: 席の相対姿勢 (E-03 / E-04)。
             for (int i = 0; i < stations.Count; i++)
                 BakeStation(stations[i], manager, i);
@@ -159,6 +163,15 @@ namespace FDMi.sync.Editor.Application.UseCases
             Transform parentT = (a.parent.view != null) ? a.parent.view : a.parent.transform;
             if (self.parent == parentT) return;
             Undo.SetTransformParent(self, parentT, "FDMi Sync Parent");
+            EditorUtility.SetDirty(a);
+        }
+
+        // E-09。root 時の respawn 先を anchor-local に焼く。未設定なら zero offset。
+        // Why-not: Runtime で respawnPoint を読まない。原点が動いても焼き値だけで再構成できる (§9.8)。
+        static void BakeRespawn(FDMiSyncAnchor a, long[] pRef, Quaternion qRef)
+        {
+            if (a == null) return;
+            FDMiEarth.RespawnRel(a, pRef, qRef, a._bakedRespawnRelMm, out a._bakedRespawnRelRot);
             EditorUtility.SetDirty(a);
         }
 

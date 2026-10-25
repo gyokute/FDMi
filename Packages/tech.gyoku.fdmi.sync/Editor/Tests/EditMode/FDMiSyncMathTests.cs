@@ -453,5 +453,26 @@ namespace FDMi.sync.Editor.Tests
             Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, false, true), "km 圏が同じでも Root が違えば着席");
             Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, false, false), "remote は着席");
         }
+
+        [Test]
+        public void M18_respawnの焼きとRuntime合成は元の絶対姿勢に戻る()
+        {
+            // §9.8。E-09 の RespawnRel と Runtime の RespawnAbs は同じ式の逆変換である。
+            long[] anchorAbs = new long[] { 1200000L, 35000L, -600000L };
+            Quaternion anchorRot = Quaternion.AngleAxis(90f, Vector3.up);
+            long[] relMm = new long[] { 1000L, 100L, 0L };
+            Quaternion relRot = Quaternion.AngleAxis(30f, Vector3.forward);
+
+            long[] respawnAbs = new long[3];
+            Quaternion respawnRot;
+            FDMiSyncMath.RespawnAbs(anchorAbs, anchorRot, relMm, relRot, respawnAbs, out respawnRot);
+
+            long[] roundTripMm = new long[3];
+            Quaternion roundTripRot;
+            FDMiEarth.RespawnRel(anchorAbs, anchorRot, respawnAbs, respawnRot, roundTripMm, out roundTripRot);
+
+            CollectionAssert.AreEqual(relMm, roundTripMm, "局所位置は焼きで戻る");
+            Assert.IsTrue(Quaternion.Angle(relRot, roundTripRot) < 1e-4f, "局所回転は焼きで戻る");
+        }
     }
 }

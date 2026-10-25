@@ -289,6 +289,14 @@ namespace FDMi.sync
             return _localPlayerAnchor;
         }
 
+        // §9.8。Interact / Trigger から呼べる respawn の入口。
+        // Why-not: プレイヤーアンカーのコピーは実行時生成でシーンから配線できないため、Manager を入口にする (§9.4)。
+        public void _RespawnLocalPlayer()
+        {
+            if (_localPlayerAnchor == null) return;
+            _localPlayerAnchor._RespawnLocalPlayer();
+        }
+
         // §9.4。ローカルプレイヤーのアンカーの登録。配列は持たない。
         public void _SetLocalPlayerAnchor(FDMiSyncPlayer a)
         {

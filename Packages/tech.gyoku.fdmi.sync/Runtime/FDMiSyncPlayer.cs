@@ -52,6 +52,9 @@ namespace FDMi.sync
         // 姿勢を 1 回でも書いたか。station が自分の足元に来る前に着席すると TEMPLATE の位置へ飛ぶ (①)。
         bool _poseWritten;
 
+        // §9.8。respawn の絶対位置の受け皿。root の絶対姿勢 + 回転した局所 offset。
+        long[] _tmpRespawnAbs = new long[3];
+
         // §9.3 の 6 段。テンプレートは VRChat が無効化するため Start を実行しない想定 (U-03)。
         public void Start()
         {
@@ -73,6 +76,9 @@ namespace FDMi.sync
             {
                 manager._SetLocalPlayerAnchor(this);
                 station.PlayerMobility = VRCStation.Mobility.Mobile;
+                // §9.8。参加時は manager root の respawn point へ置く。1 秒待つのは、
+                // Manager.Start の root 確定と VRChat の spawn 確定の後に Teleport するため (v2 と同じ)。
+                SendCustomEventDelayedSeconds(nameof(_RespawnLocalPlayer), 1f);
             }
             else
             {
@@ -193,6 +199,35 @@ namespace FDMi.sync
                 return;
             _nextSeatTime = Time.time + SEAT_RETRY_SEC;
             station.UseStation(player);
+        }
+
+        // §9.8。root の respawn point へ自分の絶対姿勢を作り直す。
+        // Why-not: localPlayer.Respawn() を呼ばない。descriptor spawn は root frame に追従せず、
+        // 任意の respawnPoint へ飛べない。TeleportTo が唯一の経路 (§9.8 / ADR-0002)。
+        public void _RespawnLocalPlayer()
+        {
+            FDMiSyncAnchor root = manager.GetRoot();
+            if (root == null) return;
+
+            root.GetAbsoluteMm(_tmpRespawnAbs);
+            FDMiSyncMath.RespawnAbs(_tmpRespawnAbs, root.GetAbsoluteRotation(),
+                root._bakedRespawnRelMm, root._bakedRespawnRelRot, _localAbs, out _localRot);
+
+            // 着席中は _Tick が _localAbs を書かず送信もしない。席を出して自由移動に戻す (§9.3)。
+            _seatIndex = -1;
+            // 次の _Tick が Teleport 後の GetPosition() から同じ姿勢を作り、次フレームに送る (§6.3)。
+            _nextSendTime = 0f;
+
+            player.TeleportTo(manager.ViewFromAbs(_localAbs), manager.ViewRotFromAbs(_localRot));
+            player.SetVelocity(Vector3.zero);
+        }
+
+        // §9.8。VRChat の respawn (落下・Respawn()) を root の respawn point へ置き直す。
+        // Why-not: remote のコピーでも発火する。位置の真実は本人が送るので local だけが処理する (§6.2)。
+        public override void OnPlayerRespawn(VRCPlayerApi player)
+        {
+            if (!player.isLocal) return;
+            _RespawnLocalPlayer();
         }
 
         // §9.3。自分の station への着席。VRChat が通知する (①)。

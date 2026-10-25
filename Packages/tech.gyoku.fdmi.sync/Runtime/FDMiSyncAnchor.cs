@@ -25,6 +25,15 @@ namespace FDMi.sync
         // 差分の基準は絶対姿勢で持つので、書かれる順番に依存しない (§3.5)。
         public FDMiSyncAnchor parent;
 
+        // §9.8。このアンカーが root のときの respawn 先。root-local の姿勢で持つ。
+        // Runtime は Transform を読まず、焼き値と root の絶対姿勢だけで view を再構成する。
+        // Why-not: respawnPoint を毎回読まない。rebase 後の view 座標は root の運動に依存し、
+        // 焼いておけば root が動いても同じ局所姿勢になる (§9.8 / ADR-0002)。
+        [Header("Respawn (E-09)")]
+        public Transform respawnPoint;
+        [HideInInspector] public long[] _bakedRespawnRelMm = new long[3];
+        [HideInInspector] public Quaternion _bakedRespawnRelRot = Quaternion.identity;
+
         // 現在の絶対姿勢。動的は積分・受信サンプル、静的は焼き値が確定させる。
         // view への写像はこの 2 つだけを見る (§9.2)。
         public long[] _localAbs = new long[3];
