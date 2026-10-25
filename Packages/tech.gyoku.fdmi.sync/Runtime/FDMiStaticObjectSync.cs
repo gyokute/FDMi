@@ -40,17 +40,5 @@ namespace FDMi.sync
         {
             _ApplyViewDriver();
         }
-
-        // §7.4 手順 4 / §8.2 手順 8。body の物理状態には触れず、位置・回転だけを写す。
-        public override void _ShiftToView()
-        {
-            _WriteViewPose();
-        }
-
-        // FEF 成分の m/s。静的アンカーは動かない。
-        public override Vector3 GetVelocity()
-        {
-            return Vector3.zero;
-        }
     }
 }

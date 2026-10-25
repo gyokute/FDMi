@@ -63,20 +63,8 @@ namespace FDMi.sync
         // 型ごとの実装を持つ。基底に空の既定を置かない (静的の空実装は FDMiStaticObjectSync)。
         public abstract void _Tick(int frameStamp, int nowMs);
 
-        // §9.2。view を書く。動的は owner 以外で書く。基底は静的アンカーも同じ処理を使う。
-        public virtual void _ApplyView()
-        {
-            _ApplyPose();
-        }
-
-        // §7.4 手順 4 / §8.2 手順 8。位置・回転だけを写す。
-        public virtual void _ShiftToView()
-        {
-            _ApplyPose();
-        }
-
-        // 絶対姿勢を書く。物理状態は外部が所有する。
-        public void _ApplyPose()
+        // §9.2。view を書く。shift は原点変更後の再投影 (§7.4 手順 4 / §8.2 手順 8)。
+        public virtual void _ApplyView(bool shift)
         {
             _WriteViewPose();
         }
@@ -114,17 +102,8 @@ namespace FDMi.sync
                 (float)(_localAbs[0] - _tmpParentAbs[0]) * 0.001f,
                 (float)(_localAbs[1] - _tmpParentAbs[1]) * 0.001f,
                 (float)(_localAbs[2] - _tmpParentAbs[2]) * 0.001f);
-            view.localPosition = FDMiSyncMath.QRotate(invPRot, d);
-            view.localRotation = FDMiSyncMath.QMul(invPRot, _localRot);
-        }
-
-        // §9.2。Update 相当。積分・送受信・送信。
-        // Why-not: suspend の判定を各型に書かない。suspend は Manager だけが知る (§8.3)。
-        public void _TickDriver()
-        {
-            if (manager == null) return;
-            if (manager._IsSuspended(this)) return;
-            _Tick(manager._frameStampMs, manager._nowMs);
+            view.localPosition = invPRot * d;
+            view.localRotation = invPRot * _localRot;
         }
 
         // §9.2。FixedUpdate で view を書く。
@@ -136,10 +115,10 @@ namespace FDMi.sync
             if (_viewVersion != manager._viewVersion)
             {
                 _viewVersion = manager._viewVersion;
-                _ShiftToView();
+                _ApplyView(true);
                 return;
             }
-            if (_writesView) _ApplyView();
+            if (_writesView) _ApplyView(false);
         }
 
         // §7.4。物理ステップの前に view を書く。Manager 999 が origin を更新した後に走る。
@@ -162,19 +141,6 @@ namespace FDMi.sync
         public Quaternion GetAbsoluteRotation()
         {
             return _localRot;
-        }
-
-        // FEF 成分の m/s。型ごとの実装を持つ (静的は 0、動的は _localVelFef)。
-        public abstract Vector3 GetVelocity();
-
-        public Vector3 GetViewPosition()
-        {
-            return manager.ViewFromAbs(_localAbs);
-        }
-
-        public Quaternion GetViewRotation()
-        {
-            return manager.ViewRotFromAbs(_localRot);
         }
     }
 }

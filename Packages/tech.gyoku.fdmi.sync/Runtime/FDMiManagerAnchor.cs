@@ -24,13 +24,6 @@ namespace FDMi.sync
         public override void _Tick(int frameStamp, int nowMs) { }
 
         // root 自身は view を持たない。Manager GameObject を動かすと配下の非アンカーも動くため。
-        public override void _ShiftToView() { }
-
-        public override void _ApplyView() { }
-
-        public override Vector3 GetVelocity()
-        {
-            return Vector3.zero;
-        }
+        public override void _ApplyView(bool shift) { }
     }
 }

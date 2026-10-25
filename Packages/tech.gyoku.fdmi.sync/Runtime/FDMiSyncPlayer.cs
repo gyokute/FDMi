@@ -68,8 +68,6 @@ namespace FDMi.sync
 
         public override void _Tick(int frameStamp, int nowMs)
         {
-            if (!_initialized) return;
-
             // 席姿勢は車両アンカーから導出する。送信しない (§10.2)。
             // Why-not: null ガードと `_seatIndex = -1` の代入を置かない。stations[] と _seatIndex の整合は
             // V-06 が焼きの時点で保証する (§1.2 正常系)。ここで書くと非 owner が同期フィールドを書く経路になる。
@@ -77,7 +75,7 @@ namespace FDMi.sync
             {
                 FDMiStationAnchor seat = manager.GetStation(_seatIndex);
                 seat.GetSeatAbs(_localAbs);
-                _localRot = seat.GetSeatRot();
+                _localRot = FDMiSyncMath.QNormalize(seat.vehicleAnchor.GetAbsoluteRotation() * seat._bakedSeatRelRot);
                 _UpdateStationMode();
                 return;
             }
@@ -96,9 +94,9 @@ namespace FDMi.sync
             Quaternion originRot = manager.GetOriginRot();
             // §7.2 の自由移動行: originMm + Rotate(originRot, GetPosition() × 1000)。
             manager.AbsFromView(player.GetPosition(), _localAbs);
-            _localRot = FDMiSyncMath.QMul(originRot, player.GetRotation());
-            _localVelFef = FDMiSyncMath.QRotate(originRot, player.GetVelocity());
-            // _SendNow は _accMm を送る。
+            _localRot = originRot * player.GetRotation();
+            _localVelFef = originRot * player.GetVelocity();
+            // 送信は _accMm を読む。
             _accMm[0] = _localAbs[0]; _accMm[1] = _localAbs[1]; _accMm[2] = _localAbs[2];
 
             _UpdateStationMode();
@@ -189,9 +187,9 @@ namespace FDMi.sync
 
         // §9.3。owner でも view を書く。自分の station が自分の位置へ追従する (①)。
         // Why-not: 基底の owner 除外を維持する。player アンカーは body を持たないので二重動悸は起こらない。
-        public override void _ApplyView()
+        public override void _ApplyView(bool shift)
         {
-            _ApplyPose();
+            _WriteViewPose();
             _poseWritten = true;
         }
     }

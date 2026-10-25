@@ -42,13 +42,12 @@ namespace FDMi.sync
         public long[] _accMm = new long[3];
         public float[] _fracMm = new float[3];
         public Vector3 _lastBodyPos;
-        public bool _hasLastBodyPos;
         public Vector3 _localVelFef;
 
         public long[] _lastSentAbs = new long[3];
         public short[] _lastSentRot = new short[4];
         public bool _hasSent;
-        // _SendNow で立て、OnPostSerialization で必ず下ろす。真の間に再要求しない (§6.3)。
+        // 送信時に立て、OnPostSerialization で必ず下ろす。真の間に再要求しない (§6.3)。
         public bool _sendPending;
         public float _nextSendTime;
         public float _lastSendTime;
@@ -57,7 +56,6 @@ namespace FDMi.sync
         // MaxAbsDeltaMm (添字 0..2) に直接渡せない。スロット 0 のときは _recvAbs をそのまま使う。
         public long[] _tmpAbs = new long[3];
 
-        public bool _initialized;
         public bool _hasPrev;
         public bool _hasLatest;
         public bool _snap;
@@ -93,16 +91,16 @@ namespace FDMi.sync
             _sendIntervalMs = (int)FDMiSyncMath.RoundHalfAwayFromZero(sendIntervalSec * 1000f);
             _renderDelayMs = _sendIntervalMs - RENDER_DELAY_OFFSET_MS;
             _lastBodyPos = (body != null) ? body.position : view.position;
-            _hasLastBodyPos = true;
             _writesView = true;
-            _initialized = true;
         }
 
         // §9.2。Update 相当。積分・送受信・送信。
         // Why-not: Manager のループから呼ぶ方式にしない。アンカーごとに自分が更新する (§9.2)。
+        // Why-not: suspend の判定を各型に書かない。suspend は Manager だけが知る (§8.3)。
         public void Update()
         {
-            _TickDriver();
+            if (manager == null || manager._IsSuspended(this)) return;
+            _Tick(manager._frameStampMs, manager._nowMs);
         }
 
         // §9.2。LateUpdate 相当。view を書く。
@@ -114,8 +112,6 @@ namespace FDMi.sync
         // §9.2 の 5 手順。owner は _ComputeViewPose を呼ばない (§9.2 の注記)。
         public override void _Tick(int frameStamp, int nowMs)
         {
-            if (!_initialized) return;
-
             if (!_isLocalOwner)
             {
                 _IntegrateReceive(nowMs);
@@ -132,15 +128,15 @@ namespace FDMi.sync
         // Why-not: Update で body 差分を読まない。body を 0 に戻した後の差分を二重に拾う。
         public override void _IntegrateRootBody()
         {
-            if (!_initialized || !_isLocalOwner || body == null) return;
+            if (!_isLocalOwner || body == null) return;
 
             Quaternion br = body.rotation;
             Vector3 bp = body.position;
 
-            _localRot = FDMiSyncMath.QNormalize(FDMiSyncMath.QMul(_localRot, br));
+            _localRot = FDMiSyncMath.QNormalize(_localRot * br);
 
             // V2 と同じく、回転更新後の絶対姿勢で位置差分を写す。
-            Vector3 dAbs = FDMiSyncMath.QRotate(_localRot, bp * 1000f);
+            Vector3 dAbs = _localRot * (bp * 1000f);
             _fracMm[0] = _fracMm[0] + dAbs.x;
             _fracMm[1] = _fracMm[1] + dAbs.y;
             _fracMm[2] = _fracMm[2] + dAbs.z;
@@ -155,12 +151,11 @@ namespace FDMi.sync
 
             body.position = Vector3.zero;
             body.rotation = Quaternion.identity;
-            body.velocity = FDMiSyncMath.QRotate(FDMiSyncMath.QInv(br), body.velocity);
-            body.angularVelocity = FDMiSyncMath.QRotate(FDMiSyncMath.QInv(br), body.angularVelocity);
+            body.velocity = FDMiSyncMath.QInv(br) * body.velocity;
+            body.angularVelocity = FDMiSyncMath.QInv(br) * body.angularVelocity;
 
             _lastBodyPos = Vector3.zero;
-            _hasLastBodyPos = true;
-            _localVelFef = FDMiSyncMath.QRotate(_localRot, body.velocity);
+            _localVelFef = _localRot * body.velocity;
         }
 
         // §8.2。root 切替時に新しい root body を origin に置く。
@@ -170,19 +165,17 @@ namespace FDMi.sync
             body.position = Vector3.zero;
             body.rotation = Quaternion.identity;
             _lastBodyPos = Vector3.zero;
-            _hasLastBodyPos = true;
         }
 
         // §7.2。owner の積分。端数は _fracMm に繰り越す。整数丸めの毎フレーム積分は禁止 (§4.3)。
         public void _UpdateAbsolutePose()
         {
             Vector3 cur = (body != null) ? body.position : view.position;
-            if (!_hasLastBodyPos) { _lastBodyPos = cur; _hasLastBodyPos = true; }
             Vector3 dView = (cur - _lastBodyPos) * 1000f;
 
             Quaternion originRot = manager.GetOriginRot();
             // Why-not: 回転を省かない。view 軸の差分は FEF に写してから足す。省くと root 切替で経路から外れる (M-13)。
-            Vector3 dAbs = FDMiSyncMath.QRotate(originRot, dView);
+            Vector3 dAbs = originRot * dView;
 
             _fracMm[0] = _fracMm[0] + dAbs.x;
             _fracMm[1] = _fracMm[1] + dAbs.y;
@@ -197,9 +190,9 @@ namespace FDMi.sync
             _localAbs[0] = _accMm[0]; _localAbs[1] = _accMm[1]; _localAbs[2] = _accMm[2];
 
             _lastBodyPos = cur;
-            _localRot = FDMiSyncMath.QMul(originRot, (body != null) ? body.rotation : view.rotation);
+            _localRot = originRot * ((body != null) ? body.rotation : view.rotation);
             Vector3 velView = (body != null) ? body.velocity : dView * 0.001f / Time.deltaTime;
-            _localVelFef = FDMiSyncMath.QRotate(originRot, velView);
+            _localVelFef = originRot * velView;
         }
 
         // §6.3。owner のときだけ呼ばれる (_Tick 手順 5)。owner 判定は _Tick が持つ。
@@ -209,19 +202,16 @@ namespace FDMi.sync
             if (Networking.IsClogged) return;
             if (Time.time < _nextSendTime) return;
 
-            // パックは送信間隔が経過したときだけ。変化判定と送信で同じ値を使う (_SendNow は再パックしない)。
+            // パックは送信間隔が経過したときだけ。変化判定と送信で同じ値を使う。
             FDMiSyncMath.PackQuat(_localRot, _tmpRot);
 
             bool moved = !_hasSent || FDMiSyncMath.MaxAbsDeltaMm(_localAbs, _lastSentAbs) >= 1L;
-            bool turned = !_hasSent || FDMiSyncMath.RotDiffers(_tmpRot, _lastSentRot);
+            bool turned = !_hasSent
+                || _tmpRot[0] != _lastSentRot[0] || _tmpRot[1] != _lastSentRot[1]
+                || _tmpRot[2] != _lastSentRot[2] || _tmpRot[3] != _lastSentRot[3];
             if (!moved && !turned && (Time.time - _lastSendTime) < KEEP_ALIVE_SEC) return;
 
-            _SendNow(frameStamp);
-        }
-
-        // §6.3。4 フィールドを書いて RequestSerialization する。要素コピーであり参照代入ではない (T-PROTO-07)。
-        public void _SendNow(int frameStamp)
-        {
+            // §6.3。要素コピーであり参照代入ではない (T-PROTO-07)。
             _sendPending = true;
             _absMm[0] = _accMm[0]; _absMm[1] = _accMm[1]; _absMm[2] = _accMm[2];
             _rot[0] = _tmpRot[0]; _rot[1] = _tmpRot[1]; _rot[2] = _tmpRot[2]; _rot[3] = _tmpRot[3];
@@ -243,7 +233,7 @@ namespace FDMi.sync
             _nextSendTime = Time.time + sendIntervalSec;
         }
 
-        // §6.4。配列を含む全フィールドの唯一の受信経路。ここでは積むだけで、適用は Manager の LateUpdate。
+        // §6.4。配列を含む全フィールドの唯一の受信経路。ここでは積むだけで、適用は次の Update。
         public override void OnDeserialization()
         {
             if (Networking.IsOwner(gameObject)) return;
@@ -273,16 +263,22 @@ namespace FDMi.sync
             {
                 // _stampMs == 0 は未送信。
                 if (_recvStamp[k] == 0) continue;
-                if (_hasLatest && FDMiSyncMath.DeltaInt(_recvStamp[k], _latestStamp) <= 0) continue;
+                if (_hasLatest && _recvStamp[k] - _latestStamp <= 0) continue;
 
                 if (!_hasLatest)
                 {
-                    _AdoptFirst(k);
+                    // §6.5。初回受信はスナップ。0 に戻さず、受信した現在値をそのまま表示する (§6.9)。
+                    _CopySlotAbs(k, _latestAbs);
+                    _latestRot = _UnpackSlotRot(k);
+                    _latestVel = _recvVel[k];
+                    _latestStamp = _recvStamp[k];
+                    _hasLatest = true;
+                    _snap = true;
                     continue;
                 }
 
                 _CopySlotAbs(k, _tmpAbs);
-                int dt = FDMiSyncMath.DeltaInt(_recvStamp[k], _latestStamp);
+                int dt = _recvStamp[k] - _latestStamp;
                 long d = FDMiSyncMath.MaxAbsDeltaMm(_tmpAbs, _latestAbs);
                 bool teleport = (d > TELEPORT_DIST_MM) || (dt > TELEPORT_GAP_MS);
 
@@ -312,17 +308,6 @@ namespace FDMi.sync
             }
         }
 
-        // §6.5。初回受信はスナップ。0 に戻すのではなく、受信した現在値をそのまま表示する (§6.9)。
-        public void _AdoptFirst(int k)
-        {
-            _CopySlotAbs(k, _latestAbs);
-            _latestRot = _UnpackSlotRot(k);
-            _latestVel = _recvVel[k];
-            _latestStamp = _recvStamp[k];
-            _hasLatest = true;
-            _snap = true;
-        }
-
         // §6.5。既定は外挿。250 ms を超えたら補間のフォールバックに移る。
         public void _ComputeViewPose(int nowMs)
         {
@@ -337,9 +322,10 @@ namespace FDMi.sync
                 return;
             }
 
-            int ahead = FDMiSyncMath.DeltaInt(nowMs, _latestStamp);
-            int dt = _hasPrev ? FDMiSyncMath.DeltaInt(_latestStamp, _prevStamp) : 0;
-            bool canExtrap = _hasPrev && dt > 0 && !FDMiSyncMath.IsZero(_latestVel);
+            int ahead = nowMs - _latestStamp;
+            int dt = _hasPrev ? _latestStamp - _prevStamp : 0;
+            bool canExtrap = _hasPrev && dt > 0
+                && (_latestVel.x != 0f || _latestVel.y != 0f || _latestVel.z != 0f);
 
             if (canExtrap && ahead <= MAX_EXTRAP_MS)
             {
@@ -355,10 +341,10 @@ namespace FDMi.sync
                 // §6.5。renderStamp は now から引く。latestStamp − renderDelay にすると表示がパケット周期で止まる。
                 int renderStamp = nowMs - _renderDelayMs;
                 if (_hasPrev
-                    && FDMiSyncMath.DeltaInt(renderStamp, _prevStamp) >= 0
-                    && FDMiSyncMath.DeltaInt(_latestStamp, renderStamp) >= 0)
+                    && renderStamp - _prevStamp >= 0
+                    && _latestStamp - renderStamp >= 0)
                 {
-                    float u = (dt > 0) ? (float)FDMiSyncMath.DeltaInt(renderStamp, _prevStamp) / (float)dt : 1f;
+                    float u = (dt > 0) ? (float)(renderStamp - _prevStamp) / (float)dt : 1f;
                     _targetAbs[0] = _prevAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[0] - _prevAbs[0]) * u);
                     _targetAbs[1] = _prevAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[1] - _prevAbs[1]) * u);
                     _targetAbs[2] = _prevAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[2] - _prevAbs[2]) * u);
@@ -374,7 +360,8 @@ namespace FDMi.sync
             // 到着時は 1 送信間隔で新しい予測へ寄せる。新旧の予測は同じ速度で進むので正味の遅れは出ない。
             if (_blending)
             {
-                float u = FDMiSyncMath.Clamp01((float)FDMiSyncMath.DeltaInt(nowMs, _blendT) / (float)_sendIntervalMs);
+                float u = (float)(nowMs - _blendT) / (float)_sendIntervalMs;
+                if (u < 0f) u = 0f; else if (u > 1f) u = 1f;
                 _targetAbs[0] = _blendFromAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_targetAbs[0] - _blendFromAbs[0]) * u);
                 _targetAbs[1] = _blendFromAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_targetAbs[1] - _blendFromAbs[1]) * u);
                 _targetAbs[2] = _blendFromAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_targetAbs[2] - _blendFromAbs[2]) * u);
@@ -391,7 +378,7 @@ namespace FDMi.sync
         {
             if (dtMs <= 0 || aheadMs <= 0) return q1;
 
-            Quaternion dq = FDMiSyncMath.QMul(q1, FDMiSyncMath.QInv(q0));
+            Quaternion dq = q1 * FDMiSyncMath.QInv(q0);
             if (dq.w < 0f) dq = new Quaternion(-dq.x, -dq.y, -dq.z, -dq.w);
             float angle = 2f * Mathf.Acos(Mathf.Clamp(dq.w, -1f, 1f));
             if (angle < 1e-5f) return q1;
@@ -404,7 +391,7 @@ namespace FDMi.sync
 
             float spinDeg = angle * ((float)aheadMs / (float)dtMs) * Mathf.Rad2Deg;
             Quaternion spin = Quaternion.AngleAxis(spinDeg, axis);
-            return FDMiSyncMath.QNormalize(FDMiSyncMath.QMul(spin, q1));
+            return FDMiSyncMath.QNormalize(spin * q1);
         }
 
         // §6.7。書き込み順は固定: position/rotation → velocity → 待ち解除 → snap。
@@ -424,7 +411,7 @@ namespace FDMi.sync
             int nowMs = Networking.GetServerTimeInMilliseconds();
             if (_hasLatest)
             {
-                int age = FDMiSyncMath.DeltaInt(nowMs, _latestStamp);
+                int age = nowMs - _latestStamp;
                 if (age < 0) age = 0;
                 if (age > MAX_EXTRAP_MS) age = MAX_EXTRAP_MS;
                 _localAbs[0] = _latestAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.x * (float)age);
@@ -446,7 +433,7 @@ namespace FDMi.sync
             {
                 body.position = manager.ViewFromAbs(_localAbs);
                 body.rotation = manager.ViewRotFromAbs(_localRot);
-                body.velocity = manager.ViewVectorFromAbs(_latestVel);
+                body.velocity = FDMiSyncMath.QInv(manager.GetOriginRot()) * _latestVel;
                 _lastBodyPos = body.position;
             }
             else
@@ -463,10 +450,11 @@ namespace FDMi.sync
 
         // §9.2。root のローカル所有 body だけは Manager が積分するので view を書かない。
         // それ以外は view を書く。物理状態は外部が所有する。
-        public override void _ApplyView()
+        public override void _ApplyView(bool shift)
         {
-            if (_isLocalOwner && manager.GetRoot() == this) return;
-            _ApplyPose();
+            if (!shift && _isLocalOwner && manager.GetRoot() == this) return;
+            _WriteViewPose();
+            if (shift) _lastBodyPos = (body != null) ? body.position : view.position;
         }
 
         // §9.2。動的アンカーは常に world 姿勢を書く。
@@ -482,18 +470,6 @@ namespace FDMi.sync
             }
             view.position = manager.ViewFromAbs(_localAbs);
             view.rotation = manager.ViewRotFromAbs(_localRot);
-        }
-
-        // §8.2 手順 8。次の _UpdateAbsolutePose の差分を 0 にするため _lastBodyPos も更新する。
-        public override void _ShiftToView()
-        {
-            _WriteViewPose();
-            _lastBodyPos = (body != null) ? body.position : view.position;
-        }
-
-        public override Vector3 GetVelocity()
-        {
-            return _localVelFef;
         }
 
         void _CopySlotAbs(int k, long[] dst)

@@ -35,9 +35,9 @@ namespace FDMi.sync.Editor.Tests
         static void AssertBasis(double lat, double lon, Vector3 ex, Vector3 uy, Vector3 nz)
         {
             Quaternion q = FDMiEarth.Basis(lat, lon);
-            AssertVector(ex, FDMiSyncMath.QRotate(q, Vector3.right), lat + "," + lon + " q·x̂");
-            AssertVector(uy, FDMiSyncMath.QRotate(q, Vector3.up), lat + "," + lon + " q·ŷ");
-            AssertVector(nz, FDMiSyncMath.QRotate(q, Vector3.forward), lat + "," + lon + " q·ẑ");
+            AssertVector(ex, q * Vector3.right, lat + "," + lon + " q·x̂");
+            AssertVector(uy, q * Vector3.up, lat + "," + lon + " q·ŷ");
+            AssertVector(nz, q * Vector3.forward, lat + "," + lon + " q·ẑ");
         }
 
         static void AssertVector(Vector3 expected, Vector3 actual, string label)
@@ -53,13 +53,13 @@ namespace FDMi.sync.Editor.Tests
             Quaternion parent = Quaternion.AngleAxis(90f, Vector3.up);   // R_y(90°)
             Quaternion rel = Quaternion.AngleAxis(90f, Vector3.right);  // R_x(90°)
 
-            Quaternion composed = FDMiSyncMath.QMul(parent, rel);
+            Quaternion composed = parent * rel;
             Assert.IsTrue(Quaternion.Angle(composed, new Quaternion(0.5f, 0.5f, -0.5f, 0.5f)) < 1e-4f);
-            AssertVector(new Vector3(0, 0, -1), FDMiSyncMath.QRotate(composed, Vector3.right), "正の像");
+            AssertVector(new Vector3(0, 0, -1), composed * Vector3.right, "正の像");
 
-            Quaternion wrong = FDMiSyncMath.QMul(FDMiSyncMath.QMul(parent, rel), FDMiSyncMath.QInv(parent));
+            Quaternion wrong = (parent * rel) * FDMiSyncMath.QInv(parent);
             Assert.IsTrue(Quaternion.Angle(wrong, new Quaternion(0f, 0f, -0.7071068f, 0.7071068f)) < 1e-4f);
-            AssertVector(new Vector3(0, -1, 0), FDMiSyncMath.QRotate(wrong, Vector3.right), "誤の像");
+            AssertVector(new Vector3(0, -1, 0), wrong * Vector3.right, "誤の像");
             Assert.IsFalse(Quaternion.Angle(composed, wrong) < 1e-4f, "合成と相似変換は異なる");
         }
 
@@ -209,15 +209,6 @@ namespace FDMi.sync.Editor.Tests
         }
 
         [Test]
-        public void M09_時刻のwrapで符号反転をwrapと誤認しない()
-        {
-            Assert.AreEqual(31, FDMiSyncMath.DeltaInt(unchecked((int)0x0000000F), unchecked((int)0xFFFFFFF0)));
-            Assert.AreEqual(1, FDMiSyncMath.DeltaInt(unchecked((int)0x80000000), 0x7FFFFFFF));
-            Assert.AreEqual(1, FDMiSyncMath.DeltaInt(0x00000000, unchecked((int)0xFFFFFFFF)));
-            Assert.AreEqual(1, FDMiSyncMath.DeltaInt(0x00000001, 0x00000000));
-        }
-
-        [Test]
         public void M10_rebaseの境界が0または1000000mmになる()
         {
             AssertShift(499999L, 0L);
@@ -322,7 +313,7 @@ namespace FDMi.sync.Editor.Tests
             float[] frac = new float[3];
             for (int i = 0; i < 100; i++)
             {
-                Vector3 dAbs = FDMiSyncMath.QRotate(originRot, stepView);
+                Vector3 dAbs = originRot * stepView;
                 for (int k = 0; k < 3; k++)
                 {
                     frac[k] = frac[k] + Component(dAbs, k);
@@ -373,7 +364,7 @@ namespace FDMi.sync.Editor.Tests
                 manager.originMm = new long[3];
                 manager.originRot = Quaternion.identity;
 
-                child._ApplyPose();
+                child._WriteViewPose();
 
                 // yaw 90° の親フレームで Earth の +x は +z。差分は親のフレームで表される。
                 AssertVector(new Vector3(0f, 0f, 1f), childGo.transform.localPosition, "local position");

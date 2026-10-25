@@ -68,16 +68,11 @@ namespace FDMi.sync
         {
             vehicleAnchor.GetAbsoluteMm(dst);
             Quaternion q = vehicleAnchor.GetAbsoluteRotation();
-            Vector3 r = FDMiSyncMath.QRotate(q, new Vector3(
-                (float)_bakedSeatRelMm[0], (float)_bakedSeatRelMm[1], (float)_bakedSeatRelMm[2]));
+            Vector3 r = q * new Vector3(
+                (float)_bakedSeatRelMm[0], (float)_bakedSeatRelMm[1], (float)_bakedSeatRelMm[2]);
             dst[0] = dst[0] + FDMiSyncMath.RoundHalfAwayFromZero(r.x);
             dst[1] = dst[1] + FDMiSyncMath.RoundHalfAwayFromZero(r.y);
             dst[2] = dst[2] + FDMiSyncMath.RoundHalfAwayFromZero(r.z);
-        }
-
-        public Quaternion GetSeatRot()
-        {
-            return FDMiSyncMath.QNormalize(FDMiSyncMath.QMul(vehicleAnchor.GetAbsoluteRotation(), _bakedSeatRelRot));
         }
     }
 }

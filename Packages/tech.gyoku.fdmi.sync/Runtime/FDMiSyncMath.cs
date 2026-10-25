@@ -23,12 +23,6 @@ namespace FDMi.sync
             return t;
         }
 
-        // a ⊗ b。Why-not: 成分を自前で書かない。Unity の Quaternion 積が同じ演算で、ステップ数が少ない。
-        public static Quaternion QMul(Quaternion a, Quaternion b)
-        {
-            return a * b;
-        }
-
         public static Quaternion QInv(Quaternion q)
         {
             return new Quaternion(-q.x, -q.y, -q.z, q.w);
@@ -40,12 +34,6 @@ namespace FDMi.sync
             if (n < 1e-6f) return Quaternion.identity;
             float inv = 1f / n;
             return new Quaternion(q.x * inv, q.y * inv, q.z * inv, q.w * inv);
-        }
-
-        // Rotate(q, v) = q·v·q⁻¹。
-        public static Vector3 QRotate(Quaternion q, Vector3 v)
-        {
-            return q * v;
         }
 
         // §4.5 の符号化。dst は長さ 4 の事前確保配列。
@@ -83,7 +71,10 @@ namespace FDMi.sync
         // short の範囲 (−32768..32767) の負側代表 −32768 が現れる。|c| ≤ 32767 を保証する。
         static short PackComponent(float u)
         {
-            return (short)ClampL(RoundHalfAwayFromZero(u * Q_SCALE), -Q_SCALE, Q_SCALE);
+            long v = RoundHalfAwayFromZero(u * Q_SCALE);
+            if (v < -Q_SCALE) v = -Q_SCALE;
+            else if (v > Q_SCALE) v = Q_SCALE;
+            return (short)v;
         }
 
         // §4.5 の復元。手順 4 の正規化は必須 (clamp が働くと |v| が 1 からずれる)。
@@ -102,12 +93,6 @@ namespace FDMi.sync
             return new Quaternion(x * inv, y * inv, z * inv, w * inv);
         }
 
-        // §6.8。32 bit wrap を許容する。差が 2^31 ms (24.86 日) 未満である前提。
-        public static int DeltaInt(int newer, int older)
-        {
-            return newer - older;
-        }
-
         // max(|a[i] − b[i]|)。変化判定 (§6.3) とテレポート判定 (§6.6) に使う。
         public static long MaxAbsDeltaMm(long[] a, long[] b)
         {
@@ -120,31 +105,6 @@ namespace FDMi.sync
             return m;
         }
 
-        public static bool RotDiffers(short[] a, short[] b)
-        {
-            return a[0] != b[0] || a[1] != b[1] || a[2] != b[2] || a[3] != b[3];
-        }
-
-        public static bool IsZero(Vector3 v)
-        {
-            return v.x == 0f && v.y == 0f && v.z == 0f;
-        }
-
-        public static float Clamp01(float x)
-        {
-            if (x < 0f) return 0f;
-            if (x > 1f) return 1f;
-            return x;
-        }
-
-        // §9.6 / §4.5 手順 6。整数の clamp。short へ落とす前の範囲確定に使う。
-        public static long ClampL(long x, long lo, long hi)
-        {
-            if (x < lo) return lo;
-            if (x > hi) return hi;
-            return x;
-        }
-
         // Dot < 0 なら b の符号を反転して最短経路にする (§6.5)。
         public static Quaternion SlerpHemisphere(Quaternion a, Quaternion b, float t)
         {
@@ -153,10 +113,10 @@ namespace FDMi.sync
             return Quaternion.Slerp(a, b, t);
         }
 
-        // dst = origin + QRotate(qOrigin, view × 1000)。§9.6。Manager の AbsFromView の実装本体。
+        // dst = origin + Rotate(qOrigin, view × 1000)。§9.6。Manager の AbsFromView の実装本体。
         public static void AbsFromView(long[] origin, Quaternion qOrigin, Vector3 view, long[] dst)
         {
-            Vector3 d = QRotate(qOrigin, view * 1000f);
+            Vector3 d = qOrigin * (view * 1000f);
             dst[0] = origin[0] + RoundHalfAwayFromZero(d.x);
             dst[1] = origin[1] + RoundHalfAwayFromZero(d.y);
             dst[2] = origin[2] + RoundHalfAwayFromZero(d.z);
@@ -169,7 +129,7 @@ namespace FDMi.sync
                 (float)(abs[0] - origin[0]) * 0.001f,
                 (float)(abs[1] - origin[1]) * 0.001f,
                 (float)(abs[2] - origin[2]) * 0.001f);
-            return QRotate(QInv(qOrigin), d);
+            return QInv(qOrigin) * d;
         }
 
         // §9.3。km セル (1000 m 立方) の索引。絶対 mm 座標を 1 km で割った商。
