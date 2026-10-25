@@ -239,15 +239,7 @@ namespace FDMi.sync.Editor.Tests
                 // プレイヤーは FEF で北 (y) へ 1 km ずつ進む。
                 playerAbs[1] = playerAbs[1] + 1000000L;
 
-                for (int i = 0; i < 3; i++)
-                {
-                    long delta = playerAbs[i] - origin[i];
-                    long q = delta / 1000000L;
-                    long r = delta - q * 1000000L;
-                    if (r >= 500000L) q = q + 1L;
-                    else if (r <= -500000L) q = q - 1L;
-                    shift[i] = q * 1000000L;
-                }
+                FDMiSyncManager.RebaseShiftMm(playerAbs, origin, shift);
 
                 for (int i = 0; i < 3; i++)
                 {
@@ -264,11 +256,12 @@ namespace FDMi.sync.Editor.Tests
 
         static void AssertShift(long delta, long expectedMm)
         {
-            long q = delta / 1000000L;
-            long r = delta - q * 1000000L;
-            if (r >= 500000L) q = q + 1L;
-            else if (r <= -500000L) q = q - 1L;
-            Assert.AreEqual(expectedMm, q * 1000000L, "delta = " + delta);
+            // 実装と同じ式を使う。テスト側で式を書き写さない (§7.4)。
+            long[] abs = new long[] { delta, 0L, 0L };
+            long[] origin = new long[3];
+            long[] shift = new long[3];
+            FDMiSyncManager.RebaseShiftMm(abs, origin, shift);
+            Assert.AreEqual(expectedMm, shift[0], "delta = " + delta);
         }
 
         [Test]
@@ -353,6 +346,121 @@ namespace FDMi.sync.Editor.Tests
             if (i == 0) return v.x;
             if (i == 1) return v.y;
             return v.z;
+        }
+
+        [Test]
+        public void M14_子アンカーの姿勢は親との差分として書かれる()
+        {
+            // 親: FEF 原点、yaw 90°。子: Earth の +x へ 1 m、姿勢は identity。
+            // 子の local 姿勢は「親のフレームでの差分」になる (§9.2)。
+            GameObject parentGo = new GameObject("parent");
+            GameObject childGo = new GameObject("child");
+            try
+            {
+                FDMiSyncManager manager = parentGo.AddComponent<FDMiSyncManager>();
+                FDMiStaticObjectSync parent = parentGo.AddComponent<FDMiStaticObjectSync>();
+                FDMiStaticObjectSync child = childGo.AddComponent<FDMiStaticObjectSync>();
+
+                parent._absMm = new long[3];
+                parent._rot = Pack(Quaternion.Euler(0f, 90f, 0f));
+                child._absMm = new long[] { 1000L, 0L, 0L };
+                child._rot = Pack(Quaternion.identity);
+
+                parent._Init(manager);
+                child._Init(manager);
+                child.parent = parent;
+
+                manager.originMm = new long[3];
+                manager.originRot = Quaternion.identity;
+
+                child._ApplyPose();
+
+                // yaw 90° の親フレームで Earth の +x は +z。差分は親のフレームで表される。
+                AssertVector(new Vector3(0f, 0f, 1f), childGo.transform.localPosition, "local position");
+                // 子の姿勢 (identity) は親の yaw 90° を打ち消して yaw -90° になる。
+                Assert.Less(Quaternion.Angle(Quaternion.Euler(0f, -90f, 0f), childGo.transform.localRotation), 1e-3f,
+                    "local rotation");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(childGo);
+                UnityEngine.Object.DestroyImmediate(parentGo);
+            }
+        }
+
+        static short[] Pack(Quaternion q)
+        {
+            short[] dst = new short[4];
+            FDMiSyncMath.PackQuat(q, dst);
+            return dst;
+        }
+
+        [Test]
+        public void M15_原点が変わったときだけアンカーが再投影される()
+        {
+            // 原点の版が変わると全アンカーが再投影する。版が変わらないフレームは静的アンカーが書かない (§9.1)。
+            GameObject go = new GameObject("anchor");
+            try
+            {
+                FDMiSyncManager manager = go.AddComponent<FDMiSyncManager>();
+                FDMiStaticObjectSync anchor = go.AddComponent<FDMiStaticObjectSync>();
+
+                anchor._absMm = new long[] { 2000L, 0L, 0L };
+                anchor._rot = Pack(Quaternion.identity);
+                anchor._Init(manager);
+
+                manager.originMm = new long[3];
+                manager.originRot = Quaternion.identity;
+                manager._viewVersion = 7;
+
+                anchor.LateUpdate();
+                Assert.AreEqual(7, anchor._viewVersion, "再投影した版");
+                AssertVector(new Vector3(2f, 0f, 0f), go.transform.position, "再投影された位置");
+
+                // 版が変わらないフレーム。静的アンカーは view を書き直さない。
+                anchor._localAbs[0] = 3000L;
+                anchor.LateUpdate();
+                AssertVector(new Vector3(2f, 0f, 0f), go.transform.position, "版が変わらないフレームは書かない");
+
+                // 版が変わると再投影する。
+                manager._viewVersion = 8;
+                anchor.LateUpdate();
+                AssertVector(new Vector3(3f, 0f, 0f), go.transform.position, "版が変わると再投影する");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void M16_kmセルは1000m立方で判定し境界は床関数になる()
+        {
+            // §9.3。絶対 mm 座標を 1000 m (1,000,000 mm) で割ったセル。境界は次のセルに入る。
+            Assert.AreEqual(0L, FDMiSyncMath.KmCellIndex(0L));
+            Assert.AreEqual(0L, FDMiSyncMath.KmCellIndex(999999L));
+            Assert.AreEqual(1L, FDMiSyncMath.KmCellIndex(1000000L));
+            Assert.AreEqual(-1L, FDMiSyncMath.KmCellIndex(-1L));
+            Assert.AreEqual(-1L, FDMiSyncMath.KmCellIndex(-1000000L));
+
+            long[] a = new long[] { 1500000L, 0L, -2500000L };
+            long[] same = new long[] { 1999999L, 500000L, -2000001L };
+            long[] other = new long[] { 2000000L, 0L, 0L };
+
+            Assert.IsTrue(FDMiSyncMath.SameKmCell(a, same), "同じ km セル");
+            Assert.IsFalse(FDMiSyncMath.SameKmCell(a, other), "km セルが違う");
+        }
+
+        [Test]
+        public void M17_stationの席モードは自分と同一Root同一km圏内だけ站立になる()
+        {
+            // §9.3 の ③。自分は Seated=false。remote は同じ Root かつ同じ km 圏内のときだけ Seated=false。
+            Assert.IsFalse(FDMiSyncMath.StationSeatedMode(true, false, false), "自分は站立");
+            Assert.IsFalse(FDMiSyncMath.StationSeatedMode(true, true, true), "自分は Root と km 圏内かに関係なく站立");
+            Assert.IsFalse(FDMiSyncMath.StationSeatedMode(false, true, true), "同じ Root かつ同じ km 圏内は站立");
+            Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, true, false), "Root が同じでも km 圏外なら着席");
+            Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, false, true), "km 圏が同じでも Root が違えば着席");
+            Assert.IsTrue(FDMiSyncMath.StationSeatedMode(false, false, false), "remote は着席");
         }
     }
 }

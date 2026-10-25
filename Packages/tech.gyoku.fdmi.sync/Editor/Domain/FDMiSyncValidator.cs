@@ -126,6 +126,12 @@ namespace FDMi.sync.Editor.Domain
                         r.Errors.Add("V-09: " + Name(own[j]) + " の manager が未設定です。");
                     else if (own[j].manager != manager)
                         r.Errors.Add("V-09: " + Name(own[j]) + " の manager がシーンの FDMiSyncManager を指していません。");
+
+                    // V-19: プレイヤーの定位置 station は同じ GameObject にあり、参照もそこを指している (§9.3)。
+                    if (own[j].station == null)
+                        r.Errors.Add("V-19: " + Name(own[j]) + " の station が未設定です。E-09 の焼き直しが必要です。");
+                    else if (own[j].station.gameObject != own[j].gameObject)
+                        r.Errors.Add("V-19: " + Name(own[j]) + " の station が同じ GameObject にありません。");
                 }
 
                 // V-14: 永続化しない。前回の _absMm / _seatIndex を復元させない (§11.3)。
@@ -179,11 +185,20 @@ namespace FDMi.sync.Editor.Domain
                     r.Warnings.Add("V-12: " + Name(a) + " は動的ですが body が kinematic です。");
             }
 
-            // V-17: ワールドの Maximum Capacity ≤ PLAYER_SLOTS。超過分は登録されない (U-05)。
-            VRCSceneDescriptor descriptor = Object.FindObjectOfType<VRCSceneDescriptor>();
-            if (descriptor != null && descriptor.capacity > FDMiSyncManager.PLAYER_SLOTS)
-                r.Warnings.Add("V-17: Maximum Capacity が " + descriptor.capacity + " です。"
-                    + FDMiSyncManager.PLAYER_SLOTS + " を超える入室者はアンカーを持ちません。");
+            // V-18: 親アンカーの規則。親は anchors[] に含まれ、body を持たない。
+            // Why-not: body を持つアンカーの親を許さない。入れ子の Rigidbody は Unity の物理が
+            // 親の運動で上書きする。動的アンカーは world 姿勢で書く (§9.2.1)。
+            for (int i = 0; i < anchors.Length; i++)
+            {
+                FDMiSyncAnchor a = anchors[i];
+                if (a == null || a.parent == null) continue;
+                if (!Contains(anchors, a.parent))
+                    r.Errors.Add("V-18: " + Name(a) + " の parent が anchors[] に含まれません。");
+                if (a.parent.GetComponent<Rigidbody>() != null)
+                    r.Errors.Add("V-18: " + Name(a.parent) + " は body を持つので親にできません。");
+                if (HasParentCycle(a))
+                    r.Errors.Add("V-18: " + Name(a) + " の parent に循環があります。");
+            }
 
             for (int i = 0; i < r.Errors.Count; i++) Debug.LogError("[FDMiSync] " + r.Errors[i]);
             for (int i = 0; i < r.Warnings.Count; i++) Debug.LogWarning("[FDMiSync] " + r.Warnings[i]);
@@ -262,6 +277,18 @@ namespace FDMi.sync.Editor.Domain
         {
             if (target == null) return false;
             for (int i = 0; i < anchors.Length; i++) if (anchors[i] == target) return true;
+            return false;
+        }
+
+        // V-18。親関係の循環。焼きは transform 階層から取るので作らない。手作業で設定した誤りを拾う。
+        static bool HasParentCycle(FDMiSyncAnchor a)
+        {
+            FDMiSyncAnchor cur = a.parent;
+            for (int i = 0; i < 64 && cur != null; i++)
+            {
+                if (cur == a) return true;
+                cur = cur.parent;
+            }
             return false;
         }
 

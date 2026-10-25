@@ -58,10 +58,7 @@ namespace FDMi.sync
             float n = Mathf.Sqrt(x * x + y * y + z * z + w * w);
             if (n < 1e-6f) { dst[0] = 0; dst[1] = 0; dst[2] = 0; dst[3] = (short)Q_SCALE; return; }
             float inv = 1f / n;
-            x = x * inv;
-            y = y * inv;
-            z = z * inv;
-            w = w * inv;
+            x *= inv; y *= inv; z *= inv; w *= inv;
 
             // 符号の代表元: 最大成分を必ず正にする (同値なら最小の index)。
             // Why-not: w を基準にしない。180° 回転で w = 0 になり符号の基準が消える。
@@ -173,6 +170,33 @@ namespace FDMi.sync
                 (float)(abs[1] - origin[1]) * 0.001f,
                 (float)(abs[2] - origin[2]) * 0.001f);
             return QRotate(QInv(qOrigin), d);
+        }
+
+        // §9.3。km セル (1000 m 立方) の索引。絶対 mm 座標を 1 km で割った商。
+        // Why-not: 単純な整数除算は負の値で 0 方向へ切り捨てる。床関数にそろえてセルの対称性を保つ。
+        public static long KmCellIndex(long absMm)
+        {
+            long q = absMm / 1000000L;
+            long r = absMm - q * 1000000L;
+            if (r != 0L && absMm < 0L) q -= 1L;
+            return q;
+        }
+
+        // §9.3。2 点が同じ km セルか。3 軸すべてでセルの索引が一致するかどうかで判定する。
+        public static bool SameKmCell(long[] a, long[] b)
+        {
+            return KmCellIndex(a[0]) == KmCellIndex(b[0])
+                && KmCellIndex(a[1]) == KmCellIndex(b[1])
+                && KmCellIndex(a[2]) == KmCellIndex(b[2]);
+        }
+
+        // §9.3。station の seated モード (③)。
+        // 自分 (Player.local) は false。remote は同じ Root かつ同じ km 圏内のときだけ false。
+        public static bool StationSeatedMode(bool isLocalPlayer, bool sameRoot, bool sameKmCell)
+        {
+            if (isLocalPlayer) return false;
+            if (sameRoot && sameKmCell) return false;
+            return true;
         }
     }
 }

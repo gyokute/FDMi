@@ -6,7 +6,9 @@ namespace FDMi.sync
     // §9.2。静的アンカー。送受信しない。絶対姿勢は Editor 焼きの 1 点で固定される (§4.4 / §6.1)。
     // 緯度経度高度 yaw はこの型だけが持つ。動的アンカーはスポーン姿勢から焼く (§7.2 / §11.1)。
     // Why-not: 基底の [UdonBehaviourSyncMode] は継承されないため、派生クラスにも明示する (§5.1)。
+    // ExecOrder 1000: Manager (1001) より前に view を書く (§9.2)。
     [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [DefaultExecutionOrder(1000)]
     public class FDMiStaticObjectSync : FDMiSyncAnchor
     {
         [Header("Editor 焼きの入力。Runtime は読まない (E-01 / E-02 / E-07)")]
@@ -32,17 +34,11 @@ namespace FDMi.sync
         // §9.2 手順 2。静的アンカーは送受信しない。
         public override void _Tick(int frameStamp, int nowMs) { }
 
-        // §9.2 / §12.3。静的 view は原点が変わったとき (_viewsDirty) だけ書けばよい。
-        public override void _ApplyView()
+        // §9.2。LateUpdate 相当。view を書く。
+        // Why-not: 静的なので毎フレームは書かない。原点が変わったフレームだけ再投影する (§12.3)。
+        public void LateUpdate()
         {
-            if (!manager._viewsDirty) return;
-            _ApplyPose();
-        }
-
-        // §9.1 / §12.3。静的 view は毎フレーム書かない。
-        public override bool _WritesViewEveryFrame()
-        {
-            return false;
+            _ApplyViewDriver();
         }
 
         // §7.4 手順 4 / §8.2 手順 8。body を kinematic にせず位置・回転だけを写す。

@@ -63,6 +63,10 @@ namespace FDMi.sync.Editor.Application.UseCases
             for (int i = 0; i < anchors.Count; i++)
                 BakeAnchor(anchors[i], pRef, qRef);
 
+            // 手順 5 の後。親アンカー (E-08) と親子化。
+            for (int i = 0; i < anchors.Count; i++)
+                BakeParent(anchors[i]);
+
             // 手順 4: 席の相対姿勢 (E-03 / E-04)。
             for (int i = 0; i < stations.Count; i++)
                 BakeStation(stations[i], manager, i);
@@ -111,6 +115,32 @@ namespace FDMi.sync.Editor.Application.UseCases
             EditorUtility.SetDirty(a);
         }
 
+        // E-08。親アンカーは transform 階層の直上にあるアンカー。位置は親との差分で管理する (§9.2)。
+        // Why-not: body を持つアンカーを親子化しない。入れ子の Rigidbody は Unity の物理が
+        // 親の運動を子上書きする。動的アンカーは world 姿勢で書く (§9.2.1)。
+        static void BakeParent(FDMiSyncAnchor a)
+        {
+            if (a == null) return;
+
+            a.parent = null;
+            for (Transform t = a.transform.parent; t != null; t = t.parent)
+            {
+                FDMiSyncAnchor p = t.GetComponent<FDMiSyncAnchor>();
+                if (p == null || p is FDMiSyncPlayer) continue;
+                a.parent = p;
+                break;
+            }
+
+            if (a.parent == null) return;
+            if (a.GetComponent<Rigidbody>() != null) return;
+
+            Transform self = (a.view != null) ? a.view : a.transform;
+            Transform parentT = (a.parent.view != null) ? a.parent.view : a.parent.transform;
+            if (self.parent == parentT) return;
+            Undo.SetTransformParent(self, parentT, "FDMi Sync Parent");
+            EditorUtility.SetDirty(a);
+        }
+
         // E-03 / E-04。基準は vehicleAnchor の body (無ければ view)。§9.5 の GetSeatAbs と同じ式。
         static void BakeStation(FDMiStationAnchor s, FDMiSyncManager manager, int index)
         {
@@ -145,6 +175,15 @@ namespace FDMi.sync.Editor.Application.UseCases
                 if (!IsUnderPlayerObject(players[i])) continue;
 
                 players[i].manager = manager;
+
+                // E-09。プレイヤーの定位置に使う station は FDMiSyncPlayer と同じ GameObject に置く (①)。
+                // Why-not: コピーは同一階層内の参照を張り替えるので、テンプレートに焼けば各コピーに解決される (§9.4)。
+                VRC.SDKBase.VRCStation playerStation = players[i].GetComponent<VRC.SDKBase.VRCStation>();
+                if (playerStation == null)
+                    Debug.LogError("[FDMiSync] V-19: " + players[i].name + " と同じ GameObject に VRCStation がありません。");
+                else
+                    players[i].station = playerStation;
+
                 if (spawn != null)
                 {
                     FDMiEarth.ViewToAbsMm(pRef, qRef, spawn.position, players[i]._absMm);

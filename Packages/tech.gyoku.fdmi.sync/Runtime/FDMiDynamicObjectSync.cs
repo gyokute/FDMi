@@ -9,7 +9,9 @@ namespace FDMi.sync
     // 同期フィールドは 4 フィールド 11 要素 48 B (§4.4)。_absMm は送信スナップショットであり、
     // 積分は _accMm が持つ (§4.3)。この分離が「送った位置」と「送った stamp」を同一時点に揃える。
     // Why-not: 基底の [UdonBehaviourSyncMode] は継承されないため、派生クラスにも明示する (§5.1)。
+    // ExecOrder 1000: Manager (1001) より前に積分する。Manager は積分後の root 位置で原点を更新する (§7.1)。
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+    [DefaultExecutionOrder(1000)]
     public class FDMiDynamicObjectSync : FDMiSyncAnchor
     {
         // §3.3 / §6.5 / §6.6。定数は仕様値。
@@ -92,7 +94,21 @@ namespace FDMi.sync
             _renderDelayMs = _sendIntervalMs - RENDER_DELAY_OFFSET_MS;
             _lastBodyPos = (body != null) ? body.position : view.position;
             _hasLastBodyPos = true;
+            _writesView = true;
             _initialized = true;
+        }
+
+        // §9.2。Update 相当。積分・送受信・送信。
+        // Why-not: Manager のループから呼ぶ方式にしない。アンカーごとに自分が更新する (§9.2)。
+        public void Update()
+        {
+            _TickDriver();
+        }
+
+        // §9.2。LateUpdate 相当。view を書く。
+        public void LateUpdate()
+        {
+            _ApplyViewDriver();
         }
 
         // §9.2 の 5 手順。owner は _ComputeViewPose を呼ばない (§9.2 の注記)。
@@ -409,10 +425,19 @@ namespace FDMi.sync
             _ApplyPose();
         }
 
-        // 動的アンカーは受信サンプル・積分から毎フレーム view を書く (§9.1)。
-        public override bool _WritesViewEveryFrame()
+        // §9.2。動的アンカーは常に world 姿勢を書く。
+        // Why-not: 親との差分 (local) で書かない。積分は body の world 差分を読むので、
+        // 親の Transform を経由した world 姿勢は 1 フレーム古くなりうる (§7.2)。
+        public override void _WriteViewPose()
         {
-            return true;
+            if (body != null)
+            {
+                body.position = manager.ViewFromAbs(_localAbs);
+                body.rotation = manager.ViewRotFromAbs(_localRot);
+                return;
+            }
+            view.position = manager.ViewFromAbs(_localAbs);
+            view.rotation = manager.ViewRotFromAbs(_localRot);
         }
 
         // §8.2 手順 8。次の _UpdateAbsolutePose の差分を 0 にするため _lastBodyPos も更新する。
