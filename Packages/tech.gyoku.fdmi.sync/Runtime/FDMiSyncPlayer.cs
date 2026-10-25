@@ -28,6 +28,13 @@ namespace FDMi.sync
         // 自分の station に座っているか。VRChat の着席イベントで更新する (①)。
         bool _inOwnStation;
 
+        // §9.3。Foreign station 在席の判定用。PlayerLocal はローカルプレイヤーしか含まない (ADR-0004)。
+        Collider[] _probeResults = new Collider[64];
+
+        // 自分の station 在席中に数えた PlayerLocal のコライダー数。−1 は未取得。
+        // Why-not: 定数で持たない。アバターのコライダー数に依存するため (ADR-0004)。
+        int _unseatedColliderCount = -1;
+
         // §9.8。respawn の絶対位置の受け皿。root の絶対姿勢 + 回転した局所 offset。
         long[] _tmpRespawnAbs = new long[3];
 
@@ -89,12 +96,37 @@ namespace FDMi.sync
         }
 
         // §9.3。自分の station に座っていないなら、既定席へ座らせる。
-        // Why-not: 他の station をプローブしない。既に station に座っている player への
-        // UseStation は VRChat が no-op にするため、車両の席を奪うことはない。
+        // Why-not: station の登録表を作らない。Foreign station は後から動的に挿入されるため、
+        // 列挙では追跡できない (ADR-0004)。
+        // Why-not: プローブをスロットルしない。止める判定が遅れた分だけ Foreign station から
+        // 引き剥がす。physics クエリはネイティブ呼び出しで、Udon のインタプリタ コストが乗らない。
         void _KeepSeated()
         {
-            if (!_inOwnStation)
-                station.UseStation(player);
+            // seated=true の station に座ると、VRChat が PlayerLocal のコライダーを1つ無効化する。
+            // personal station は seated=false なので、この数は自分の station 在席中だけ基準になる。
+            // Why-not: 判定式を count == _unseatedColliderCount - 1 にしない。2つ以上減る場合に
+            // 在席していないと誤判定し、引き剥がす (ADR-0004)。
+            int count = Physics.OverlapSphereNonAlloc(
+                player.GetPosition(),
+                10f,
+                _probeResults,
+                1
+                    << 10 /* PlayerLocal */
+                ,
+                QueryTriggerInteraction.Ignore
+            );
+
+            if (_inOwnStation)
+            {
+                _unseatedColliderCount = count;
+                return;
+            }
+
+            // Foreign station 在席中は動かさない。退出すれば次の Tick で count が基準へ戻り、再着席する。
+            if (count < _unseatedColliderCount)
+                return;
+
+            station.UseStation(player);
         }
 
         // §9.8。root の respawn point へ自分の絶対姿勢を作り直す。
@@ -103,11 +135,18 @@ namespace FDMi.sync
         public void _RespawnLocalPlayer()
         {
             FDMiSyncAnchor root = manager.GetRoot();
-            if (root == null) return;
+            if (root == null)
+                return;
 
             root.GetAbsoluteMm(_tmpRespawnAbs);
-            FDMiSyncMath.RespawnAbs(_tmpRespawnAbs, root.GetAbsoluteRotation(),
-                root._bakedRespawnRelMm, root._bakedRespawnRelRot, _localAbs, out _localRot);
+            FDMiSyncMath.RespawnAbs(
+                _tmpRespawnAbs,
+                root.GetAbsoluteRotation(),
+                root._bakedRespawnRelMm,
+                root._bakedRespawnRelRot,
+                _localAbs,
+                out _localRot
+            );
 
             // 次の _Tick が Teleport 後の GetPosition() から同じ姿勢を作り、次フレームに送る (§6.3)。
             _nextSendTime = 0f;
@@ -120,7 +159,8 @@ namespace FDMi.sync
         // Why-not: remote のコピーでも発火する。位置の真実は本人が送るので local だけが処理する (§6.2)。
         public override void OnPlayerRespawn(VRCPlayerApi player)
         {
-            if (!player.isLocal) return;
+            if (!player.isLocal)
+                return;
             _RespawnLocalPlayer();
         }
 
