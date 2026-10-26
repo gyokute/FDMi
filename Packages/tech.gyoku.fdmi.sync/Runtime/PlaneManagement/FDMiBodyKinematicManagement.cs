@@ -31,6 +31,10 @@ namespace FDMi.sync
             VRCPlayerApi player = Networking.LocalPlayer;
             foreach (var i in inPlaneBehaviours)
             {
+                // Udon は UdonSharpBehaviour の裏の UdonBehaviour を配列に書くため、
+                // 裏付けを持たない (未 Setup の) コンポーネントは null として現れる。
+                if (!i)
+                    continue;
                 Networking.SetOwner(player, i.gameObject);
             }
         }
