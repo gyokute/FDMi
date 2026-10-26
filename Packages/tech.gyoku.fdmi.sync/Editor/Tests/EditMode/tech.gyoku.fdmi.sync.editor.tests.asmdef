@@ -4,6 +4,7 @@
     "references": [
         "tech.gyoku.fdmi.sync",
         "tech.gyoku.fdmi.sync.editor",
+        "FDMi.core",
         "UdonSharp.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

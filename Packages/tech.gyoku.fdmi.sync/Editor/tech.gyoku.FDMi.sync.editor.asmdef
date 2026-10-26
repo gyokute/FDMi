@@ -8,7 +8,8 @@
         "UdonSharp.Editor",
         "UdonSharp.Lib",
         "VRC.SDK3",
-        "FDMi.core"
+        "FDMi.core",
+        "FDMi.core.editor"
     ],
     "includePlatforms": [
         "Editor"
