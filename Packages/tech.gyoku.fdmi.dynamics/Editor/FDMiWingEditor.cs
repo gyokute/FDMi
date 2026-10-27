@@ -16,6 +16,8 @@ namespace FDMi.dynamics.Editor
     {
         // Scene でハンドルを出す station。Editor のみ (保存しない)。
         int _station;
+        // カーブ表の横スクロール。Editor のみ (保存しない。縦は Inspector に任せる)。
+        Vector2 _curveScroll;
         // 既定の Inspector の開閉。Editor のみ。
         bool _foldRaw;
 
@@ -156,9 +158,48 @@ namespace FDMi.dynamics.Editor
             EditorGUILayout.LabelField(text, EditorStyles.miniLabel);
         }
 
-        // カーブは区間ごとに持つが、同じ翼型を使うことが多い。Sec0 を全 section に配る。
-        static void DrawCurves(FDMiWing wing)
+        // カーブは区間ごとに持つが、同じ翼型を使うことが多い。表で1画面に並べ、横にスクロールする。
+        // 行=Sec、列=5種 (clAlpha / cdAlpha / clMach / cdMach / cmAlpha)。縦には伸ばす
+        // (Inspector 自体が縦スクロールするため、二重スクロールにしない)。
+        void DrawCurves(FDMiWing wing)
         {
+            int sections = wing.clAlpha != null ? wing.clAlpha.Length : 0;
+            EditorGUILayout.LabelField("カーブ (区間ごと)", EditorStyles.boldLabel);
+            if (sections == 0)
+            {
+                EditorGUILayout.LabelField("区間なし (区間 + で増やす)");
+                return;
+            }
+            _curveScroll = EditorGUILayout.BeginScrollView(_curveScroll);
+            EditorGUI.BeginChangeCheck();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField("", GUILayout.Width(80f));
+                EditorGUILayout.LabelField("clAlpha", GUILayout.Width(140f));
+                EditorGUILayout.LabelField("cdAlpha", GUILayout.Width(140f));
+                EditorGUILayout.LabelField("clMach", GUILayout.Width(140f));
+                EditorGUILayout.LabelField("cdMach", GUILayout.Width(140f));
+                EditorGUILayout.LabelField("cmAlpha", GUILayout.Width(140f));
+            }
+            for (int i = 0; i < sections; i++)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField("Sec" + i, GUILayout.Width(40f));
+                    if (i == 0)
+                        EditorGUILayout.LabelField("", GUILayout.Width(40f));
+                    else if (GUILayout.Button("←0", GUILayout.Width(40f)))
+                        CopySection(wing, i);
+                    wing.clAlpha[i] = EditorGUILayout.CurveField(wing.clAlpha[i], GUILayout.Width(140f), GUILayout.Height(60f));
+                    wing.cdAlpha[i] = EditorGUILayout.CurveField(wing.cdAlpha[i], GUILayout.Width(140f), GUILayout.Height(60f));
+                    wing.clMach[i] = EditorGUILayout.CurveField(wing.clMach[i], GUILayout.Width(140f), GUILayout.Height(60f));
+                    wing.cdMach[i] = EditorGUILayout.CurveField(wing.cdMach[i], GUILayout.Width(140f), GUILayout.Height(60f));
+                    wing.cmAlpha[i] = EditorGUILayout.CurveField(wing.cmAlpha[i], GUILayout.Width(140f), GUILayout.Height(60f));
+                }
+            }
+            if (EditorGUI.EndChangeCheck())
+                EditorUtility.SetDirty(wing);
+            EditorGUILayout.EndScrollView();
             if (GUILayout.Button("Sec0 のカーブを全 section に複製"))
                 CopyCurves(wing);
         }
@@ -193,17 +234,25 @@ namespace FDMi.dynamics.Editor
             );
         }
 
-        // 焼き付いた区間。平面形の輪郭と重なる (重ならないときは焼き付けが古い)。
+        // 焼き付いた区間。真の台形で描く (黄色の平面形輪郭と重なる。重ならないときは焼き付けが古い)。
+        // ラベルは台形重心、軸と作用点の印は coordPos (力の作用点) に残す。未解決区間 (面積0) は描かない。
         void DrawSections(FDMiWing wing)
         {
             if (wing.coordPos == null)
                 return;
             for (int i = 0; i < wing.coordPos.Length; i++)
             {
+                if (wing.sectionArea == null || i >= wing.sectionArea.Length || wing.sectionArea[i] <= 0f)
+                    continue;
+                if (wing.sectionChord == null || i >= wing.sectionChord.Length || wing.sectionChord[i] <= 0f)
+                    continue;
                 FDMiAeroGeometry.DrawSection(wing, i, new Color(0.3f, 0.8f, 1f, 1f));
                 FDMiAeroGeometry.DrawSectionAxes(wing, i, wing.span * 0.1f);
+                Vector3 labelPos = wing.coordPos[i];
+                if (FDMiAeroGeometry.TrueCorners(wing, i, out Vector3 le0, out Vector3 le1, out Vector3 te1, out Vector3 te0))
+                    labelPos = FDMiAeroGeometry.Centroid(le0, le1, te1, te0);
                 // 単位は書かない。区間が並ぶと文字が重なるため (コード長 [m] と面積 [m2])。
-                Handles.Label(wing.coordPos[i], "Sec" + i + " c=" + wing.sectionChord[i].ToString("F2") + " S=" + wing.sectionArea[i].ToString("F1"));
+                Handles.Label(labelPos, "Sec" + i + " c=" + wing.sectionChord[i].ToString("F2") + " S=" + wing.sectionArea[i].ToString("F1"));
             }
             // 装置の舵面も一緒に出す。翼を選べば全面の絵が1枚で見える。
             if (wing.controlSurface != null)
@@ -287,6 +336,29 @@ namespace FDMi.dynamics.Editor
             Copy(wing.cdMach);
             Copy(wing.cmAlpha);
             EditorUtility.SetDirty(wing);
+        }
+
+        // Sec0 の5種を Sec i 1つに配る (表の行頭ボタン)。
+        static void CopySection(FDMiWing wing, int i)
+        {
+            Undo.RecordObject(wing, "FDMiWing カーブ複製");
+            CopyOne(wing.clAlpha, i);
+            CopyOne(wing.cdAlpha, i);
+            CopyOne(wing.clMach, i);
+            CopyOne(wing.cdMach, i);
+            CopyOne(wing.cmAlpha, i);
+            EditorUtility.SetDirty(wing);
+        }
+
+        static void CopyOne(AnimationCurve[] curves, int i)
+        {
+            if (curves == null || curves.Length == 0 || curves[0] == null)
+                return;
+            if (i <= 0 || i >= curves.Length)
+                return;
+            curves[i] = new AnimationCurve(curves[0].keys);
+            curves[i].preWrapMode = curves[0].preWrapMode;
+            curves[i].postWrapMode = curves[0].postWrapMode;
         }
 
         static void Copy(AnimationCurve[] curves)

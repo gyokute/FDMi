@@ -38,6 +38,9 @@ namespace FDMi.dynamics
     // ここで組む。負で機首下げ (cmAlpha と同じ向きの規約)。フラップは機首下げ、スポイラは機首上げになる。
     // 装置の等価迎え角シフトは計測値 alpha に入れない。AoA は機体の向きの計測値だから。
     //
+    // 翼全体の取付角は incidenceInput [deg] で与える。正で前縁が上がり、全区間の迎角が増える。
+    // 全遊動水平尾翼のトリムはこれで表す (翼そのものが回るので、装置の 1/4 弦モーメントは付かない)。
+    //
     // 胴体の持上げ (翼-胴干渉) は倍率1つ。DATCOM の図表法 (4.3.1.2 の K_B, K_W(B), K_B(W)) は
     // 閉じた式にできないため、前実装の経験式をそのまま使う。胴体自身の揚力は FDMiBodyAero が
     // 別に持っているので、この倍率が担うのは翼側の増分だけ。d/b=0.1 で3%。
@@ -81,24 +84,34 @@ namespace FDMi.dynamics
         public Rigidbody body;
         public string WindPath = "~/Physics/Wind";
 
-        // 風速ベクトル。世界座標。未接続なら無風。単位は m/s。
+        // 風速ベクトル。世界座標。単位は m/s。
         [FDMiDataPath(nameof(WindPath))]
         public FDMiVector3 windInput;
         public string DensityPath = "~/Physics/Rho";
 
-        // 空気密度。未接続なら rho0 を使う。単位は kg/m^3。
+        // 空気密度。単位は kg/m^3。
         [FDMiDataPath(nameof(DensityPath))]
         public FDMiFloat densityInput;
         public string SonicSpeedPath = "~/Physics/SonicSpeed";
 
-        // 音速。未接続なら sonicSpeed0 を使う。単位は m/s。
+        // 音速。単位は m/s。区間のマッハは区間の速度をこれで割って出す。
         [FDMiDataPath(nameof(SonicSpeedPath))]
         public FDMiFloat sonicSpeedInput;
         public string HeightPath = "~/Physics/RadarAltitude";
 
-        // 対地高さ。電波高度計模擬の代表値。未接続なら地面効果なし。単位は m。
+        // 対地高さ。電波高度計模擬の代表値。単位は m。
         [FDMiDataPath(nameof(HeightPath))]
         public FDMiFloat heightInput;
+        public string IncidencePath = "~/Physics/TrimAngle";
+
+        // 翼全体の取付角。全遊動水平尾翼のトリムに使う。正で前縁が上がり、区間の迎角が増える。単位は度。
+        // 区間ごとの装置 (FDMiControlSurface) の等価迎角とは別扱い。
+        // 取付角は翼ごとの値なので、固定翼 (主翼・垂直尾翼) にトリム指令を配線してはならない。
+        // 1本のデータを全翼に配ると、トリムを動かした時に主翼と垂直尾翼の迎角まで一緒に動く。
+        // Why not 動翼の一種として装置で表す: 全遊動翼は翼そのものが回るので、揚力増分が 1/4 弦まわりに
+        // 作るモーメント (_cmPerCl) を持たない。装置にすると二重計上を打ち消す例外が増える。
+        [FDMiDataPath(nameof(IncidencePath))]
+        public FDMiFloat incidenceInput;
         // 操舵面と高揚力装置。区間ごとの等価迎え角・加算揚力・加算抗力・揚力倍率をここから読む。
         // Editor がこの翼の子から解決する。装置は翼の子に置く。
         public FDMiControlSurface[] controlSurface;
@@ -150,10 +163,6 @@ namespace FDMi.dynamics
         [Header("設計値")]
         // 面積の全体倍率。V1 の翼面積補正。
         public float wingAreaCoef = 1f;
-        // 海面標準大気の密度。densityInput 未接続時の値。単位は kg/m^3。
-        public float rho0 = 1.225f;
-        // 海面の音速。sonicSpeedInput 未接続時の値。単位は m/s。
-        public float sonicSpeed0 = 340.3f;
 
         [Header("係数 (Start で求める)")]
         // アスペクト比。起動時に区間の面積から求める。
@@ -166,7 +175,8 @@ namespace FDMi.dynamics
         public float outDownwashGain;
 
         [Header("計測値")]
-        // 区間の迎え角。吹き下ろしの加算込み。装置の等価迎え角シフトは含めない。coordPos と同じ長さにする。単位は度。
+        // 区間の迎え角。吹き下ろしの加算と、翼全体の取付角 (incidenceInput) の加算込み。
+        // 装置の等価迎え角シフトは含めない。coordPos と同じ長さにする。単位は度。
         public float[] alpha;
         // 面積加重平均の3次元揚力係数。下流翼が読む。
         public float outCL;
@@ -182,6 +192,16 @@ namespace FDMi.dynamics
         // 翼面積。区間配列から一度だけ求める。アスペクト比と outCL の分母に使う。
         float _wingArea;
 
+        // 空力リファレンスの配列。Start で1回だけ FDMiFloat.data / FDMiVector3.data の参照を受け、
+        // 以降は先頭要素を読む。供給側の書き込みは同じ配列に載るので、参照を持ち続けてよい。
+        // Why not FixedUpdate で densityInput.Data: 他の UdonBehaviour のフィールド読みは SendCustomEvent 経由の
+        // 外部呼び出しになり、Data プロパティなら getter 呼び出しも1回増える。5端子ぶんを毎ステップは払わない。
+        Vector3[] _wind;
+        float[] _rho;
+        float[] _sonic;
+        float[] _height;
+        float[] _incidence;
+
         // 装置の揚力増分が作るピッチングモーメントの係数。1/4 弦まわりの値で、負が機首下げ。
         // DATCOM のフラップの Cm チャートは揚力増分のおよそ 1/4。装置ごとに持たせず1定数にまとめる。
         // スポイラは 0.7 弦あたりで揚力を落とすので実際はもう少し大きいが、符号と桁は合う。
@@ -189,6 +209,13 @@ namespace FDMi.dynamics
 
         void Start()
         {
+            // 空力リファレンスの参照をここで束ねる。
+            _wind = windInput.data;
+            _rho = densityInput.data;
+            _sonic = sonicSpeedInput.data;
+            _height = heightInput.data;
+            _incidence = incidenceInput.data;
+
             // 翼面積。区間配列は翼面1枚の全域を覆う前提なので、単純に足せば平面形の面積になる。
             _wingArea = 0f;
             for (int i = 0; i < sectionArea.Length; i++)
@@ -238,24 +265,12 @@ namespace FDMi.dynamics
 
         void FixedUpdate()
         {
-            // 入力。未接続の端子は無風・海面標準・地面効果なしとして扱う。
-            Vector3 wind = Vector3.zero;
-            if (windInput != null)
-                wind = windInput.Data;
-            float rho = rho0;
-            if (densityInput != null)
-                rho = densityInput.Data;
-            float sonicSpeed = sonicSpeed0;
-            if (sonicSpeedInput != null)
-                sonicSpeed = sonicSpeedInput.Data;
+            // 空力リファレンス。Start で受けた配列の先頭を読む。
+            float rho = _rho[0];
 
             // 地面効果。φ が誘導抗力の残存率、ge = 1 - φ が効果の強さ。区間ごとではなく翼ごとに1回。
-            float ge = 0f;
-            if (heightInput != null)
-            {
-                float r = 16f * heightInput.Data / span;
-                ge = 1f / (1f + r * r);
-            }
+            float r = 16f * _height[0] / span;
+            float ge = 1f / (1f + r * r);
             float inducedK = outInducedK * (1f - ge);
             float liftGain = outLiftGain + (1f - outLiftGain) * ge;
 
@@ -264,9 +279,12 @@ namespace FDMi.dynamics
             if (sourceWing != null)
                 outEpsilonDeg = outDownwashGain * sourceWing.outCL;
 
+            // 翼全体の取付角。全遊動翼は翼そのものが回るので、区間の迎角に一律で足す。
+            float incidence = _incidence[0];
+
             // 機体座標で見た対気速度と角速度。V1 と同じく「風 - 機体速度」を気流の正方向とする。
             Quaternion invRot = Quaternion.Inverse(body.rotation);
-            Vector3 airspeed = invRot * (wind - body.velocity);
+            Vector3 airspeed = invRot * (_wind[0] - body.velocity);
             Vector3 airAngularVelocity = invRot * body.angularVelocity;
             Vector3 cogOffset = body.centerOfMass;
 
@@ -294,7 +312,9 @@ namespace FDMi.dynamics
                 sectionAir = Vector3.ProjectOnPlane(sectionAir, spanNormal[i]);
 
                 // 下流翼は上流翼の後流の分だけ迎え角が下がる。
-                alpha[i] = Vector3.SignedAngle(chordNormal[i], sectionAir, spanNormal[i]) - outEpsilonDeg;
+                // SignedAngle は軸平面へ自動投影しないため、弦も面内に落としてから測る。
+                // (spanNormal は後退成分を含むので、そのままでは Λ ぶん水増しになる)。
+                alpha[i] = Vector3.SignedAngle(Vector3.ProjectOnPlane(chordNormal[i], spanNormal[i]), sectionAir, spanNormal[i]) - outEpsilonDeg + incidence;
 
                 // カーブを引く迎え角。装置の等価迎え角シフトはここだけに足す。
                 float aeff = alpha[i] + csAlpha;
@@ -303,7 +323,10 @@ namespace FDMi.dynamics
                 float spd = sectionAir.magnitude;
                 float c = 0.5f * rho * spd * spd * sectionArea[i] * Mathf.Abs(Mathf.Cos(Mathf.Deg2Rad * aeff));
                 c *= wingAreaCoef;
-                float mach = spd / sonicSpeed;
+                // マッハは区間の速度で引く。FDMiAirData の Mach は機体代表値で、スパン投影 (後退角) と
+                // 回転誘起が落ちているため、区間ごとの圧縮性補正には使わない (後退翼の抗力上昇マッハが
+                // 実際より低くなる)。リファレンスとして読むのは音速まで。
+                float mach = spd / _sonic[0];
 
                 // 抗力は気流方向、揚力はそれと直交する向き。
                 Vector3 cdNormal = Vector3.Normalize(sectionAir);

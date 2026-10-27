@@ -62,6 +62,8 @@ namespace FDMi.dynamics.Editor
         // 区間の四隅 (前縁2点、後縁2点)。coordPos は 1/4 弦点として描く (V1 の CoordPos は
         // 前後2站の 25% 弦点の平均で、力の作用点でもある)。よって前縁が -0.25c、後縁が +0.75c。
         // chordNormal は後ろ向き (V1 と同じ)。
+        // 真の台形 (TrueCorners) が使える場合はそちらを描く。ここは面積等価の矩形近似
+        // (装置ヒンジ描画の幅出し) として残す。
         public static void Corners(FDMiWing wing, int i, out Vector3 le0, out Vector3 le1, out Vector3 te1, out Vector3 te0)
         {
             float chord = wing.sectionChord[i];
@@ -74,17 +76,56 @@ namespace FDMi.dynamics.Editor
             te0 = te - half;
         }
 
-        // 区間の枠と 1/4 弦点の印。枠の幅は区間の面積とコード長から出したもの。
+        // 真の台形4点。body ローカルに変換した station の前縁・後縁そのまま。
+        // 黄色の平面形輪郭 (翼ローカル) と焼き付け直後に完全一致するのが正解。
+        // 面積0の未解決区間でも4点は返す (呼び出し側で面積を見てスキップする)。
+        public static bool TrueCorners(FDMiWing wing, int i, out Vector3 le0, out Vector3 le1, out Vector3 te1, out Vector3 te0)
+        {
+            le0 = le1 = te1 = te0 = Vector3.zero;
+            if (wing.leadingEdge == null || wing.trailingEdge == null)
+                return false;
+            if (i < 0 || i + 1 >= wing.leadingEdge.Length || i + 1 >= wing.trailingEdge.Length)
+                return false;
+            if (wing.transform == null)
+                return false;
+            Transform body = wing.body != null ? wing.body.transform : wing.transform;
+            if (body == null)
+                return false;
+            Matrix4x4 toBody = body.worldToLocalMatrix * wing.transform.localToWorldMatrix;
+            le0 = toBody.MultiplyPoint3x4(wing.leadingEdge[i]);
+            le1 = toBody.MultiplyPoint3x4(wing.leadingEdge[i + 1]);
+            te1 = toBody.MultiplyPoint3x4(wing.trailingEdge[i + 1]);
+            te0 = toBody.MultiplyPoint3x4(wing.trailingEdge[i]);
+            return true;
+        }
+
+        public static Vector3 Centroid(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
+        {
+            return (a + b + c + d) * 0.25f;
+        }
+
+        // 区間の枠と 1/4 弦点の印。枠は真の台形、印は力の作用点 (coordPos) に残す。
         public static void DrawSection(FDMiWing wing, int i, Color color)
         {
-            Corners(wing, i, out Vector3 a, out Vector3 b, out Vector3 c, out Vector3 d);
+            if (TrueCorners(wing, i, out Vector3 a, out Vector3 b, out Vector3 c, out Vector3 d))
+            {
+                Handles.color = color;
+                Handles.DrawLine(a, b);
+                Handles.DrawLine(b, c);
+                Handles.DrawLine(c, d);
+                Handles.DrawLine(d, a);
+                Vector3 tick = wing.chordNormal[i] * (0.05f * wing.sectionChord[i]);
+                Handles.DrawLine(wing.coordPos[i] - tick, wing.coordPos[i] + tick);
+                return;
+            }
+            Corners(wing, i, out Vector3 ra, out Vector3 rb, out Vector3 rc, out Vector3 rd);
             Handles.color = color;
-            Handles.DrawLine(a, b);
-            Handles.DrawLine(b, c);
-            Handles.DrawLine(c, d);
-            Handles.DrawLine(d, a);
-            Vector3 tick = wing.chordNormal[i] * (0.05f * wing.sectionChord[i]);
-            Handles.DrawLine(wing.coordPos[i] - tick, wing.coordPos[i] + tick);
+            Handles.DrawLine(ra, rb);
+            Handles.DrawLine(rb, rc);
+            Handles.DrawLine(rc, rd);
+            Handles.DrawLine(rd, ra);
+            Vector3 rtick = wing.chordNormal[i] * (0.05f * wing.sectionChord[i]);
+            Handles.DrawLine(wing.coordPos[i] - rtick, wing.coordPos[i] + rtick);
         }
 
         // 区間の姿勢。色は V1 の FDMi_wing_Editor に合わせる (赤 = 翼面法線、青 = 翼幅、緑 = 弦)。

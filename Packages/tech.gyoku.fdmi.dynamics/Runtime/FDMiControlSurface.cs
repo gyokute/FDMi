@@ -23,6 +23,11 @@ namespace FDMi.dynamics
     // スラットは失速角を ΔClmax / 2π だけ延長し、減ったぶんの揚力を加算で戻す形にする。
     // スポイラは平板の抗力 2 sin²δ と、コード比に比例する揚力の欠損で表す。
     //
+    // フラップとスラットの揚力は、正規化した舵角の liftExponent 乗で効かせる (既定1で線形)。
+    // 実機の高揚力装置は小さい舵角で揚力の大半を得る (DC-10 は Flaps 15 で着陸 CLmax の 8割)。
+    // Why not カーブ: 装置ごとに AnimationCurve を持つと Udon の Evaluate (外部呼び出し) が
+    // 1フレーム1回増え、区間ループの外とはいえ焼き付けの手間も増える。指数1つで同じ形が出る。
+    //
     // 舵の遅れ (アクチュエータ) とヒンジモーメントは持たない。入力側のモジュールで作る。
     // Why not 焼き付け用の Editor: τ はコード比だけで決まるので、押す手間を増やすほどの量ではない。
     [DefaultExecutionOrder(-100)]
@@ -45,6 +50,11 @@ namespace FDMi.dynamics
         // 機体の CLmax 増分は、これ × 装置が覆う面積比 × FDMiWing の outLiftGain になる。
         // 機体で ΔCLmax を +1.0 欲しければ、面積比 0.6・outLiftGain 0.8 として 2 前後を入れる。
         public float deltaClMax = 1f;
+        // フラップとスラットの揚力の舵角依存の指数。δ/δmax をこの乗にしてから deltaClMax に掛ける。
+        // 1 が線形。1 未満にすると小さい舵角で揚力が出る (実機の二重スロット・ファウラーに近い)。
+        // 抗力 (δ_rad²) とスラットの迎角シフト・失速角延長も、この正規化した値で効く。
+        [Min(0.1f)]
+        public float liftExponent = 1f;
 
         [Header("区間")]
         // 区間ごとの配分比。FDMiWing の区間数と同じ長さにする。装置が覆う区間だけ 1 にする。
@@ -77,8 +87,15 @@ namespace FDMi.dynamics
         float _invMaxDeflection;
         float _stallExtDeg;
 
+        // 舵角の配列。Start で1回だけ input.data の参照を受け、以降は先頭要素を読む。供給側の書き込みは
+        // 同じ配列に載る。Why not FixedUpdate で input.Data: 他の UdonBehaviour のプロパティ読みは
+        // 外部呼び出しと getter 呼び出しの2つになり、毎ステップ払う理由がない。
+        float[] _deflection;
+
         void Start()
         {
+            _deflection = input.data;
+
             // 薄翼理論の舵効果。コード比 0 で 0、全弦で 1 になる。
             float theta = Mathf.Acos(2f * chordRatio - 1f);
             _tau = 1f - (theta - Mathf.Sin(theta)) / Mathf.PI;
@@ -88,11 +105,18 @@ namespace FDMi.dynamics
             _stallExtDeg = deltaClMax * Mathf.Rad2Deg / _a2D;
         }
 
+        // 正規化した舵角。符号は残し、大きさだけ指数を掛ける (負の舵角で Pow が NaN にならない)。
+        float Normalized(float deg)
+        {
+            float frac = Mathf.Abs(deg) * _invMaxDeflection;
+            if (liftExponent != 1f)
+                frac = Mathf.Pow(frac, liftExponent);
+            return frac * Mathf.Sign(deg);
+        }
+
         void FixedUpdate()
         {
-            float deg = 0f;
-            if (input != null)
-                deg = input.Data;
+            float deg = _deflection[0];
 
             // 型ごとの係数を先に求める。区間ループには分岐を持ち込まない。
             float dRad = Mathf.Deg2Rad * deg;
@@ -109,12 +133,12 @@ namespace FDMi.dynamics
             }
             else if (type == FDMiWingDeviceType.Flap)
             {
-                clPer = deltaClMax * deg * _invMaxDeflection;
+                clPer = deltaClMax * Normalized(deg);
                 cdPer = _cdDeflect * chordRatio * dRad * dRad;
             }
             else if (type == FDMiWingDeviceType.Slat)
             {
-                float frac = deg * _invMaxDeflection;
+                float frac = Normalized(deg);
                 // 失速角を延ばす向きに迎え角をずらし、減ったぶんの揚力を加算で戻す。
                 alphaPer = -_stallExtDeg * frac;
                 clPer = deltaClMax * frac;

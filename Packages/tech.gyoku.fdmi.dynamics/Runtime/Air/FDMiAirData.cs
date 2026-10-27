@@ -5,7 +5,9 @@ using UnityEngine;
 namespace FDMi.dynamics
 {
     // 機体固定座標系 (+Z = 前方) の対気速度と大気データを出す。空力・エンジン計算の上流。
-    // AirSpeed = 機体座標系で見た対気速度ベクトル。Wing は -AirSpeed を相対風として使う。
+    // AirSpeed = 機体座標系で見た対気速度ベクトル (機体速度 - 風)。FDMiWing は wind と body.velocity から
+    // 逆向き (風 - 機体速度) を自分で作る。翼が AirSpeed を読まないのは、角速度の機体座標変換に結局
+    // invRot が要り、節約がベクトル減算1回ぶんに留まるため。
     // 旧 aerodynamics からの移植。TASAcc の pIAS 誤参照・風の座標系混在を修正し、
     // TAS は |v|、IAS 基準密度は 1.225 kg/m3 (ISA 海面) にした。
     // OAT / DynamicPressure は JetEngine が要る全温・全圧 (等エントロピー関係で Mach から解く)。

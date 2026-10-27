@@ -41,12 +41,12 @@ namespace FDMi.dynamics
         public Rigidbody body;
         public string WindPath = "~/Physics/Wind";
 
-        // 風速ベクトル。世界座標。未接続なら無風。単位は m/s。
+        // 風速ベクトル。世界座標。単位は m/s。
         [FDMiDataPath(nameof(WindPath))]
         public FDMiVector3 windInput;
         public string DensityPath = "~/Physics/Rho";
 
-        // 空気密度。未接続なら rho0 を使う。単位は kg/m^3。
+        // 空気密度。単位は kg/m^3。
         [FDMiDataPath(nameof(DensityPath))]
         public FDMiFloat densityInput;
 
@@ -67,8 +67,6 @@ namespace FDMi.dynamics
         public float cdp = 0.075f;
         // 摩擦抗力の細長比項。NAL-SP-00012 の λ。調整開始値。
         public float lambda = 0.016f;
-        // 海面標準大気の密度。densityInput 未接続時の値。単位は kg/m^3。
-        public float rho0 = 1.225f;
 
         [Header("計測値")]
         // 胴体軸に対する迎角。度。
@@ -90,8 +88,18 @@ namespace FDMi.dynamics
         float _crossflowK;
         float _cdA;
 
+        // 空力リファレンスの配列。Start で1回だけ FDMiFloat.data / FDMiVector3.data の参照を受け、
+        // 以降は先頭要素を読む。供給側の書き込みは同じ配列に載るので、参照を持ち続けてよい。
+        // Why not FixedUpdate で densityInput.Data: 他の UdonBehaviour のフィールド読みは SendCustomEvent 経由の
+        // 外部呼び出しになり、Data プロパティなら getter 呼び出しも1回増える。
+        Vector3[] _wind;
+        float[] _rho;
+
         void Start()
         {
+            _wind = windInput.data;
+            _rho = densityInput.data;
+
             _smax = 0.25f * Mathf.PI * diameter * diameter;
             _crossflowK = 0.5f * crossflowCd * diameter * length;
             _cdA = 0.5f * (cdp + lambda * length / diameter) * (Mathf.PI * diameter);
@@ -99,17 +107,12 @@ namespace FDMi.dynamics
 
         void FixedUpdate()
         {
-            // 入力。未接続の端子は無風・海面標準として扱う。
-            Vector3 wind = Vector3.zero;
-            if (windInput != null)
-                wind = windInput.Data;
-            float rho = rho0;
-            if (densityInput != null)
-                rho = densityInput.Data;
+            // 空力リファレンス。Start で受けた配列の先頭を読む。
+            float rho = _rho[0];
 
             // 空力中心の対気速度。並進に回転の誘起速度を足す。機体速度 - 風。
             Quaternion invRot = Quaternion.Inverse(body.rotation);
-            Vector3 u = invRot * (body.velocity - wind) + Vector3.Cross(invRot * body.angularVelocity, centerOfPressure);
+            Vector3 u = invRot * (body.velocity - _wind[0]) + Vector3.Cross(invRot * body.angularVelocity, centerOfPressure);
 
             // 停機・微速では力も係数も出さずに帰る。ゼロ割り防止も兼ねる。
             float v2 = u.sqrMagnitude;
