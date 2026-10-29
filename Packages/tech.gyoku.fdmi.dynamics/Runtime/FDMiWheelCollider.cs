@@ -1,4 +1,4 @@
-﻿using FDMi.core;
+using FDMi.core;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -7,9 +7,16 @@ using VRC.Udon;
 namespace FDMi.dynamics
 {
     // 非駆動の旅客機用ホイール単体: 1 Raycast + バイリニア・バネダンパストラット + スリップベースタイヤ + キネマチック回転 + ABS。
-    // WheelCollider も接地用コライダーも不要。ホイールごとに本コンポーネントを1つ追加し、すべて同一 Rigidbody に作用させる。
+    // WheelCollider は使わない。ホイールごとに本コンポーネントを1つ追加し、すべて同一 Rigidbody に作用させる。
     // 本コンポーネントは脚上端に配置: transform.position = o (脚上端)、transform.up = a (脚上方向)、transform.forward = 舵角ゼロ時の前方向。
     // 力は接地点 p に ForceMode.Force で、FixedUpdate ごとにホイール1輪につき1回加える。
+    //
+    // 接地力はレイキャストが持つ。物理コライダーはめり込みの下限としてだけ置く。
+    // Editor の自動解決が、本コンポーネントの GameObject に最大圧縮位置のタイヤと同径の SphereCollider を付ける
+    // (中心 = transform.position、半径 = tireRadius)。サスペンションが底付きする位置がそのまま球の接地面になり、
+    // 高速接地で機体が滑走路を突き抜けるのを物理的に止める。タイヤ力の計算には関与しない。
+    // 球の中心は原点なので、本コンポーネントの Raycast は原点がコライダーの内側になり自身を拾わない。
+    //
     // 離着陸・タキシングのオーナーシップ: 他のオーナー駆動 Rigidbody 力と同様に VRChat のオーナークライアントで実行する。
     //
     // 可視化は外部の責務。本コンポーネントは Transform を一切動かさない。
@@ -60,74 +67,116 @@ namespace FDMi.dynamics
     public class FDMiWheelCollider : FDMiBehaviour
     {
         [Header("Wiring")]
+        [Tooltip("力を加える機体の Rigidbody。非キネマチック。")]
         public Rigidbody body;
+
+        [Tooltip("操舵角のデータパス。空なら解決しない。")]
+        public string steerPath = "";
+        [Tooltip("操舵角 [deg] の FDMiFloat。steerPath の解決結果が入る。")]
+        [FDMiDataPath(nameof(steerPath))]
         public FDMiFloat steerInput;
+
+        [Tooltip("制動率のデータパス。空なら解決しない。")]
+        public string brakePath = "";
+        [Tooltip("制動率 [0,1] の FDMiFloat。brakePath の解決結果が入る。")]
+        [FDMiDataPath(nameof(brakePath))]
         public FDMiFloat brakeInput;
+
+        [Tooltip("接地判定に使う Layer。機体自身のコライダーを含めない。")]
         public LayerMask runwayMask;
-        // サス縮み出力。正規化 0..1 (0=全伸び、1=底付き)。接地なしでは 0。外部の可視化・脚カバー駆動用。
+
+        [Tooltip("サス縮み出力のデータパス。空なら解決しない。")]
+        public string suspensionPath = "";
+        [Tooltip("サス縮みの出力。0 が全伸び、1 が底付き。接地なしは 0。外部の可視化用。")]
+        [FDMiDataPath(nameof(suspensionPath))]
         public FDMiFloat suspensionOutput;
-        // タイヤ回転量出力。ラジアン累積 0..2pi ラップ。単位不問の前提で外部の回転駆動用。
+
+        [Tooltip("タイヤ回転出力のデータパス。空なら解決しない。")]
+        public string spinPath = "";
+        [Tooltip("タイヤ回転量の出力 [rad]。0〜2π で巻き戻る。外部の回転駆動用。")]
+        [FDMiDataPath(nameof(spinPath))]
         public FDMiFloat spinOutput;
 
         [Header("Geometry")]
+        [Tooltip("サスの最大ストローク [m]。脚上端から全伸びのタイヤ中心までの距離。")]
         [Range(0.05f, 2f)]
         public float maxStroke = 0.5f;
+        [Tooltip("タイヤ半径 [m]。接地コライダーの半径にもなる。")]
         [Range(0.05f, 1.5f)]
         public float tireRadius = 0.5f;
+        [Tooltip("舵角の機械的な上限 [deg]。")]
         [Range(0f, 90f)]
         public float steerLimitDeg = 70f;
 
         [Header("Spring-damper strut (bilinear)")]
+        [Tooltip("静止時の沈み込み [m]。静荷重でこの位置に釣り合う。最大ストロークの 95% で頭打ち。")]
         [Min(0f)]
         public float staticStroke = 0.3f;
+        [Tooltip("静止荷重の分担比。全輪の合計を 1 にする。")]
         [Range(0.001f, 1f)]
         public float loadShare = 0.1f;
-        // 臨界減衰比。圧側。目安 0.2〜0.5。
+        [Tooltip("臨界減衰比 (圧側)。目安 0.2〜0.5。")]
         [Range(0.05f, 2f)]
         public float zetaCompress = 0.3f;
-        // 臨界減衰比。伸側。目安 0.3〜0.8 (圧側の約1.5倍)。
+        [Tooltip("臨界減衰比 (伸側)。目安 0.3〜0.8 (圧側の約1.5倍)。")]
         [Range(0.05f, 2f)]
         public float zetaRebound = 0.5f;
+        [Tooltip("減衰が効くストローク速度の上限 [m/s]。")]
         [Range(1f, 20f)]
         public float dampSpeedMax = 8f;
+        [Tooltip("脚が耐える最大荷重の倍率。静荷重分担に対する比。")]
         [Range(1f, 20f)]
         public float maxLoadFactor = 6f;
-        // 折点の位置。maxStroke に対する比。静姿勢より下にはならない (焼き付けで自動補正)。
+        [Tooltip("折点の位置。最大ストロークに対する比。静姿勢より下にはならない (焼き付けで自動補正)。")]
         [Range(0f, 1f)]
         public float kneeFraction = 0.7f;
-        // 末端レート。基本レート k0 に対する倍率。1 でフルリニア。
+        [Tooltip("末端のバネレート倍率。基本レート k0 に対する比。1 でフルリニア。")]
         [Range(1f, 8f)]
         public float endRateFactor = 3f;
 
         [Header("Tire")]
+        [Tooltip("摩擦係数のピーク値。")]
         [Range(0.05f, 2f)]
         public float muPeak = 0.8f;
+        [Tooltip("スリップ飽和時の摩擦係数。")]
         [Range(0f, 2f)]
         public float muSlide = 0.5f;
+        [Tooltip("摩擦係数がピークになる縦スリップ比。")]
         [Range(0.01f, 0.9f)]
         public float kappaPeak = 0.12f;
+        [Tooltip("横力の摩擦係数。")]
         [Range(0.05f, 2f)]
         public float muLateral = 0.9f;
+        [Tooltip("横力が飽和する横スリップ角 [deg]。")]
         [Range(0.5f, 45f)]
         public float alphaPeakDeg = 10f;
+        [Tooltip("縦スリップによる横力の減衰係数。")]
         [Range(0f, 1f)]
         public float kappaCoupling = 0.5f;
+        [Tooltip("スリップ速度の基準 [m/s]。0 m/s 付近の縦力を決める。")]
         [Range(0.05f, 10f)]
         public float slipSpeedScale = 1f;
 
         [Header("Brake / spin / ABS")]
+        [Tooltip("タイヤ回転が走行速度に追従する速さ [1/s]。")]
         [Range(0.5f, 50f)]
         public float spinFollowRate = 10f;
+        [Tooltip("ABS が復圧に戻るスリップ比。")]
         [Range(0.01f, 1f)]
         public float absLowSlip = 0.08f;
+        [Tooltip("ABS が減圧を始めるスリップ比。")]
         [Range(0.02f, 1f)]
         public float absHighSlip = 0.15f;
+        [Tooltip("ABS が働く最低速度 [m/s]。")]
         [Min(0f)]
         public float absMinSpeed = 3f;
+        [Tooltip("ABS の減圧レート [1/s]。")]
         [Range(0.1f, 20f)]
         public float releaseRate = 5f;
+        [Tooltip("ABS の復圧レート [1/s]。")]
         [Range(0.1f, 20f)]
         public float applyRate = 3f;
+        [Tooltip("ABS の有効化。")]
         public bool useABS = true;
 
         [Header("Baked (Editor 焼き付けが代入・実行時は読出し専用)")]
@@ -161,6 +210,15 @@ namespace FDMi.dynamics
         public bool outGrounded;
         public bool outAbsRelease;
         public float outVelocityY;
+
+        // 入出力の配列参照。Start で1回だけ受け、以降は先頭要素を読み書きする。
+        // Why not 毎フレーム steerInput.Data: 他の UdonBehaviour のフィールド読みは外部呼び出しになり、
+        // Data プロパティは getter 呼び出しも1回増える (docs/adr/0008-wing-reads-aero-reference-arrays.md と同じ理由)。
+        // Why not 出力も Set(): Set は callback を叩くが、可視化側はポーリングする前提なので配列直書きで足りる。
+        float[] _steer;
+        float[] _brake;
+        float[] _suspension;
+        float[] _spin;
 
         float _omega;
         float _bEff;
@@ -203,17 +261,19 @@ namespace FDMi.dynamics
 
         void Start()
         {
-            if (body != null)
-            {
-                Vector3 it = body.inertiaTensor;
-                float iMax = it.x;
-                if (it.y > iMax)
-                    iMax = it.y;
-                if (it.z > iMax)
-                    iMax = it.z;
-                if (iMax < body.mass * 0.25f)
-                    Debug.LogError("[FDMiWheelCollider] Rigidbody inertia tensor far too small for its mass (radius of gyration < 0.5 m): any off-center gear force explodes the body. Disable Implicit Tensor and set a realistic tensor of order m*L^2/12 per axis.");
-            }
+            Vector3 it = body.inertiaTensor;
+            float iMax = it.x;
+            if (it.y > iMax)
+                iMax = it.y;
+            if (it.z > iMax)
+                iMax = it.z;
+            if (iMax < body.mass * 0.25f)
+                Debug.LogError("[FDMiWheelCollider] Rigidbody inertia tensor far too small for its mass (radius of gyration < 0.5 m): any off-center gear force explodes the body. Disable Implicit Tensor and set a realistic tensor of order m*L^2/12 per axis.");
+
+            _steer = steerInput.data;
+            _brake = brakeInput.data;
+            _suspension = suspensionOutput.data;
+            _spin = spinOutput.data;
 
             if (IsBakedUsable())
                 LoadBaked();
@@ -267,7 +327,7 @@ namespace FDMi.dynamics
 
             _alphaP = Mathf.Max(alphaPeakDeg, 0.5f) * Mathf.Deg2Rad;
 
-            float mass = body != null ? body.mass : 200000f;
+            float mass = body.mass;
             if (mass < 1f)
                 mass = 1f;
             float wi = Mathf.Max(loadShare, 0.001f);
@@ -312,20 +372,12 @@ namespace FDMi.dynamics
 
         void FixedUpdate()
         {
-            if (body == null)
-                return;
             float dt = Time.fixedDeltaTime;
             if (dt <= 0f)
                 return;
 
-            float steerCmd = 0f;
-            float brakeCmd = 0f;
-            if (steerInput != null)
-                steerCmd = steerInput.Data;
-            if (brakeInput != null)
-                brakeCmd = brakeInput.Data;
-            _steerDeg = Mathf.Clamp(steerCmd, -Mathf.Abs(steerLimitDeg), Mathf.Abs(steerLimitDeg));
-            _brakeCmd = Mathf.Clamp01(brakeCmd);
+            _steerDeg = Mathf.Clamp(_steer[0], -Mathf.Abs(steerLimitDeg), Mathf.Abs(steerLimitDeg));
+            _brakeCmd = Mathf.Clamp01(_brake[0]);
 
             bool grounded = SampleContact();
             if (!grounded)
@@ -554,10 +606,8 @@ namespace FDMi.dynamics
                 norm = 0f;
             else if (norm > 1f)
                 norm = 1f;
-            if (suspensionOutput != null)
-                suspensionOutput.Set(norm);
-            if (spinOutput != null)
-                spinOutput.Set(_spinTotal);
+            _suspension[0] = norm;
+            _spin[0] = _spinTotal;
         }
     }
 }

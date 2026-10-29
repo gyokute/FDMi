@@ -1,26 +1,23 @@
+using FDMi.core.Editor.Inspector;
 using UnityEditor;
 using UnityEngine;
 
 namespace FDMi.dynamics.Editor
 {
-    // ホイールインスペクタに焼き付けボタンを足す。設計値・body.mass を変えたら必ず押し直す。
-    // 焼き付け結果はシーンに保存されるため、実行時の Start は読み出しと旧シーン救済だけ残る。
+    // ホイールインスペクタ。配線の解決・接地コライダーの設置・係数の焼き付けは
+    // FDMiWheelAutoSetupUseCase (core の IFDMiAutoSetupUseCase) が選択時にやる。
+    // ここのボタンは無い。設計値・body.mass を変えたら選び直すだけでよい。
     // ジオメトリのビジュアライズは OnSceneGUI で行い、選択中のみワイヤーフレーム表示する
     // (Unity 標準の WheelCollider と同じ流儀。シーン全体を汚さない)。
     [CustomEditor(typeof(FDMiWheelCollider))]
-    public class FDMiWheelColliderEditor : UnityEditor.Editor
+    public class FDMiWheelColliderEditor : FDMiBehaviourEditor
     {
         public override void OnInspectorGUI()
         {
-            DrawDefaultInspector();
+            // 既定の Inspector と、値を変えたときの自動解決 (基底クラスが担う)。
+            base.OnInspectorGUI();
 
             FDMiWheelCollider w = (FDMiWheelCollider)target;
-            if (GUILayout.Button("係数を焼き付ける"))
-            {
-                Undo.RecordObject(w, "FDMiWheelCollider Bake");
-                FDMiWheelBake.Bake(w);
-                EditorUtility.SetDirty(w);
-            }
 
             float mass = w.body != null ? w.body.mass : 200000f;
             float targetLoad = mass * 9.81f * Mathf.Max(w.loadShare, 0.001f);
