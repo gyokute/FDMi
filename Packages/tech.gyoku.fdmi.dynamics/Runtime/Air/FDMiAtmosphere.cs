@@ -15,12 +15,9 @@ namespace FDMi.dynamics
     public class FDMiAtmosphere : FDMiBehaviour
     {
         [Header("Wiring")]
-        public string PositionPath = "~/Physics/Position";
-        [FDMiDataPath(nameof(PositionPath))]
-        public FDMiVector3 Position; // 機体位置 (シーン原点基準) [m]
-        public string KmPositionPath = "~/Physics/KmPosition";
-        [FDMiDataPath(nameof(KmPositionPath))]
-        public FDMiVector3 KmPosition; // シーン原点の標高オフセット [km]
+        public string AltitudePath = "~/Physics/Altitude";
+        [FDMiDataPath(nameof(AltitudePath))]
+        public FDMiFloat Altitude; // 機体位置 (シーン原点基準) [m]
 
         [Header("Sea-level reference")]
         public string GroundPressurePath = "~/Physics/GroundPressure";
@@ -33,10 +30,6 @@ namespace FDMi.dynamics
         public FDMiFloat GroundTemperature; // 海面気温 [K]
 
         [Header("Outputs (SI)")]
-        public string AltitudePath = "~/Physics/Altitude";
-
-        [FDMiDataPath(nameof(AltitudePath))]
-        public FDMiFloat Altitude; // 標高 [m]
         public string SATPath = "~/Physics/SAT";
 
         [FDMiDataPath(nameof(SATPath))]
@@ -54,11 +47,9 @@ namespace FDMi.dynamics
         [FDMiDataPath(nameof(SonicSpeedPath))]
         public FDMiFloat SonicSpeed; // 音速 [m/s]
 
-        Vector3[] _pos;
-        Vector3[] _km;
+        float[] _alt;
         float[] _gndP;
         float[] _gndT;
-        float[] _alt;
         float[] _sat;
         float[] _p;
         float[] _rho;
@@ -66,8 +57,6 @@ namespace FDMi.dynamics
 
         void Start()
         {
-            _pos = Position.data;
-            _km = KmPosition.data;
             _gndP = GroundPressure.data;
             _gndT = GroundTemperature.data;
             _alt = Altitude.data;
@@ -79,11 +68,7 @@ namespace FDMi.dynamics
 
         void FixedUpdate()
         {
-            float h = _pos[0].y + _km[0].y * 1000f;
-            if (h < 0f)
-                h = 0f;
-            _alt[0] = h;
-
+            float h = _alt[0];
             float t;
             float p;
             if (h <= 11000f)
