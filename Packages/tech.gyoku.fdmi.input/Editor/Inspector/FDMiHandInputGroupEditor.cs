@@ -8,25 +8,9 @@ namespace FDMi.input.Editor
     [CustomEditor(typeof(FDMiHandInputGroup), true)]
     public class FDMiHandInputGroupEditor : UnityEditor.Editor
     {
-        BuildHandInputDisplaysUseCase displayUseCase;
-
         protected virtual void OnEnable()
         {
-            var group = (FDMiHandInputGroup)target;
-            AssignReferences(group);
-            if (displayUseCase == null)
-                displayUseCase = new BuildHandInputDisplaysUseCase();
-            displayUseCase.Execute(group);
-        }
-
-        public override void OnInspectorGUI()
-        {
-            EditorGUI.BeginChangeCheck();
-            DrawDefaultInspector();
-            if (EditorGUI.EndChangeCheck())
-                displayUseCase.Execute((FDMiHandInputGroup)target);
-            if (GUILayout.Button("Build Hand Input Display"))
-                FDMiHandInputDisplayBuilder.Build((FDMiHandInputGroup)target);
+            AssignReferences((FDMiHandInputGroup)target);
         }
 
         private void AssignReferences(FDMiHandInputGroup group)
