@@ -581,7 +581,7 @@ MonoBehaviour:
       Data: 34|UnityEngine.TooltipAttribute, UnityEngine.CoreModule
     - Name: tooltip
       Entry: 1
-      Data: "\u5BFE\u5730\u9AD8\u3055 [m]\u3002\u5730\u9762\u52B9\u679C\u306B\u4F7F\u3046"
+      Data: "\u5BFE\u5730\u9AD8\u3055 [m]\u3002\u5730\u9762\u52B9\u679C\u306B\u4F7F\u3046\u3002\u672A\u63A5\u7D9A\u306A\u3089\u5730\u9762\u52B9\u679C\u306A\u3057"
     - Name: 
       Entry: 8
       Data: 

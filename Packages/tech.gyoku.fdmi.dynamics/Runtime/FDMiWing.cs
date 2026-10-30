@@ -111,9 +111,9 @@ namespace FDMi.dynamics
         [Tooltip("対地高さの解決パス")]
         public string HeightPath = "~/Physics/RadarAltitude";
 
-        // 対地高さ。電波高度計模擬の代表値。単位は m。
+        // 対地高さ。電波高度計模擬の代表値。単位は m。未接続なら地面効果なし。
         [FDMiDataPath(nameof(HeightPath))]
-        [Tooltip("対地高さ [m]。地面効果に使う")]
+        [Tooltip("対地高さ [m]。地面効果に使う。未接続なら地面効果なし")]
         public FDMiFloat heightInput;
 
         [Tooltip("取付角の解決パス")]
@@ -123,6 +123,7 @@ namespace FDMi.dynamics
         // 区間ごとの装置 (FDMiControlSurface) の等価迎角とは別扱い。
         // 取付角は翼ごとの値なので、固定翼 (主翼・垂直尾翼) にトリム指令を配線してはならない。
         // 1本のデータを全翼に配ると、トリムを動かした時に主翼と垂直尾翼の迎角まで一緒に動く。
+        // 取付角指令を持たない翼は未接続にする (取付角 0)。設計取付角は焼き付いた chordNormal が持つ。
         // Why not 動翼の一種として装置で表す: 全遊動翼は翼そのものが回るので、揚力増分が 1/4 弦まわりに
         // 作るモーメント (_cmPerCl) を持たない。装置にすると二重計上を打ち消す例外が増える。
         [FDMiDataPath(nameof(IncidencePath))]
@@ -279,8 +280,14 @@ namespace FDMi.dynamics
             _wind = windInput.data;
             _rho = densityInput.data;
             _sonic = sonicSpeedInput.data;
-            _height = heightInput.data;
-            _incidence = incidenceInput.data;
+
+            // 対地高さと取付角は任意。配線しなければ地面効果なし・取付角 0 として扱う。
+            // Why not 値 0 のデータを必須にする: 地面効果を持たない垂直尾翼と取付角指令を持たない固定翼に、
+            // 書き込まれないデータノードを配線させるだけで、意味のある値を持たないノードが増える。
+            if (heightInput != null)
+                _height = heightInput.data;
+            if (incidenceInput != null)
+                _incidence = incidenceInput.data;
 
             // 翼面積。区間配列は翼面1枚の全域を覆う前提なので、単純に足せば平面形の面積になる。
             _wingArea = 0f;
@@ -335,8 +342,12 @@ namespace FDMi.dynamics
             float rho = _rho[0];
 
             // 地面効果。φ が誘導抗力の残存率、ge = 1 - φ が効果の強さ。区間ごとではなく翼ごとに1回。
-            float r = 16f * _height[0] / span;
-            float ge = 1f / (1f + r * r);
+            float ge = 0f;
+            if (_height != null)
+            {
+                float r = 16f * _height[0] / span;
+                ge = 1f / (1f + r * r);
+            }
             float inducedK = outInducedK * (1f - ge);
             float liftGain = outLiftGain + (1f - outLiftGain) * ge;
 
@@ -346,7 +357,10 @@ namespace FDMi.dynamics
                 outEpsilonDeg = outDownwashGain * sourceWing.outCL;
 
             // 翼全体の取付角。全遊動翼は翼そのものが回るので、区間の迎角に一律で足す。
-            float incidence = _incidence[0];
+            // 配線のない翼は 0。
+            float incidence = 0f;
+            if (_incidence != null)
+                incidence = _incidence[0];
 
             // 機体座標で見た対気速度と角速度。V1 と同じく「風 - 機体速度」を気流の正方向とする。
             Quaternion invRot = Quaternion.Inverse(body.rotation);
