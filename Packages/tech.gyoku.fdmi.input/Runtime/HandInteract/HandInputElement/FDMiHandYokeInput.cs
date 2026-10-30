@@ -6,14 +6,14 @@ using VRC.Udon;
 
 namespace FDMi.input
 {
-    public enum FDMiYokeControlType
+    public enum FDMiHandGestureType
     {
         Pull,
         Rotate,
         Twist,
     }
 
-    public class FDMiHandFlightControl : FDMiHandInputElement
+    public class FDMiHandYokeInput : FDMiHandInputElement
     {
         // NOTE: 基底の output / outputPath は使わない。3 出力のため下記を使う。
 
@@ -25,7 +25,7 @@ namespace FDMi.input
         public FDMiData pitch;
 
         [Tooltip("ピッチの操作方法")]
-        public FDMiYokeControlType pitchType = FDMiYokeControlType.Pull;
+        public FDMiHandGestureType pitchType = FDMiHandGestureType.Pull;
 
         [Tooltip("ピッチの操作軸。グループローカル")]
         public Vector3 pitchAxis = new Vector3(0f, 1f, 0f);
@@ -41,7 +41,7 @@ namespace FDMi.input
         public FDMiData roll;
 
         [Tooltip("ロールの操作方法")]
-        public FDMiYokeControlType rollType = FDMiYokeControlType.Rotate;
+        public FDMiHandGestureType rollType = FDMiHandGestureType.Rotate;
 
         [Tooltip("ロールの操作軸。グループローカル")]
         public Vector3 rollAxis = new Vector3(1f, 0f, 0f);
@@ -57,7 +57,7 @@ namespace FDMi.input
         public FDMiData yaw;
 
         [Tooltip("ヨーの操作方法")]
-        public FDMiYokeControlType yawType = FDMiYokeControlType.Twist;
+        public FDMiHandGestureType yawType = FDMiHandGestureType.Twist;
 
         [Tooltip("ヨーの操作軸。グループローカル")]
         public Vector3 yawAxis = new Vector3(0f, 1f, 0f);
@@ -89,7 +89,7 @@ namespace FDMi.input
         }
 
         private float YokeMove(
-            FDMiYokeControlType control,
+            FDMiHandGestureType gesture,
             float multiplier,
             Vector3 axis,
             Vector3 handPos,
@@ -97,17 +97,17 @@ namespace FDMi.input
         )
         {
             float rawInput = 0f;
-            if (control == FDMiYokeControlType.Pull)
+            if (gesture == FDMiHandGestureType.Pull)
             {
                 Vector3 pull = handPos - startHandPos;
                 rawInput = Vector3.Dot(pull, axis);
             }
-            else if (control == FDMiYokeControlType.Rotate)
+            else if (gesture == FDMiHandGestureType.Rotate)
             {
                 Quaternion delta = Quaternion.FromToRotation(startHandPos, handPos);
                 rawInput = SignedAngleAboutAxis(delta, axis);
             }
-            else if (control == FDMiYokeControlType.Twist)
+            else if (gesture == FDMiHandGestureType.Twist)
             {
                 Quaternion delta = Quaternion.Inverse(startHandRot) * handRot;
                 rawInput = SignedAngleAboutAxis(delta, axis);
@@ -122,8 +122,10 @@ namespace FDMi.input
             Vector3 n = axis.normalized;
             Vector3 v = new Vector3(delta.x, delta.y, delta.z);
             float angle = 2f * Mathf.Atan2(Vector3.Dot(v, n), delta.w) * Mathf.Rad2Deg;
-            if (angle > 180f) angle -= 360f;
-            else if (angle < -180f) angle += 360f;
+            if (angle > 180f)
+                angle -= 360f;
+            else if (angle < -180f)
+                angle += 360f;
             return angle;
         }
     }

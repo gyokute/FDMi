@@ -37,7 +37,11 @@ namespace FDMi.core
 
         public void OnChange()
         {
-            target.data[0].localEulerAngles = axis * outputCurve.Evaluate(Value.GetFloat());
+            target.data[0].localEulerAngles = FDMiTransformMath.EvaluateEuler(
+                axis,
+                outputCurve,
+                Value.GetFloat()
+            );
         }
     }
 }

@@ -36,10 +36,11 @@ namespace FDMi.core
 
         public void OnChange()
         {
-            target.data[0].localPosition = Vector3.LerpUnclamped(
+            target.data[0].localPosition = FDMiTransformMath.EvaluatePosition(
                 position[0],
                 position[1],
-                outputCurve.Evaluate(Value.GetFloat())
+                outputCurve,
+                Value.GetFloat()
             );
         }
     }

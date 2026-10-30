@@ -176,7 +176,7 @@ MonoBehaviour:
       Data: 12|UnityEngine.TooltipAttribute, UnityEngine.CoreModule
     - Name: tooltip
       Entry: 1
-      Data: "\u521D\u671F\u306E root"
+      Data: "\u521D\u671F\u5316\u5F8C\u3001\u6700\u521D\u306E root"
     - Name: 
       Entry: 8
       Data: 
@@ -239,7 +239,7 @@ MonoBehaviour:
       Data: 16|UnityEngine.TooltipAttribute, UnityEngine.CoreModule
     - Name: tooltip
       Entry: 1
-      Data: "\u81EA\u7531\u79FB\u52D5\u4E2D\u306E root"
+      Data: "\u6A5F\u4F53\u304B\u3089\u96E2\u308C\u79FB\u52D5\u4E2D\u306E root"
     - Name: 
       Entry: 8
       Data: 
@@ -296,7 +296,7 @@ MonoBehaviour:
       Data: 19|UnityEngine.TooltipAttribute, UnityEngine.CoreModule
     - Name: tooltip
       Entry: 1
-      Data: "root \u3092\u623B\u3059\u5148"
+      Data: "\u30C6\u30EC\u30DD\u30FC\u30C8\u7B49\u306E\u969B\u3001\u4E0D\u660E\u306AAnchor\u306B\u98DB\u3070\u3055\u308C\u305F\u969B\u306EFallback\u5148"
     - Name: 
       Entry: 8
       Data: 
