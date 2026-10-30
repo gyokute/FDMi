@@ -10,10 +10,14 @@ namespace FDMi.input
 {
     public class FDMiHandInputGroup : FDMiBehaviour
     {
+        [Tooltip("この入力を受ける手。Editor がシーンから収集する")]
         public FDMiHandTracker[] Trackers;
+
+        [Tooltip("この入力の操作要素。Editor が名前空間内から収集する")]
         public FDMiHandInputElement[] InputElements = new FDMiHandInputElement[0];
         private FDMiHandTracker grabHand;
 
+        // 手の姿勢 (このグループのローカル) と軸値。Update ごとにトラッカーから写す。
         [HideInInspector]
         public Vector3 handPos;
 

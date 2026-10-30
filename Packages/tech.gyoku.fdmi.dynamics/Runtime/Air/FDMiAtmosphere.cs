@@ -15,36 +15,55 @@ namespace FDMi.dynamics
     public class FDMiAtmosphere : FDMiBehaviour
     {
         [Header("Wiring")]
+        [Tooltip("高度の解決パス")]
         public string AltitudePath = "~/Physics/Altitude";
+
         [FDMiDataPath(nameof(AltitudePath))]
+        [Tooltip("機体位置 [m]。シーン原点基準")]
         public FDMiFloat Altitude; // 機体位置 (シーン原点基準) [m]
 
         [Header("Sea-level reference")]
+        [Tooltip("海面気圧の解決パス")]
         public string GroundPressurePath = "~/Physics/GroundPressure";
 
         [FDMiDataPath(nameof(GroundPressurePath))]
+        [Tooltip("海面気圧 [Pa]")]
         public FDMiFloat GroundPressure; // 海面気圧 [Pa]
+
+        [Tooltip("海面気温の解決パス")]
         public string GroundTemperaturePath = "~/Physics/GroundTemperature";
 
         [FDMiDataPath(nameof(GroundTemperaturePath))]
+        [Tooltip("海面気温 [K]")]
         public FDMiFloat GroundTemperature; // 海面気温 [K]
 
         [Header("Outputs (SI)")]
+        [Tooltip("静気温の出力パス")]
         public string SATPath = "~/Physics/SAT";
 
         [FDMiDataPath(nameof(SATPath))]
+        [Tooltip("静気温 [K]")]
         public FDMiFloat SAT; // 静気温 [K]
+
+        [Tooltip("静圧の出力パス")]
         public string StaticPressure = "~/Physics/StaticPressure";
 
         [FDMiDataPath(nameof(StaticPressure))]
+        [Tooltip("静圧 [Pa]")]
         public FDMiFloat Pressure; // 静圧 [Pa]
+
+        [Tooltip("空気密度の出力パス")]
         public string RhoPath = "~/Physics/Rho";
 
         [FDMiDataPath(nameof(RhoPath))]
+        [Tooltip("空気密度 [kg/m3]")]
         public FDMiFloat Rho; // 空気密度 [kg/m3]
+
+        [Tooltip("音速の出力パス")]
         public string SonicSpeedPath = "~/Physics/SonicSpeed";
 
         [FDMiDataPath(nameof(SonicSpeedPath))]
+        [Tooltip("音速 [m/s]")]
         public FDMiFloat SonicSpeed; // 音速 [m/s]
 
         float[] _alt;

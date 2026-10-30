@@ -24,61 +24,63 @@ namespace FDMi.sync
         // §4.4 の 4 フィールド。Editor 焼きが E-01 / E-02 の初期値を持つ。
         [UdonSynced, HideInInspector] public long[] _absMm = new long[3];
         [UdonSynced, HideInInspector] public short[] _rot = new short[4];
-        [UdonSynced] public Vector3 _vel;
-        [UdonSynced] public int _stampMs;
+        [UdonSynced, HideInInspector] public Vector3 _vel;
+        [UdonSynced, HideInInspector] public int _stampMs;
 
         // owner のキャッシュ。更新するのは _InitLocal と OnOwnershipTransferred の 2 箇所だけ (§9.2)。
         // Why-not: Networking.IsOwner を _Tick / _ApplyView から呼ばない。毎フレームの native 呼び出しと、
         // ノードごとに owner が変わる瞬間のばらつきを避ける (§14.2)。
-        public bool _isLocalOwner;
-        public float sendIntervalSec = 0.25f;
+        [HideInInspector] public bool _isLocalOwner;
+
         // sendIntervalSec の ms 換算と、そこから導く表示遅延 (§6.5)。どちらも _InitLocal が確定する。
         // Why-not: 送信間隔と ms 系を別々に設定しない。2 つの真実ができると片方だけ直されて
         // ゲート (§6.3 条件 4) と表示 (§6.5) が食い違う。プレイヤーは sendIntervalSec だけを 0.5f にする。
-        public int _sendIntervalMs = 250;
-        public int _renderDelayMs = 200;
+        [Tooltip("送信間隔 [s]。型によって起動時に上書きされる")]
+        public float sendIntervalSec = 0.25f;
+        [HideInInspector] public int _sendIntervalMs = 250;
+        [HideInInspector] public int _renderDelayMs = 200;
 
         // _accMm: 整数部が永続状態、_fracMm が mm 未満の端数 (§4.3)。
-        public long[] _accMm = new long[3];
-        public float[] _fracMm = new float[3];
-        public Vector3 _lastBodyPos;
-        public Vector3 _localVelFef;
+        [HideInInspector] public long[] _accMm = new long[3];
+        [HideInInspector] public float[] _fracMm = new float[3];
+        [HideInInspector] public Vector3 _lastBodyPos;
+        [HideInInspector] public Vector3 _localVelFef;
 
-        public long[] _lastSentAbs = new long[3];
-        public short[] _lastSentRot = new short[4];
-        public bool _hasSent;
+        [HideInInspector] public long[] _lastSentAbs = new long[3];
+        [HideInInspector] public short[] _lastSentRot = new short[4];
+        [HideInInspector] public bool _hasSent;
         // 送信時に立て、OnPostSerialization で必ず下ろす。真の間に再要求しない (§6.3)。
-        public bool _sendPending;
-        public float _nextSendTime;
-        public float _lastSendTime;
-        public short[] _tmpRot = new short[4];
+        [HideInInspector] public bool _sendPending;
+        [HideInInspector] public float _nextSendTime;
+        [HideInInspector] public float _lastSendTime;
+        [HideInInspector] public short[] _tmpRot = new short[4];
         // 受信スロットの絶対位置の受け皿。Why-not: 平坦化した _recvAbs のスロット 1 は添字 3 から始まり、
         // MaxAbsDeltaMm (添字 0..2) に直接渡せない。スロット 0 のときは _recvAbs をそのまま使う。
-        public long[] _tmpAbs = new long[3];
+        [HideInInspector] public long[] _tmpAbs = new long[3];
 
-        public bool _hasPrev;
-        public bool _hasLatest;
-        public bool _snap;
-        public bool _received;
-        public long[] _prevAbs = new long[3];
-        public long[] _latestAbs = new long[3];
-        public Quaternion _prevRot = Quaternion.identity;
-        public Quaternion _latestRot = Quaternion.identity;
-        public int _prevStamp;
-        public int _latestStamp;
-        public Vector3 _latestVel;
+        [HideInInspector] public bool _hasPrev;
+        [HideInInspector] public bool _hasLatest;
+        [HideInInspector] public bool _snap;
+        [HideInInspector] public bool _received;
+        [HideInInspector] public long[] _prevAbs = new long[3];
+        [HideInInspector] public long[] _latestAbs = new long[3];
+        [HideInInspector] public Quaternion _prevRot = Quaternion.identity;
+        [HideInInspector] public Quaternion _latestRot = Quaternion.identity;
+        [HideInInspector] public int _prevStamp;
+        [HideInInspector] public int _latestStamp;
+        [HideInInspector] public Vector3 _latestVel;
         // 受信 2 スロットの平坦化バッファ。_recvAbs[k][i] は _recvAbs[k * 3 + i] (§6.5)。
-        public long[] _recvAbs = new long[6];
-        public short[] _recvRot = new short[8];
-        public Vector3[] _recvVel = new Vector3[2];
-        public int[] _recvStamp = new int[2];
-        public int _recvCount;
-        public long[] _blendFromAbs = new long[3];
-        public Quaternion _blendFromRot = Quaternion.identity;
-        public int _blendT;
-        public bool _blending;
-        public long[] _targetAbs = new long[3];
-        public Quaternion _targetRot = Quaternion.identity;
+        [HideInInspector] public long[] _recvAbs = new long[6];
+        [HideInInspector] public short[] _recvRot = new short[8];
+        [HideInInspector] public Vector3[] _recvVel = new Vector3[2];
+        [HideInInspector] public int[] _recvStamp = new int[2];
+        [HideInInspector] public int _recvCount;
+        [HideInInspector] public long[] _blendFromAbs = new long[3];
+        [HideInInspector] public Quaternion _blendFromRot = Quaternion.identity;
+        [HideInInspector] public int _blendT;
+        [HideInInspector] public bool _blending;
+        [HideInInspector] public long[] _targetAbs = new long[3];
+        [HideInInspector] public Quaternion _targetRot = Quaternion.identity;
 
         // §9.2。Editor 焼きの絶対姿勢を積分の起点にする。_Init が Start より先でも成立する (§5.4)。
         public override void _InitLocal()

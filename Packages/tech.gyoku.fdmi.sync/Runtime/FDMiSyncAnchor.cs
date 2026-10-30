@@ -13,16 +13,23 @@ namespace FDMi.sync
     // Why-not: 緯度経度高度 yaw を基底に置かない。Runtime が読まず、Editor 焼きの入力は静的アンカーだけが使う (§9.2.2)。
     public abstract class FDMiSyncAnchor : UdonSharpBehaviour
     {
+        [Tooltip("管理する FDMiSyncManager。Editor が焼く")]
         public FDMiSyncManager manager;
+
+        [Tooltip("積分対象の Rigidbody。無ければ view を動かす")]
         public Rigidbody body;
+
+        [Tooltip("書き込む view。空なら自身の Transform")]
         public Transform view;
 
         // 現在このアンカーが view origin（root）か。外部の物理制御が root 判定に使う。
+        [Tooltip("このアンカーが root か。外部の物理制御が読む")]
         public FDMiBool IsRoot;
 
         // 親アンカー。null は親のいないアンカー。位置は親との差分で管理する (§9.2)。
         // Why-not: 親の Transform を直接の基準にしない。親の Transform は view 書きの順序で 1 フレーム古くになりうる。
         // 差分の基準は絶対姿勢で持つので、書かれる順番に依存しない (§3.5)。
+        [Tooltip("親アンカー。位置は親との差分で持つ")]
         public FDMiSyncAnchor parent;
 
         // §9.8。このアンカーが root のときの respawn 先。root-local の姿勢で持つ。
@@ -30,24 +37,29 @@ namespace FDMi.sync
         // Why-not: respawnPoint を毎回読まない。rebase 後の view 座標は root の運動に依存し、
         // 焼いておけば root が動いても同じ局所姿勢になる (§9.8 / ADR-0002)。
         [Header("Respawn (E-09)")]
+        [Tooltip("root のときの respawn 先。Editor が焼く")]
         public Transform respawnPoint;
+
+        // 以下は焼き値と実行時状態。手で設定しない。
         [HideInInspector] public long[] _bakedRespawnRelMm = new long[3];
+
         [HideInInspector] public Quaternion _bakedRespawnRelRot = Quaternion.identity;
 
         // 現在の絶対姿勢。動的は積分・受信サンプル、静的は焼き値が確定させる。
         // view への写像はこの 2 つだけを見る (§9.2)。
-        public long[] _localAbs = new long[3];
-        public Quaternion _localRot = Quaternion.identity;
+        [HideInInspector] public long[] _localAbs = new long[3];
+
+        [HideInInspector] public Quaternion _localRot = Quaternion.identity;
 
         // 最後に投影した原点バージョン。manager._viewVersion と違えば再投影する (§9.1)。
-        public int _viewVersion = -1;
+        [HideInInspector] public int _viewVersion = -1;
 
         // 毎フレーム view を書くか。_InitLocal で型ごとに確定する (§12.3)。
         // Why-not: 毎フレーム _WritesViewEveryFrame() を呼ばない。型ごとの問い合わせは 1 回だけにする (§12.3)。
-        public bool _writesView;
+        [HideInInspector] public bool _writesView;
 
         // 親アンカーの絶対位置の受け皿。
-        public long[] _tmpParentAbs = new long[3];
+        [HideInInspector] public long[] _tmpParentAbs = new long[3];
 
         public void _CacheRefs()
         {

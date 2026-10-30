@@ -10,9 +10,13 @@ namespace FDMi.sync
     [DefaultExecutionOrder(1100)]
     public class FDMiPlaneGravity : FDMiBehaviour
     {
+        [Tooltip("重力を加える機体の Rigidbody")]
         public Rigidbody body;
+
+        [Tooltip("絶対位置を読むアンカー")]
         public FDMiSyncAnchor anchor;
 
+        [Tooltip("重力加速度 [m/s2]")]
         public float gravity = 9.78f;
 
         void FixedUpdate()

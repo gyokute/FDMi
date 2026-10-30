@@ -8,9 +8,11 @@ namespace FDMi.core
     /// </summary>
     public class FDMiAnimationChangeByValue : FDMiAnimationDriver
     {
+        [Tooltip("入力データの解決パス。名前空間の区切りは /")]
         public string valuePath;
 
         [FDMiDataPath(nameof(valuePath)), FDMiRegisterCallback(nameof(OnChange))]
+        [Tooltip("値変化で Animator を更新する入力。valuePath から解決する")]
         public FDMiData parameterValue;
 
         public void Initialize()

@@ -35,40 +35,58 @@ namespace FDMi.dynamics
     {
         [Header("配線")]
         // 舵角。度。正は後縁下げ(動翼・フラップ)・前縁突出(スラット)・開度(スポイラ)。
+        [Tooltip("舵角 [deg]。正で後縁下げ・スラット突出・スポイラ開")]
         public FDMiFloat input;
 
         [Header("装置")]
         // 装置の種類。効かせ方が変わる。
+        [Tooltip("装置の種類。効かせ方が変わる")]
         public FDMiWingDeviceType type = FDMiWingDeviceType.Control;
+
         // 装置のコード比。動翼は舵の効き、フラップ・スラット・スポイラは抗力の基準。0 がなし、1 が全弦。
+        [Tooltip("装置のコード比。0 でなし、1 で全弦")]
         [Range(0f, 1f)]
         public float chordRatio = 0.25f;
+
         // 最大舵角。度。効果の正規化の基準。
+        [Tooltip("最大舵角 [deg]。効果の正規化の基準")]
         [Min(1f)]
         public float maxDeflectionDeg = 50f;
+
         // 最大舵角での区間 (2次元) の揚力係数増分。DATCOM のセクションのチャート値。フラップとスラットが使う。
         // 機体の CLmax 増分は、これ × 装置が覆う面積比 × FDMiWing の outLiftGain になる。
         // 機体で ΔCLmax を +1.0 欲しければ、面積比 0.6・outLiftGain 0.8 として 2 前後を入れる。
+        [Tooltip("最大舵角での揚力係数増分。フラップとスラットが使う")]
         public float deltaClMax = 1f;
+
         // フラップとスラットの揚力の舵角依存の指数。δ/δmax をこの乗にしてから deltaClMax に掛ける。
         // 1 が線形。1 未満にすると小さい舵角で揚力が出る (実機の二重スロット・ファウラーに近い)。
         // 抗力 (δ_rad²) とスラットの迎角シフト・失速角延長も、この正規化した値で効く。
+        [Tooltip("揚力の舵角依存の指数。1 で線形")]
         [Min(0.1f)]
         public float liftExponent = 1f;
 
         [Header("区間")]
         // 区間ごとの配分比。FDMiWing の区間数と同じ長さにする。装置が覆う区間だけ 1 にする。
+        [Tooltip("区間ごとの配分比。翼の区間数と同じ長さ")]
         public float[] sectionMul;
 
         [Header("区間ごとの出力")]
         // FDMiWing が読む。sectionMul と同じ長さにする。
         // 区間の等価迎え角シフト。度。
+        [Tooltip("区間の等価迎角シフト [deg]。翼が読む")]
         public float[] alpha;
+
         // 区間の加算揚力係数。
+        [Tooltip("区間の加算揚力係数。翼が読む")]
         public float[] cl;
+
         // 区間の加算抗力係数。
+        [Tooltip("区間の加算抗力係数。翼が読む")]
         public float[] cd;
+
         // 区間の揚力倍率。スポイラだけ 1 未満になる。
+        [Tooltip("区間の揚力倍率。スポイラだけ 1 未満")]
         public float[] scale;
 
         // 2次元翼型の揚力傾斜。スラットの失速角延長を揚力係数の増分に換算する。

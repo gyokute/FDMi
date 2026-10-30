@@ -37,49 +37,78 @@ namespace FDMi.dynamics
     public class FDMiBodyAero : FDMiBehaviour
     {
         [Header("配線")]
-        // 力を加える機体の Rigidbody。Editor が機体 (名前空間ルート) から解決する。
+        [Tooltip("力を加える機体の Rigidbody。Editor が解決する")]
         public Rigidbody body;
+
+        [Tooltip("風速の解決パス")]
         public string WindPath = "~/Physics/Wind";
 
         // 風速ベクトル。世界座標。単位は m/s。
         [FDMiDataPath(nameof(WindPath))]
+        [Tooltip("風速ベクトル [m/s]。世界座標")]
         public FDMiVector3 windInput;
+
+        [Tooltip("空気密度の解決パス")]
         public string DensityPath = "~/Physics/Rho";
 
         // 空気密度。単位は kg/m^3。
         [FDMiDataPath(nameof(DensityPath))]
+        [Tooltip("空気密度 [kg/m3]")]
         public FDMiFloat densityInput;
 
         [Header("形状 (カプセル)")]
         // 胴体軸の向き。機首方向。body ローカルの単位ベクトル。
+        [Tooltip("胴体軸の向き。機首方向の単位ベクトル")]
         public Vector3 axis = Vector3.forward;
+
         // 全長。単位は m。
+        [Tooltip("胴体の全長 [m]")]
         public float length = 38f;
+
         // 最大直径。基準面積 Smax = π d^2/4 と平面形面積 Ap = d l に効く。単位は m。
+        [Tooltip("最大直径 [m]。基準面積に効く")]
         public float diameter = 4f;
+
         // 合力の作用点 (CP)。body ローカル。単位は m。Editor の焼き付けは transform の位置を入れる。
+        [Tooltip("合力の作用点 [m]。body ローカル")]
         public Vector3 centerOfPressure = Vector3.zero;
 
         [Header("係数")]
         // クロスフロー抗力係数 Cdc。円断面の亜音速の目安は 1.2。調整開始値。
+        [Tooltip("クロスフロー抗力係数。円断面の目安は 1.2")]
         public float crossflowCd = 1.2f;
+
         // 圧力抗力係数。NAL-SP-00012 の cdp。調整開始値。
+        [Tooltip("圧力抗力係数。調整開始値 0.075")]
         public float cdp = 0.075f;
+
         // 摩擦抗力の細長比項。NAL-SP-00012 の λ。調整開始値。
+        [Tooltip("摩擦抗力の細長比項。調整開始値 0.016")]
         public float lambda = 0.016f;
 
         [Header("計測値")]
         // 胴体軸に対する迎角。度。
+        [Tooltip("胴体軸に対する迎角 [deg]")]
         public float alphaDeg;
+
         // 垂直力係数。Smax 基準。
+        [Tooltip("垂直力係数。Smax 基準")]
         public float CN;
+
         // 揚力係数。風軸。Smax 基準。
+        [Tooltip("揚力係数。風軸・Smax 基準")]
         public float CL;
+
         // 抗力係数。風軸。Smax 基準。
+        [Tooltip("抗力係数。風軸・Smax 基準")]
         public float CD;
+
         // 直前のステップで加えた合力。機体座標。単位は N。
+        [Tooltip("直前のステップの合力 [N]。機体座標")]
         public Vector3 totalForce;
+
         // 直前のステップで加えた合モーメント。機体座標。単位は N m。
+        [Tooltip("直前のステップの合モーメント [Nm]。機体座標")]
         public Vector3 totalMoment;
 
         // 基準面積、粘性クロスフロー項の係数、等価抗力面積。形状から一度だけ求める。

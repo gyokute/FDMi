@@ -7,22 +7,33 @@ namespace FDMi.core
 {
     public class FDMiSeat : FDMiBehaviour
     {
+        [Tooltip("使用する VRCStation。同一 GameObject に置く")]
         public VRCStation station;
+
+        [Tooltip("パイロット優先度。負ならパイロットにならない")]
         public int pilotPriority = -1;
 
+        // 着席中のプレイヤー。全クライアントで座席の占有状態を表す。
+        [HideInInspector]
         public VRCPlayerApi seatedPlayer;
+
+        [Tooltip("着席・退出時にイベントを送る相手。Editor が自動収集する")]
         public UdonSharpBehaviour[] InSeatBehaviours;
 
         [FDMiDataPathConst("~/IsPilot")]
+        [Tooltip("この座席のプレイヤーがパイロットか")]
         public FDMiBool IsPilot;
 
         [FDMiDataPathConst("~/HasPilot")]
+        [Tooltip("パイロットが存在するか")]
         public FDMiBool HasPilot;
 
         [FDMiDataPathConst("~/PilotID")]
+        [Tooltip("パイロットのプレイヤー ID。不在は -1")]
         public FDMiInt PilotID;
 
         [FDMiDataPathConst("~/CurrentPilotPriority")]
+        [Tooltip("現パイロットの優先度")]
         public FDMiInt CurrentPilotPriority;
 
         public override void Interact()

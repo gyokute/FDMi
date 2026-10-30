@@ -20,41 +20,70 @@ namespace FDMi.sync
         public const long REBASE_QUANTUM_MM = 1000000L;
 
         [Header("Editor 焼き (E-05)")]
+        [Tooltip("原点になりうるアンカー。Editor が焼く")]
         public FDMiSyncAnchor[] anchors;
+
+        [Tooltip("初期化後、最初の root")]
         public FDMiSyncAnchor initialAnchor;
+
+        [Tooltip("機体から離れ移動中の root")]
         public FDMiManagerAnchor managerAnchor;
+
+        [Tooltip("テレポート等の際、不明なAnchorに飛ばされた際のFallback先")]
         public FDMiSyncAnchor defaultAnchor;
 
+        // 以下は実行時状態。手で設定しない。
+        [HideInInspector]
         public FDMiSyncAnchor _root;
 
         // ローカルプレイヤーのアンカー。suspend の判定に使う (§8.3)。
+        [HideInInspector]
         public FDMiSyncPlayer _localPlayerAnchor;
 
         // Networking.LocalPlayer のキャッシュ。Start で 1 回だけ読む (§5.4 手順 1b)。
+        [HideInInspector]
         public VRCPlayerApi localPlayer;
 
         // 原点。同期しない。クライアントごとに独立 (§7.1)。
         // root 切替で決まる。rebase (§7.4) では整数 km だけ平行移動する。
+        [HideInInspector]
         public long[] originMm = new long[3];
+
+        [HideInInspector]
         public Quaternion originRot = Quaternion.identity;
 
+        [HideInInspector]
         public int _frameStampMs;
+
+        [HideInInspector]
         public int _physicsStampMs;
+
+        [HideInInspector]
         public int _fixedDeltaMs = 20;
+
+        [HideInInspector]
         public int _nowMs;
 
         // rebase の閾値 (§7.3)。原点はこの距離を超えると整数 km だけ動く。
+        [Tooltip("rebase の閾値 [m]。原点がこの距離を超えると動く")]
         public float rebaseDistanceM = REBASE_DISTANCE_M;
 
         // 原点の変更回数。アンカーは自分の _viewVersion と比べる (§9.1)。
         // Why-not: Manager が全アンカーを並べて view を書き直す方式にしない。
         // プレイヤーアンカーは実行時に生成されるので、全点を Manager から辿れない (§9.4)。
+        [HideInInspector]
         public int _viewVersion;
 
+        [HideInInspector]
         public int _suspendUntilFrame = -1;
 
+        [HideInInspector]
         public long[] _tmpOrigin = new long[3];
+
+        [HideInInspector]
         public long[] _playerAbsMm = new long[3];
+
+        [HideInInspector]
         public long[] _shiftMm = new long[3];
 
         public void Start()

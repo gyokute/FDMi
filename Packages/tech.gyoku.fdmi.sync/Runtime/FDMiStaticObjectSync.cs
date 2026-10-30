@@ -12,10 +12,17 @@ namespace FDMi.sync
     public class FDMiStaticObjectSync : FDMiSyncAnchor
     {
         [Header("Editor 焼きの入力。Runtime は読まない (E-01 / E-02 / E-07)")]
+        [Tooltip("緯度 [deg]。Editor が焼く")]
         public float latitude;
+
+        [Tooltip("経度 [deg]。Editor が焼く")]
         public float longitude;
+
+        [Tooltip("楕円体高 [m]。Editor が焼く")]
         public float height;
+
         // 接平面内のモデルの向き [deg]。q_abs = q_basis(lat, lon) ⊗ R_y(yaw) (§3.4)。
+        [Tooltip("接平面内の向き [deg]。Editor が焼く")]
         public float yaw;
 
         // E-01 / E-02。焼いた絶対姿勢。Runtime は読むだけで書かない。

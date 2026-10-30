@@ -7,23 +7,23 @@ namespace FDMi.core
 {
     public class FDMiSeatAdjuster : FDMiBehaviour
     {
+        [Tooltip("座席オフセットの解決パス。名前空間の区切りは /")]
         public string seatOffsetPath = "SeatOffset";
 
         [FDMiDataPath(nameof(seatOffsetPath)), FDMiRegisterCallback(nameof(OffsetSeat))]
+        [Tooltip("座席の移動量 [m]")]
         public FDMiVector3 SeatOffset;
 
+        [Tooltip("1 操作あたりの移動量 [m]")]
         public float seatAdjustStep = 0.1f;
+
+        [Tooltip("基準のローカル位置。Editor が実位置から焼き付ける")]
         public Vector3 initialSeatPos;
 
         public void OffsetSeat()
         {
             transform.localPosition = initialSeatPos + SeatOffset.data[0];
         }
-
-        // public void FDMiOnSeatEnter()
-        // {
-        //     initialSeatPos = transform.localPosition;
-        // }
 
         public void FDMiOnSeatExit()
         {

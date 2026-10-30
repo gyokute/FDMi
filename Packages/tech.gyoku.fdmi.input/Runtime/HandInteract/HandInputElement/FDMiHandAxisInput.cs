@@ -16,16 +16,32 @@ namespace FDMi.input
 
     public class FDMiHandAxisInput : FDMiHandInputElement
     {
+        [Tooltip("出力データの解決パス。名前空間の区切りは /")]
         public string outputPath = "Value";
 
         [FDMiDataPath(nameof(outputPath))]
+        [Tooltip("操作量を書き込む出力。outputPath から解決する")]
         public FDMiData output;
+
+        [Tooltip("読む入力軸")]
         public FDMiHandAxisType inputAxisType = FDMiHandAxisType.Trigger;
+
+        [Tooltip("軸値を出力へ変換する規則")]
         public FDMiAxisBehaviourType behaviourType;
+
+        [Tooltip("軸値の倍率")]
         public float multiply = 1f;
+
+        [Tooltip("出力の下限")]
         public float min;
+
+        [Tooltip("出力の上限")]
         public float max = 1f;
+
+        [Tooltip("グラブ終了時に戻す値")]
         public float initial;
+
+        [Tooltip("Force と Alternate の判定しきい値")]
         public float threshold = 0.5f;
         private bool alternateLatch;
 

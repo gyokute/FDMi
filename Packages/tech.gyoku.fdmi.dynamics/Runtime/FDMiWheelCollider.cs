@@ -179,36 +179,46 @@ namespace FDMi.dynamics
         [Tooltip("ABS の有効化。")]
         public bool useABS = true;
 
-        [Header("Baked (Editor 焼き付けが代入・実行時は読出し専用)")]
-        // 焼き付け時の body.mass。実行時の質量と違えば再焼き付けが必要。
-        public float bakedBodyMass;
-        public float bakedK0;
-        public float bakedKneeX;
-        public float bakedKEnd;
-        public float bakedCCompress;
-        public float bakedCRebound;
-        public float bakedFzCap;
-        public float bakedAlphaP;
-        public float bakedInvR = 2f;
-        public float bakedInvKappaPeak = 8.333333f;
-        public float bakedInvSlideSpan = 1.1363636f;
-        public float bakedInvAlphaP = 5.729578f;
-        public float bakedInvMaxStroke = 2f;
-        public float bakedMuSpan = -0.3f;
-        public float bakedMuCap = 0.9f;
-        public float bakedKc = 0.5f;
+        // Editor の焼き付け結果 (FDMiWheelBake)。実行時は読むだけで書かない。永続化が必要なので public のまま隠す。
+        [HideInInspector] public float bakedBodyMass;
+        [HideInInspector] public float bakedK0;
+        [HideInInspector] public float bakedKneeX;
+        [HideInInspector] public float bakedKEnd;
+        [HideInInspector] public float bakedCCompress;
+        [HideInInspector] public float bakedCRebound;
+        [HideInInspector] public float bakedFzCap;
+        [HideInInspector] public float bakedAlphaP;
+        [HideInInspector] public float bakedInvR = 2f;
+        [HideInInspector] public float bakedInvKappaPeak = 8.333333f;
+        [HideInInspector] public float bakedInvSlideSpan = 1.1363636f;
+        [HideInInspector] public float bakedInvAlphaP = 5.729578f;
+        [HideInInspector] public float bakedInvMaxStroke = 2f;
+        [HideInInspector] public float bakedMuSpan = -0.3f;
+        [HideInInspector] public float bakedMuCap = 0.9f;
+        [HideInInspector] public float bakedKc = 0.5f;
 
         [Header("Telemetry (read-only)")]
+        [Tooltip("タイヤの回転角速度 [rad/s]")]
         public float outOmega;
+        [Tooltip("ABS 後の制動率 [0,1]")]
         public float outBrakeEff;
+        [Tooltip("サス縮み [m]")]
         public float outStroke;
+        [Tooltip("接地垂直力 [N]")]
         public float outFz;
+        [Tooltip("縦力 [N]")]
         public float outFx;
+        [Tooltip("横力 [N]")]
         public float outFy;
+        [Tooltip("縦スリップ比")]
         public float outSlip;
+        [Tooltip("横スリップ角 [deg]")]
         public float outAlphaDeg;
+        [Tooltip("接地中か")]
         public bool outGrounded;
+        [Tooltip("ABS が減圧中か")]
         public bool outAbsRelease;
+        [Tooltip("機体の鉛直速度 [m/s]")]
         public float outVelocityY;
 
         // 入出力の配列参照。Start で1回だけ受け、以降は先頭要素を読み書きする。

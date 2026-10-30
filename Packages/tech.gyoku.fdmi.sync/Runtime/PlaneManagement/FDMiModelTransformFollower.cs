@@ -8,12 +8,17 @@ namespace FDMi.sync
 {
     public class FDMiModelTransformFollower : FDMiBehaviour
     {
+        [Tooltip("root 判定の解決パス")]
         public string IsRootPath = "~/IsRoot";
 
         [FDMiDataPath(nameof(IsRootPath)), FDMiRegisterCallback(nameof(OnChange))]
+        [Tooltip("この機体が root か")]
         public FDMiBool IsRoot;
 
+        [Tooltip("root のときの親")]
         public Transform parentWhenTrue;
+
+        [Tooltip("root でないときの親")]
         public Transform parentWhenFalse;
 
         public void OnChange()

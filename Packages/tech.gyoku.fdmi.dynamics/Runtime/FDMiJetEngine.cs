@@ -6,162 +6,214 @@ namespace FDMi.dynamics
 {
     public class FDMiJetEngine : FDMiBehaviour
     {
+        [Tooltip("推力を加える機体の Rigidbody")]
         public Rigidbody body;
 
         [Header("Input Variables")]
         // throttle 0~1
+        [Tooltip("スロットル値の解決パス")]
         public string throttlePath = "Throttle";
 
         [FDMiDataPath(nameof(throttlePath))]
+        [Tooltip("スロットル [0,1]。1 超は定格超過")]
         public FDMiFloat Throttle;
 
         // starter switch (AirSW equivalent, 0/1, optional). Adds rotation to N2.
+        [Tooltip("スターター値の解決パス")]
         public string starterPath = "Starter";
 
         [FDMiDataPath(nameof(starterPath))]
+        [Tooltip("スタータースイッチ。N2 を回す")]
         public FDMiBool Starter;
 
         // fuel switch (AirSW equivalent, 0/1, optional). Adds rotation to N2.
+        [Tooltip("燃料スイッチの解決パス")]
         public string fuelSWPath = "FuelSW";
 
         [FDMiDataPath(nameof(fuelSWPath))]
+        [Tooltip("燃料スイッチ。点火と燃料供給")]
         public FDMiBool FuelSW;
 
         // thrust reverser lever (0 = stowed, 1 = full reverse)
+        [Tooltip("リバーサーの解決パス")]
         public string reverserPath = "Reverser";
 
         [FDMiDataPath(nameof(reverserPath))]
+        [Tooltip("リバーサーレバー [0,1]。0 格納、1 全開")]
         public FDMiFloat Reverser;
 
         // Aerodynamic state
         // Mach number, optional (null = V/sqrt(gamma R T))
+        [Tooltip("真対気速度の解決パス")]
         public string TASPath = "~/Physics/References/TAS";
 
         [FDMiDataPath(nameof(TASPath))]
+        [Tooltip("真対気速度 [m/s]")]
         public FDMiFloat TAS;
 
         // Mach number, optional (null = V/sqrt(gamma R T))
+        [Tooltip("マッハ数の解決パス")]
         public string MachPath = "~/Physics/References/Mach";
 
         [FDMiDataPath(nameof(MachPath))]
+        [Tooltip("マッハ数")]
         public FDMiFloat Mach;
 
         // Static air temperature
+        [Tooltip("静気温の解決パス")]
         public string SATPath = "~/Physics/References/SAT";
 
         [FDMiDataPath(nameof(SATPath))]
+        [Tooltip("静気温 [K]")]
         public FDMiFloat SAT;
 
         // Outside air temperature
+        [Tooltip("全温の解決パス")]
         public string OATPath = "~/Physics/References/OAT";
 
         [FDMiDataPath(nameof(OATPath))]
+        [Tooltip("全温 [K]")]
         public FDMiFloat OAT;
 
         // Static air pressure
+        [Tooltip("静圧の解決パス")]
         public string StaticPressurePath = "~/Physics/References/StaticPressure";
 
         [FDMiDataPath(nameof(StaticPressurePath))]
+        [Tooltip("静圧 [Pa]")]
         public FDMiFloat StaticPressure;
 
         // Outside air pressure
+        [Tooltip("全圧の解決パス")]
         public string DynamicPressurePath = "~/Physics/References/DynamicPressure";
 
         [FDMiDataPath(nameof(DynamicPressurePath))]
+        [Tooltip("全圧 [Pa]")]
         public FDMiFloat DynamicPressure;
 
         // --- outputs ---
         // fuel flow [kg/s]
+        [Tooltip("燃料流量の出力パス")]
         public string fuelPath = "FuelFlow";
 
         [FDMiDataPath(nameof(fuelPath))]
+        [Tooltip("燃料流量 [kg/s]")]
         public FDMiFloat fuelFlow;
 
         // ITT[K]: HPT exit (tt5). Thermocouple-measured -> 2-node sensor lag in FixedUpdate.
+        [Tooltip("ITT の出力パス")]
         public string ittPath = "ITT";
 
         [FDMiDataPath(nameof(ittPath))]
+        [Tooltip("ITT（HPT 出口温度）[K]")]
         public FDMiFloat ITT;
 
         // EGT[K]: LPT exit (tt15). Thermocouple-measured (CF6=T49, JT9D=Tt7) -> 2-node sensor lag in FixedUpdate.
+        [Tooltip("EGT の出力パス")]
         public string egtPath = "EGT";
 
         [FDMiDataPath(nameof(egtPath))]
+        [Tooltip("EGT（LPT 出口温度）[K]")]
         public FDMiFloat EGT;
 
         // fan spool
+        [Tooltip("N1 の出力パス")]
         public string n1Path = "N1";
 
         [FDMiDataPath(nameof(n1Path))]
+        [Tooltip("ファンスプール回転 [定格比]")]
         public FDMiFloat n1;
 
         // core spool
+        [Tooltip("N2 の出力パス")]
         public string n2Path = "N2";
 
         [FDMiDataPath(nameof(n2Path))]
+        [Tooltip("コアスプール回転 [定格比]")]
         public FDMiFloat n2;
 
         #region "Design parameters"
         [Header("Spool transient (first-order lag)")]
+        [Tooltip("HP スプールの時定数 [s]")]
         public float tauN2 = 0.4f; // HP spool lag [s]: N2^3 target-reservoir lag (rate only, steady-state free)
+        [Tooltip("ファンスプールの時定数 [s]")]
         public float tauN1 = 0.75f; // fan spool lag [s]: N1^2 target-reservoir lag (rate only, steady-state free)
+        [Tooltip("スロットル 0 のバルブ開度")]
         public float fuelIdle = 0.10f; // valve opening at thr=0; idle N2 emerges as (fuelIdle·ign)^(1/3) (load ∝ N³). 燃料比 = 回転³ の恒等式。
+        [Tooltip("スターターの出力。N2 の目標回転")]
         public float starterAccel = 0.3f; // starter output rating (motoring N2 target; spool-up shaped by tauStarter)
+        [Tooltip("スターターの立ち上がり時定数 [s]")]
         public float tauStarter = 1.8f; // starter spool-up lag [s]: air-starter/duct fill (rate only, steady-state free)
+        [Tooltip("ラム圧のスプール駆動効率")]
         public float etaWind = 0.07f; // fraction of ram enthalpy driving the spools (M0.8 cruise -> N1~0.21)
+        [Tooltip("ラム空気の時定数 [s]")]
         public float tauRam = 5.0f; // ram-air reservoir lag [s]: bus jitter absorbed before the cbrt map (rate only)
+        [Tooltip("回転停止の解除しきい値 [定格比]")]
         public float spoolStopN = 0.025f; // rotation-stop release [rating ratio]: latched 0 releases only above this
+        [Tooltip("ITT/EGT のセンサー時定数 [s]")]
         public float tauProbe = 2.5f; // ITT/EGT sensor+metal lumped heat capacity [s] (shared)
+        [Tooltip("点火完了度の S カーブ尺度")]
         public float lightOffN2 = 0.08f; // ignition S-curve scale [0,1]; idle で ign≈1 になる尺度(点火窓は N2 5–15%)
+        [Tooltip("過回転クランプ倍率")]
         public float overspeedMargin = 1.20f; // overspeed clamp factor vs rating (N2/N1 clamp only)
 
         [Header("Spool transient (torque balance)")]
+        [Tooltip("スターターカットアウト回転 [定格比]")]
         public float cutoutN2 = 0.42f; // starter cutout speed [rating ratio] (below fuel-on idle ~0.445 so a lit start cuts out; calibrate, do not reuse other engines)
+        [Tooltip("軸受・風損の係数")]
         public float spoolFric = 0.02f; // bearing/windage coefficient (dimensionless torque at N=1; Hashmi §4.1 loss factor)
+        [Tooltip("LP タービンからコアへの駆動結合")]
         public float ltCoupling = 1.0f; // LP turbine -> HP core power coupling (N1=1 at rating by design anchor)
+        [Tooltip("スロットル上限 [定格比]")]
         public float thrMax = 1.2f; // throttle upper clamp (rating-ratio semantics; matches overspeedMargin)
 
         [Header("Engine design parameters")]
+        [Tooltip("ファン直径 [m]")]
         public float fanDiameter = 2.19f;
+        [Tooltip("ファン圧力比")]
         public float fanPR = 1.745f;
+        [Tooltip("全体圧力比")]
         public float OPR = 29.3f;
+        [Tooltip("バイパス比")]
         public float bypassRatio = 4.4f;
 
         // リバース対象の流路。高バイパス比のカスケード型はファン流のみ反転しコアは前向きを維持する (N2ReverseEnable=false)。
         // ターゲット型 (旧式低バイパス) はコア流も反転するため N2ReverseEnable=true。
+        [Tooltip("N1 流路を反転する。カスケード型は true")]
         public bool N1ReverseEnable = true;
+        [Tooltip("コア流路を反転する。ターゲット型は true")]
         public bool N2ReverseEnable = false;
 
+        [Tooltip("バーナー圧力比")]
         public float burnerPR = 1.0f;
+        [Tooltip("定格のバーナー出口温度 [degC]")]
         public float tt4maxC = 1096f; // burner exit at 100%
 
         // 区間定数近似: 圧縮側は cp が式中で相殺し温度不変 (γのみ寄与)、実効があるのは膨張側 ΔT = W/cp のみ。
         // EngineSim-UA 変数モード (cp(T) 3次式+燃料質量) との設計点差は 8-14K で tt4maxC 較定余裕に埋もれ、step 増分ゼロ。
+        [Tooltip("膨張側燃焼ガスの比熱 [J/(kg K)]")]
         public float cpHot = 1220f; // 膨張側燃焼ガス平均比熱 [J/(kg K)] (燃料質量込み)
 
-        [Header("各部の断熱圧縮効率。調整不要。")]
-        public float etaFan = 1.0f;
-        public float etaComp = 0.959f;
-        public float etaBurn = 0.984f;
-        public float etaTurb = 0.982f;
-        public float etaNoz = 1.0f;
+        // 断熱効率は設計値ではなく固定係数。調整しないので Inspector に出さない。焼き付け (FDMiJetEngineBake) が読む。
+        [HideInInspector] public float etaFan = 1.0f;
+        [HideInInspector] public float etaComp = 0.959f;
+        [HideInInspector] public float etaBurn = 0.984f;
+        [HideInInspector] public float etaTurb = 0.982f;
+        [HideInInspector] public float etaNoz = 1.0f;
 
-        [Header("Bake results (Editor が設定。触らない)")]
-        public float corePR = 21.86f;
-        public float _a8 = 0.22631f;
-        public float coreAreaM2;
-        public float _tt4dK = 1363.15f;
-        public float _wfMax = 2.0f; // SL static full-throttle valve flow [kg/s] (Bake sets, provisional until baked)
-        public float _dHfD = 49932f;  // 設計ファン比仕事 [J/kg-core] (Bake sets)
-        public float _dHcD = 438593f; // 設計 HPC 比仕事 [J/kg] (Bake sets)
+        // Editor の焼き付け結果。手で編集しないが永続化は必要なので public のまま隠す。
+        [HideInInspector] public float corePR = 21.86f;
+        [HideInInspector] public float _a8 = 0.22631f;
+        [HideInInspector] public float coreAreaM2;
+        [HideInInspector] public float _tt4dK = 1363.15f;
+        [HideInInspector] public float _wfMax = 2.0f; // SL static full-throttle valve flow [kg/s] (Bake sets, provisional until baked)
+        [HideInInspector] public float _dHfD = 49932f;  // 設計ファン比仕事 [J/kg-core] (Bake sets)
+        [HideInInspector] public float _dHcD = 438593f; // 設計 HPC 比仕事 [J/kg] (Bake sets)
         #endregion
 
         #region "Constants"
-        private float k = 273.15f; // Kelvin offset
-        private float gamma = 1.4f; // polytropic index
-        private float R = 287.05f; // specific gas constant for air [J/(kg K)]
-        private float g0 = 9.80665f; // standard gravity [m/s^2]
-        private float adiabaticFactor = 3.5f; // (gamma/(gamma-1))
+        private const float R = 287.05f; // specific gas constant for air [J/(kg K)]
+        private const float adiabaticFactor = 3.5f; // gamma/(gamma-1) (gamma = 1.4)
         private const float cpAir = 1005f; // 圧縮側冷間比熱 [J/(kg K)]
         #endregion
 
@@ -351,10 +403,9 @@ namespace FDMi.dynamics
             float fanRev = N1ReverseEnable ? 1f - 2f * rev : 1f;
             float fg = coreRev * (uexit + (pexit - ps0) * _a8 / Mathf.Max(1e-6f, eair));
             // fan nozzle
-            float facF = 1.0f / adiabaticFactor;
             float snpr = pt13 / Mathf.Max(1e-6f, ps0);
             float ues = Mathf.Sqrt(
-                Mathf.Max(0f, 2f * R / Mathf.Max(1e-6f, facF) * tt13 * etaNoz * (1f - Mathf.Pow(snpr, -facF)))
+                Mathf.Max(0f, 2f * R / Mathf.Max(1e-6f, fac) * tt13 * etaNoz * (1f - Mathf.Pow(snpr, -fac)))
             );
             float pfexit = snpr <= 1.893f ? ps0 : 0.52828f * pt13;
             fg += fanRev * (bypassRatio * ues + (pfexit - ps0) * bypassRatio * coreAreaM2 / Mathf.Max(1e-6f, eair));

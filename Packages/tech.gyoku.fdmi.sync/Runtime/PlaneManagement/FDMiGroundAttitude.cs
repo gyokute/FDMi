@@ -20,34 +20,56 @@ namespace FDMi.sync
     public class FDMiGroundAttitude : FDMiBehaviour
     {
         [Header("Wiring")]
+        [Tooltip("姿勢を読むアンカー。同一 GameObject に置く")]
         public FDMiSyncAnchor anchor;
+
+        [Tooltip("磁偏差の解決パス")]
         public string MagneticDeclinationPath = "~/Physics/MagneticDeclination";
 
         [FDMiDataPath(nameof(MagneticDeclinationPath))]
+        [Tooltip("磁偏差 [deg]。東偏を正とする")]
         public FDMiFloat MagneticDeclination; // 全機共有の外部入力 [deg]。東偏を正。座標依存なし
+
+        [Tooltip("姿勢の出力パス")]
         public string AttitudePath = "~/Physics/Attitude";
 
         [FDMiDataPath(nameof(AttitudePath))]
+        [Tooltip("地面基準の相対姿勢。Skybox 回転の入力")]
         public FDMiQuaternion Attitude; // q_rel = QInv(q_basis) ⊗ q_abs。Skybox回転の入力
+
+        [Tooltip("高度の出力パス")]
         public string AltitudePath = "~/Physics/Altitude";
 
         [FDMiDataPath(nameof(AltitudePath))]
+        [Tooltip("ジオイド高 [m]。約 1 m の誤差を持つ")]
         public FDMiFloat Altitude; // HAE≡MSL (球体・ジオイド差0) [m]。約1m誤差
+
+        [Tooltip("ピッチの出力パス")]
         public string PitchPath = "~/Physics/Pitch";
 
         [FDMiDataPath(nameof(PitchPath))]
+        [Tooltip("ピッチ角 [deg]。機首上げを正とする")]
         public FDMiFloat Pitch; // 機首上げ+ [deg]
+
+        [Tooltip("ロールの出力パス")]
         public string RollPath = "~/Physics/Roll";
 
         [FDMiDataPath(nameof(RollPath))]
+        [Tooltip("ロール角 [deg]。右翼下げを正とする")]
         public FDMiFloat Roll; // 右翼下げ+ [deg]
+
+        [Tooltip("真方位の出力パス")]
         public string TrueHeadingPath = "~/Physics/HDGTRU";
 
         [FDMiDataPath(nameof(TrueHeadingPath))]
+        [Tooltip("真北基準の方位 [deg]。0〜360")]
         public FDMiFloat HDGTRU; // 真北基準 0–360 [deg]
+
+        [Tooltip("磁方位の出力パス")]
         public string MagneticHeadingPath = "~/Physics/HDGMAG";
 
         [FDMiDataPath(nameof(MagneticHeadingPath))]
+        [Tooltip("磁北基準の方位 [deg]。0〜360")]
         public FDMiFloat HDGMAG; // HDGTRU−MagneticDeclination を 0–360 化 [deg]
 
         Quaternion[] _att;

@@ -14,15 +14,19 @@ namespace FDMi.core
     public class FDMiSeatManager : FDMiBehaviour
     {
         [Header("FDMiSeatと組み合わせ、Seatに座ったプレイヤーから、パイロットを一意に決定します。")]
+        [Tooltip("対象の座席。Editor が名前空間内から自動収集する")]
         public FDMiSeat[] allSeats;
 
         [FDMiDataPathConst("~/IsPilot")]
+        [Tooltip("この座席のプレイヤーがパイロットか")]
         public FDMiBool IsPilot;
 
         [FDMiDataPathConst("~/HasPilot"), FDMiRegisterCallback(nameof(DetermineNewPilot))]
+        [Tooltip("パイロットが存在するか。false で再選出する")]
         public FDMiBool HasPilot;
 
         [FDMiDataPathConst("~/PilotID"), FDMiRegisterCallback(nameof(RecoverPilotState))]
+        [Tooltip("パイロットのプレイヤー ID。不在は -1")]
         public FDMiInt PilotID;
 
         // パイロット不在時に、残る Seat 占有者の中から最高 PilotPriority の座席を新パイロットとする。

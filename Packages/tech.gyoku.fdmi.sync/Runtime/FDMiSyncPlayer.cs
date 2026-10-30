@@ -13,16 +13,18 @@ namespace FDMi.sync
     public class FDMiSyncPlayer : FDMiDynamicObjectSync
     {
         // VRCPlayerApi.playerId。Start が所有権から確定する。−1 は未確定。
-        public int playerId = -1;
-        public VRCPlayerApi player;
+        [HideInInspector] public int playerId = -1;
+
+        [HideInInspector] public VRCPlayerApi player;
 
         // player.isLocal のキャッシュ。Start 以降変わらない。
-        public bool isLocalPlayer;
+        [HideInInspector] public bool isLocalPlayer;
 
         // §9.3。プレイヤーの定位置に使う VRCStation。FDMiSyncPlayer と同じ GameObject に置く (①)。
         // Editor 焼き E-09 で配線する。
         // Why-not: Runtime で GetComponent しない。コピーは実行時に生成されるが、コピーは同一階層内の
         // 参照を Unity の Instantiate 意味論で張り替えるため、焼き値が各コピーの station に解決される (§9.4)。
+        [Tooltip("プレイヤーの定位置に使う VRCStation。同一 GameObject に置く")]
         public VRCStation station;
 
         // 自分の station に座っているか。VRChat の着席イベントで更新する (①)。

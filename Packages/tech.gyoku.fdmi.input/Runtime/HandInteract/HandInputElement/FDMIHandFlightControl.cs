@@ -17,28 +17,52 @@ namespace FDMi.input
     {
         // NOTE: 基底の output / outputPath は使わない。3 出力のため下記を使う。
 
+        [Tooltip("ピッチ入力の解決パス")]
         public string pitchPath = "PitchInput";
 
         [FDMiDataPath(nameof(pitchPath))]
+        [Tooltip("ピッチ入力を書き込む出力。pitchPath から解決する")]
         public FDMiData pitch;
+
+        [Tooltip("ピッチの操作方法")]
         public FDMiYokeControlType pitchType = FDMiYokeControlType.Pull;
+
+        [Tooltip("ピッチの操作軸。グループローカル")]
         public Vector3 pitchAxis = new Vector3(0f, 1f, 0f);
+
+        [Tooltip("ピッチの倍率")]
         public float pitchMultiplier = 1f;
 
+        [Tooltip("ロール入力の解決パス")]
         public string rollPath = "RollInput";
 
         [FDMiDataPath(nameof(rollPath))]
+        [Tooltip("ロール入力を書き込む出力。rollPath から解決する")]
         public FDMiData roll;
+
+        [Tooltip("ロールの操作方法")]
         public FDMiYokeControlType rollType = FDMiYokeControlType.Rotate;
+
+        [Tooltip("ロールの操作軸。グループローカル")]
         public Vector3 rollAxis = new Vector3(1f, 0f, 0f);
+
+        [Tooltip("ロールの倍率")]
         public float rollMultiplier = 1f;
 
+        [Tooltip("ヨー入力の解決パス")]
         public string yawPath = "YawInput";
 
         [FDMiDataPath(nameof(yawPath))]
+        [Tooltip("ヨー入力を書き込む出力。yawPath から解決する")]
         public FDMiData yaw;
+
+        [Tooltip("ヨーの操作方法")]
         public FDMiYokeControlType yawType = FDMiYokeControlType.Twist;
+
+        [Tooltip("ヨーの操作軸。グループローカル")]
         public Vector3 yawAxis = new Vector3(0f, 1f, 0f);
+
+        [Tooltip("ヨーの倍率")]
         public float yawMultiplier = 1f;
 
         private Vector3 startHandPos;

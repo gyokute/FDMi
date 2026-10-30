@@ -8,21 +8,27 @@ namespace FDMi.core
     public class FDMiZoneDetector : FDMiBehaviour
     {
         [FDMiDataPathConst("~/InZone")]
+        [Tooltip("ローカルプレイヤーがゾーン内にいるか")]
         public FDMiBool InZone;
 
         [FDMiDataPathConst("~/IsPilot")]
+        [Tooltip("この座席のプレイヤーがパイロットか")]
         public FDMiBool IsPilot;
 
         [FDMiDataPathConst("~/HasPilot")]
+        [Tooltip("パイロットが存在するか")]
         public FDMiBool HasPilot;
 
         [FDMiDataPathConst("~/PilotID")]
+        [Tooltip("パイロットのプレイヤー ID。不在は -1")]
         public FDMiInt PilotID;
 
         [SerializeField]
+        [Tooltip("入ったとき InZone を立てる")]
         private bool DetectWhenEnter = true;
 
         [SerializeField]
+        [Tooltip("出たとき InZone を下ろす。パイロットなら権限も解放する")]
         private bool DetectWhenExit = true;
 
         public override void OnPlayerTriggerEnter(VRCPlayerApi player)

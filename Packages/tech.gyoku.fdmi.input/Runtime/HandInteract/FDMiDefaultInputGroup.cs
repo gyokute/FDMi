@@ -7,6 +7,7 @@ namespace FDMi.input
 {
     public class FDMiDefaultInputGroup : FDMiHandInputGroup
     {
+        [Tooltip("この入力を受けるコンタクトタグ")]
         public string matchingTag = "FingerIndexL";
 
         void OnEnable()

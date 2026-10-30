@@ -35,12 +35,12 @@ namespace FDMi.core.Editor.Application.UseCases
         }
 
         /// <summary>
-        /// シーン内の全 MonoBehaviour を対象に Execute を実行する。
+        /// シーン内の全 FDMiSeatManager を対象に Execute を実行する。
         /// </summary>
         public void ExecuteAll()
         {
-            foreach (var mb in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
-                Execute(mb);
+            foreach (var manager in UnityEngine.Object.FindObjectsByType<FDMiSeatManager>(FindObjectsSortMode.None))
+                Execute(manager);
         }
 
         /// <summary>

@@ -17,18 +17,31 @@ namespace FDMi.input
 
     public class FDMiHandTracker : FDMiBehaviour
     {
+        [Tooltip("追跡する手。左右どちらか")]
         public VRCPlayerApi.TrackingDataType trackingHand = VRCPlayerApi.TrackingDataType.LeftHand;
+
+        [Tooltip("反応するコンタクトタグ")]
         public string contactTag = "FingerIndexL";
 
-        [Tooltip("Grip value required to start a grab.")]
+        [Tooltip("グラブ開始とみなすグリップ値")]
         public float grabThreshold = 0.7f;
 
+        [Tooltip("グリップの入力軸名")]
         public string grabAxis = "Oculus_CrossPlatform_PrimaryHandTrigger";
+
+        [Tooltip("トリガーの入力軸名")]
         public string triggerAxis = "Oculus_CrossPlatform_PrimaryIndexTrigger";
+
+        [Tooltip("スティック縦の入力軸名")]
         public string padVAxis = "Oculus_CrossPlatform_PrimaryThumbstickVertical";
+
+        [Tooltip("スティック横の入力軸名")]
         public string padHAxis = "Oculus_CrossPlatform_PrimaryThumbstickHorizontal";
+
+        [Tooltip("スティック押し込みの入力軸名")]
         public string padPushAxis = "Oculus_CrossPlatform_PrimaryThumbstick";
 
+        // 手の姿勢と軸値。Update ごとに書き換える実行時状態。
         [HideInInspector]
         public Vector3 handPos;
 
@@ -123,8 +136,14 @@ namespace FDMi.input
         }
 
         #region Input Selection
+        // 実行時にコンタクトと既定入力から選ばれる状態。手で設定しない。
+        [HideInInspector]
         public FDMiHandInputGroup contactedGroup;
+
+        [HideInInspector]
         public FDMiHandInputGroup defaultInputGroup;
+
+        [HideInInspector]
         public FDMiHandInputGroup grabingGroup;
 
         public void SetContactInput(string contactTag, FDMiHandInputGroup group)

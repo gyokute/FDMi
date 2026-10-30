@@ -80,28 +80,43 @@ namespace FDMi.dynamics
     public class FDMiWing : FDMiBehaviour
     {
         [Header("配線")]
+        [Tooltip("力を加える機体の Rigidbody。Editor が解決する")]
         // 力を加える機体の Rigidbody。Editor が機体 (名前空間ルート) から解決する。
         public Rigidbody body;
+
+        [Tooltip("風速の解決パス")]
         public string WindPath = "~/Physics/Wind";
 
         // 風速ベクトル。世界座標。単位は m/s。
         [FDMiDataPath(nameof(WindPath))]
+        [Tooltip("風速ベクトル [m/s]。世界座標")]
         public FDMiVector3 windInput;
+
+        [Tooltip("空気密度の解決パス")]
         public string DensityPath = "~/Physics/Rho";
 
         // 空気密度。単位は kg/m^3。
         [FDMiDataPath(nameof(DensityPath))]
+        [Tooltip("空気密度 [kg/m3]")]
         public FDMiFloat densityInput;
+
+        [Tooltip("音速の解決パス")]
         public string SonicSpeedPath = "~/Physics/SonicSpeed";
 
         // 音速。単位は m/s。区間のマッハは区間の速度をこれで割って出す。
         [FDMiDataPath(nameof(SonicSpeedPath))]
+        [Tooltip("音速 [m/s]。区間マッハの基準")]
         public FDMiFloat sonicSpeedInput;
+
+        [Tooltip("対地高さの解決パス")]
         public string HeightPath = "~/Physics/RadarAltitude";
 
         // 対地高さ。電波高度計模擬の代表値。単位は m。
         [FDMiDataPath(nameof(HeightPath))]
+        [Tooltip("対地高さ [m]。地面効果に使う")]
         public FDMiFloat heightInput;
+
+        [Tooltip("取付角の解決パス")]
         public string IncidencePath = "~/Physics/TrimAngle";
 
         // 翼全体の取付角。全遊動水平尾翼のトリムに使う。正で前縁が上がり、区間の迎角が増える。単位は度。
@@ -111,82 +126,133 @@ namespace FDMi.dynamics
         // Why not 動翼の一種として装置で表す: 全遊動翼は翼そのものが回るので、揚力増分が 1/4 弦まわりに
         // 作るモーメント (_cmPerCl) を持たない。装置にすると二重計上を打ち消す例外が増える。
         [FDMiDataPath(nameof(IncidencePath))]
+        [Tooltip("翼全体の取付角 [deg]。全遊動尾翼のトリム")]
         public FDMiFloat incidenceInput;
+
         // 操舵面と高揚力装置。区間ごとの等価迎え角・加算揚力・加算抗力・揚力倍率をここから読む。
         // Editor がこの翼の子から解決する。装置は翼の子に置く。
+        [Tooltip("区間ごとの操舵面・高揚力装置。Editor が子から解決する")]
         public FDMiControlSurface[] controlSurface;
+
         // 上流翼。吹き下ろしを受ける側だけが指定する。未接続なら吹き下ろしなし。
+        [Tooltip("上流翼。吹き下ろしを受ける翼だけ指定する")]
         public FDMiWing sourceWing;
+
         // 胴体。持上げ倍率に直径を読む。未接続なら翼単独として扱う。Editor が機体から解決する。
+        [Tooltip("胴体。翼-胴干渉の直径を読む")]
         public FDMiBodyAero bodyAero;
 
         [Header("区間 (body ローカル)")]
         // 空力中心。力の作用点であり、対気速度の測定点でもある。単位は m。
+        [Tooltip("区間の空力中心 [m]。body ローカル")]
         public Vector3[] coordPos;
+
         // 翼幅方向の単位ベクトル。区間の気流はこの方向の成分を落とす。
         // 後退角と上反角を含む実際の翼幅軸 (simple sweep theory の「翼に平行な流れは効かない」向き)。
         // 迎え角と揚力の符号はこの向きで決まる。水平翼では右翼端向き (+X) にそろえる。
         // 左翼端向きにすると迎え角の符号が反転し、キャンバー付きのカーブでは揚力が逆になる。
+        [Tooltip("翼幅方向の単位ベクトル。後退角と上反角を含む")]
         public Vector3[] spanNormal;
+
         // 弦線の向き。V1 と同じく後ろ向き (-Z) を基準にする。迎え角はここから気流までの符号付き角度。
+        [Tooltip("弦線の向き。後ろ向き (-Z) 基準")]
         public Vector3[] chordNormal;
+
         // 区間の平均コード長。Cm 項の基準長。単位は m。
+        [Tooltip("区間の平均コード長 [m]")]
         public float[] sectionChord;
+
         // 区間の面積。コード長 × コードに直交する幅 (投影平面形の面積)。単位は m^2。
+        [Tooltip("区間の面積 [m2]。投影平面形の面積")]
         public float[] sectionArea;
 
         [Header("カーブ (区間ごと)")]
         // 2次元揚力係数。迎え角 [deg] に対する値。
+        [Tooltip("2次元揚力係数。迎角 [deg] のカーブ")]
         public AnimationCurve[] clAlpha;
+
         // 2次元抗力係数。
+        [Tooltip("2次元抗力係数のカーブ")]
         public AnimationCurve[] cdAlpha;
+
         // 揚力係数のマッハ補正倍率。
+        [Tooltip("揚力のマッハ補正倍率のカーブ")]
         public AnimationCurve[] clMach;
+
         // 抗力係数のマッハ補正倍率。
+        [Tooltip("抗力のマッハ補正倍率のカーブ")]
         public AnimationCurve[] cdMach;
+
         // ピッチングモーメント係数。
+        [Tooltip("ピッチングモーメント係数のカーブ")]
         public AnimationCurve[] cmAlpha;
 
         [Header("平面形 (設計値)")]
         // 翼幅。アスペクト比、地面効果の高さ、上流翼からの上下差の基準。単位は m。
         // Editor の焼き付けが投影翼幅 (コードに直交する幅の合計) で上書きする。
+        [Tooltip("翼幅 [m]。焼き付けで投影翼幅に上書きされる")]
         public float span = 12f;
+
         // 翼型の2次元揚力傾斜。clAlpha の直線部の傾きに合わせる。薄翼の 2π を初期値とする。単位は 1/rad。
+        [Tooltip("翼型の2次元揚力傾斜 [1/rad]")]
         public float airfoilLiftSlope = 6.283185f;
+
         // 前縁の位置。区間の境界 (station) ごとに1点で、区間数 + 1 点。単位は m。
         // 翼ローカル (本コンポーネントの transform 基準)。Editor が body ローカルへ直して焼き付ける。
         // 左翼端から右翼端の順に並べる (翼幅軸を右向きにそろえる規則がこの順を前提にする)。
+        [Tooltip("前縁の位置 [m]。翼ローカル、左翼端から順")]
         public Vector3[] leadingEdge = new Vector3[0];
+
         // 後縁の位置。leadingEdge と同じ長さ。区間 i は station i と i+1 の間にできる台形。
+        [Tooltip("後縁の位置 [m]。leadingEdge と同じ長さ")]
         public Vector3[] trailingEdge = new Vector3[0];
 
         [Header("設計値")]
         // 面積の全体倍率。V1 の翼面積補正。
+        [Tooltip("面積の全体倍率")]
         public float wingAreaCoef = 1f;
 
         [Header("係数 (Start で求める)")]
         // アスペクト比。起動時に区間の面積から求める。
+        [Tooltip("アスペクト比。起動時に算出")]
         public float outAR;
+
         // 3次元揚力傾斜 ÷ 2次元揚力傾斜 × 胴体持上げ。clAlpha に掛ける倍率。
+        [Tooltip("揚力傾斜の倍率。起動時に算出")]
         public float outLiftGain;
+
         // 誘導抗力係数。cl の2乗に掛ける。
+        [Tooltip("誘導抗力係数。起動時に算出")]
         public float outInducedK;
+
         // 吹き下ろし角の揚力係数微分。上流翼の CL に掛ける。単位は deg。
+        [Tooltip("吹き下ろし角の係数 [deg]。起動時に算出")]
         public float outDownwashGain;
 
         [Header("計測値")]
         // 区間の迎え角。吹き下ろしの加算と、翼全体の取付角 (incidenceInput) の加算込み。
         // 装置の等価迎え角シフトは含めない。coordPos と同じ長さにする。単位は度。
+        [Tooltip("区間の迎角 [deg]。吹き下ろしと取付角を含む")]
         public float[] alpha;
+
         // 面積加重平均の3次元揚力係数。下流翼が読む。
+        [Tooltip("面積加重平均の揚力係数。下流翼が読む")]
         public float outCL;
+
         // いま効いている吹き下ろし角。単位は度。
+        [Tooltip("効いている吹き下ろし角 [deg]")]
         public float outEpsilonDeg;
+
         // 地面効果の強さ。0 が効果なし、1 が地面。地面効果の計測値でもある。
+        [Tooltip("地面効果の強さ。0 で効果なし")]
         public float outGroundFactor;
+
         // 直前のステップで加えた合力。機体座標。単位は N。
+        [Tooltip("直前のステップの合力 [N]。機体座標")]
         public Vector3 totalForce;
+
         // 直前のステップで加えた合モーメント。機体座標。単位は N m。
+        [Tooltip("直前のステップの合モーメント [Nm]。機体座標")]
         public Vector3 totalMoment;
 
         // 翼面積。区間配列から一度だけ求める。アスペクト比と outCL の分母に使う。

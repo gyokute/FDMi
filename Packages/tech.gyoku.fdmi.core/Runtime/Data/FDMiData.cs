@@ -10,7 +10,10 @@ namespace FDMi.core
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class FDMiData : UdonSharpBehaviour
     {
+        [HideInInspector]
         public UdonSharpBehaviour[] callbackBehaviour;
+
+        [HideInInspector]
         public string[] callbackFunction;
 
         /// <summary>
