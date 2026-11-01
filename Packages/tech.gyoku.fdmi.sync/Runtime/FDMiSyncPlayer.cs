@@ -148,6 +148,19 @@ namespace FDMi.sync
                 _localAbs, out _localRot);
         }
 
+        // §9.3。view を書く直前に絶対姿勢を作り直す。
+        // Why-not: _Tick が作った _localAbs をそのまま書かない。_ApplyView は FixedUpdate でも走り、
+        // その時点の原点は Manager が今の物理ステップで更新した値、_localAbs は前フレームの Update が
+        // 作った値なので 1 固定ステップずれる。基準アンカーが root のとき絶対姿勢は原点と同じ量だけ
+        // 動くため、この差がそのまま view の位置誤差 (v × fixedDelta) になる。書き込みが 2 値で
+        // 交互になり、station に固定されたアバターが 2 位置の間でちらつく (残像)。
+        // ここで作り直せば refAbs と origin が同じ瞬間の値になり、どちらの位相でも view は pose に一致する。
+        public override void _WriteViewPose()
+        {
+            _ResolveAbs(_poseMm, _poseRot);
+            base._WriteViewPose();
+        }
+
         // §9.3。自分の station に座っていないなら、既定席へ座らせる。
         // Why-not: station の登録表を作らない。Foreign station は後から動的に挿入されるため、
         // 列挙では追跡できない (ADR-0004)。

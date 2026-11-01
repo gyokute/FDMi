@@ -445,5 +445,53 @@ namespace FDMi.sync.Editor.Tests
             CollectionAssert.AreEqual(relMm, roundTripMm, "基準相対の位置は焼きで戻る");
             Assert.IsTrue(Quaternion.Angle(relRot, roundTripRot) < 1e-4f, "基準相対の回転は焼きで戻る");
         }
+
+        [Test]
+        public void M19_プレイヤーのview書き込みは原点更新の位相に依存しない()
+        {
+            // §9.3。_ApplyView は FixedUpdate でも走る。その瞬間の原点は今の物理ステップの値だが、
+            // _localAbs は前フレームの Update が作った値なので 1 固定ステップずれる。基準アンカーが
+            // root のとき絶対姿勢は原点と同じ量だけ動くため、この差が view の位置誤差 (v × fixedDelta)
+            // になり、station に固定されたアバターが 2 位置の間でちらつく。
+            GameObject mgrGo = new GameObject("mgr");
+            GameObject rootGo = new GameObject("root");
+            GameObject playerGo = new GameObject("player");
+            try
+            {
+                FDMiSyncManager manager = mgrGo.AddComponent<FDMiSyncManager>();
+                FDMiDynamicObjectSync root = rootGo.AddComponent<FDMiDynamicObjectSync>();
+                FDMiSyncPlayer player = playerGo.AddComponent<FDMiSyncPlayer>();
+
+                root._absMm = new long[] { 6371000000L, 0L, 0L };
+                root._rot = Pack(Quaternion.identity);
+                manager.anchors = new FDMiSyncAnchor[] { root };
+                root._Init(manager);
+
+                // 基準アンカーは root。pose は root のフレームで +x 2 m。
+                player._absMm = new long[] { 2000L, 0L, 0L };
+                player._rot = Pack(Quaternion.identity);
+                player._refAnchorIndex = 0;
+                player._Init(manager);
+
+                manager.originMm = new long[] { 6371000000L, 0L, 0L };
+                manager.originRot = Quaternion.identity;
+
+                player._WriteViewPose();
+                AssertVector(new Vector3(2f, 0f, 0f), playerGo.transform.position, "位相 A (Update 直後)");
+
+                // 次の固定ステップ: root と原点が 1 m 進む。player の状態は前フレームのまま。
+                root._localAbs[0] = root._localAbs[0] + 1000L;
+                manager.originMm[0] = manager.originMm[0] + 1000L;
+
+                player._WriteViewPose();
+                AssertVector(new Vector3(2f, 0f, 0f), playerGo.transform.position, "位相 B (FixedUpdate 直後)");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(playerGo);
+                UnityEngine.Object.DestroyImmediate(rootGo);
+                UnityEngine.Object.DestroyImmediate(mgrGo);
+            }
+        }
     }
 }
