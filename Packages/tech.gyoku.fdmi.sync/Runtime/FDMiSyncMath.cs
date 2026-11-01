@@ -132,16 +132,17 @@ namespace FDMi.sync
             return QInv(qOrigin) * d;
         }
 
-        // §9.8。A_P = A_R + Rotate(Q_R, rel)。E-09 の焼き (FDMiEarth.RespawnRel) の逆変換。
-        // Why-not: Player に式を書かない。焼きと Runtime を同じ 1 対の式で検証できる。
-        public static void RespawnAbs(long[] rootAbs, Quaternion rootRot, long[] relMm, Quaternion relRot,
+        // §9.2 / §9.8。P_A = P_R + Rotate(Q_R, rel)。基準フレームの姿勢を絶対姿勢へ写す唯一の実装。
+        // 継ぎ目 (FDMiSyncAnchor._ResolveAbs) と respawn の焼き (FDMiEarth.RespawnRel) は同じ式の 1 対である。
+        // Why-not: 呼び出し側に式を書かない。焼きと Runtime を同じ 1 対の式で検証できる。
+        public static void ResolveAbs(long[] refAbs, Quaternion refRot, long[] relMm, Quaternion relRot,
             long[] dstAbs, out Quaternion dstRot)
         {
-            Vector3 r = rootRot * new Vector3((float)relMm[0], (float)relMm[1], (float)relMm[2]);
-            dstAbs[0] = rootAbs[0] + RoundHalfAwayFromZero(r.x);
-            dstAbs[1] = rootAbs[1] + RoundHalfAwayFromZero(r.y);
-            dstAbs[2] = rootAbs[2] + RoundHalfAwayFromZero(r.z);
-            dstRot = QNormalize(rootRot * relRot);
+            Vector3 r = refRot * new Vector3((float)relMm[0], (float)relMm[1], (float)relMm[2]);
+            dstAbs[0] = refAbs[0] + RoundHalfAwayFromZero(r.x);
+            dstAbs[1] = refAbs[1] + RoundHalfAwayFromZero(r.y);
+            dstAbs[2] = refAbs[2] + RoundHalfAwayFromZero(r.z);
+            dstRot = QNormalize(refRot * relRot);
         }
 
     }

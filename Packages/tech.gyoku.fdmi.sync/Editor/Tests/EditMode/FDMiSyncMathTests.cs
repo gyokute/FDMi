@@ -425,24 +425,25 @@ namespace FDMi.sync.Editor.Tests
         }
 
         [Test]
-        public void M18_respawnの焼きとRuntime合成は元の絶対姿勢に戻る()
+        public void M18_基準フレームの姿勢と絶対姿勢は焼きとRuntimeで同じ式の逆変換になる()
         {
-            // §9.8。E-09 の RespawnRel と Runtime の RespawnAbs は同じ式の逆変換である。
-            long[] anchorAbs = new long[] { 1200000L, 35000L, -600000L };
-            Quaternion anchorRot = Quaternion.AngleAxis(90f, Vector3.up);
+            // §9.2 / §9.8。E-09 の RespawnRel と ResolveAbs は同じ式の逆変換である。
+            // 継ぎ目 (_ResolveAbs) と respawn のどちらも ResolveAbs を通る。
+            long[] refAbs = new long[] { 1200000L, 35000L, -600000L };
+            Quaternion refRot = Quaternion.AngleAxis(90f, Vector3.up);
             long[] relMm = new long[] { 1000L, 100L, 0L };
             Quaternion relRot = Quaternion.AngleAxis(30f, Vector3.forward);
 
             long[] respawnAbs = new long[3];
             Quaternion respawnRot;
-            FDMiSyncMath.RespawnAbs(anchorAbs, anchorRot, relMm, relRot, respawnAbs, out respawnRot);
+            FDMiSyncMath.ResolveAbs(refAbs, refRot, relMm, relRot, respawnAbs, out respawnRot);
 
             long[] roundTripMm = new long[3];
             Quaternion roundTripRot;
-            FDMiEarth.RespawnRel(anchorAbs, anchorRot, respawnAbs, respawnRot, roundTripMm, out roundTripRot);
+            FDMiEarth.RespawnRel(refAbs, refRot, respawnAbs, respawnRot, roundTripMm, out roundTripRot);
 
-            CollectionAssert.AreEqual(relMm, roundTripMm, "局所位置は焼きで戻る");
-            Assert.IsTrue(Quaternion.Angle(relRot, roundTripRot) < 1e-4f, "局所回転は焼きで戻る");
+            CollectionAssert.AreEqual(relMm, roundTripMm, "基準相対の位置は焼きで戻る");
+            Assert.IsTrue(Quaternion.Angle(relRot, roundTripRot) < 1e-4f, "基準相対の回転は焼きで戻る");
         }
     }
 }

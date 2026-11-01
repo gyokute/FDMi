@@ -8,6 +8,8 @@ namespace FDMi.sync
     // §9.2。動的アンカー。絶対姿勢の積分・送信ゲート・受信サンプル・view。
     // 同期フィールドは 4 フィールド 11 要素 48 B (§4.4)。_absMm は送信スナップショットであり、
     // 積分は _accMm が持つ (§4.3)。この分離が「送った位置」と「送った stamp」を同一時点に揃える。
+    // 同期する姿勢は基準フレームで表す。この型の基準フレームは FEF（基準アンカーを持たない / ADR-0014）。
+    // 受信器は基準フレームで動き、最後に _ResolveAbs が絶対姿勢へ写す。_localAbs は常に FEF 絶対。
     // Why-not: 基底の [UdonBehaviourSyncMode] は継承されないため、派生クラスにも明示する (§5.1)。
     // ExecOrder 1000: Manager (999) が root を積分・原点更新した後に、自分の view を書く (§7.1)。
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
@@ -44,7 +46,8 @@ namespace FDMi.sync
         [HideInInspector] public long[] _accMm = new long[3];
         [HideInInspector] public float[] _fracMm = new float[3];
         [HideInInspector] public Vector3 _lastBodyPos;
-        [HideInInspector] public Vector3 _localVelFef;
+        // 基準フレームの速度 [m/s]。外挿は _vel × Δt[ms] を mm として使う (§6.5)。
+        [HideInInspector] public Vector3 _poseVel;
 
         [HideInInspector] public long[] _lastSentAbs = new long[3];
         [HideInInspector] public short[] _lastSentRot = new short[4];
@@ -79,14 +82,17 @@ namespace FDMi.sync
         [HideInInspector] public Quaternion _blendFromRot = Quaternion.identity;
         [HideInInspector] public int _blendT;
         [HideInInspector] public bool _blending;
-        [HideInInspector] public long[] _targetAbs = new long[3];
-        [HideInInspector] public Quaternion _targetRot = Quaternion.identity;
+        // 基準フレームの現在姿勢。受信器の出力であり、blend の起点でもある。
+        // Why-not: 解決済みの絶対姿勢 (_localAbs) をここに使わない。基準アンカーが動くと
+        // 起点だけが動き、blend が収束しない (§6.5 / ADR-0014)。
+        [HideInInspector] public long[] _poseMm = new long[3];
+        [HideInInspector] public Quaternion _poseRot = Quaternion.identity;
 
         // §9.2。Editor 焼きの絶対姿勢を積分の起点にする。_Init が Start より先でも成立する (§5.4)。
         public override void _InitLocal()
         {
-            _localAbs[0] = _absMm[0]; _localAbs[1] = _absMm[1]; _localAbs[2] = _absMm[2];
-            _localRot = FDMiSyncMath.UnpackQuat(_rot);
+            _poseMm[0] = _absMm[0]; _poseMm[1] = _absMm[1]; _poseMm[2] = _absMm[2];
+            _poseRot = FDMiSyncMath.UnpackQuat(_rot);
             _accMm[0] = _absMm[0]; _accMm[1] = _absMm[1]; _accMm[2] = _absMm[2];
             _fracMm[0] = 0f; _fracMm[1] = 0f; _fracMm[2] = 0f;
             _isLocalOwner = Networking.IsOwner(gameObject);
@@ -94,6 +100,7 @@ namespace FDMi.sync
             _renderDelayMs = _sendIntervalMs - RENDER_DELAY_OFFSET_MS;
             _lastBodyPos = (body != null) ? body.position : view.position;
             _writesView = true;
+            _ResolveAbs(_poseMm, _poseRot);
         }
 
         // §9.2。Update 相当。積分・送受信・送信。
@@ -135,10 +142,10 @@ namespace FDMi.sync
             Quaternion br = body.rotation;
             Vector3 bp = body.position;
 
-            _localRot = FDMiSyncMath.QNormalize(_localRot * br);
+            _poseRot = FDMiSyncMath.QNormalize(_poseRot * br);
 
             // V2 と同じく、回転更新後の絶対姿勢で位置差分を写す。
-            Vector3 dAbs = _localRot * (bp * 1000f);
+            Vector3 dAbs = _poseRot * (bp * 1000f);
             _fracMm[0] = _fracMm[0] + dAbs.x;
             _fracMm[1] = _fracMm[1] + dAbs.y;
             _fracMm[2] = _fracMm[2] + dAbs.z;
@@ -149,7 +156,7 @@ namespace FDMi.sync
             _accMm[0] = _accMm[0] + n0; _fracMm[0] = _fracMm[0] - (float)n0;
             _accMm[1] = _accMm[1] + n1; _fracMm[1] = _fracMm[1] - (float)n1;
             _accMm[2] = _accMm[2] + n2; _fracMm[2] = _fracMm[2] - (float)n2;
-            _localAbs[0] = _accMm[0]; _localAbs[1] = _accMm[1]; _localAbs[2] = _accMm[2];
+            _poseMm[0] = _accMm[0]; _poseMm[1] = _accMm[1]; _poseMm[2] = _accMm[2];
 
             body.position = Vector3.zero;
             body.rotation = Quaternion.identity;
@@ -157,7 +164,9 @@ namespace FDMi.sync
             body.angularVelocity = FDMiSyncMath.QInv(br) * body.angularVelocity;
 
             _lastBodyPos = Vector3.zero;
-            _localVelFef = _localRot * body.velocity;
+            _poseVel = _poseRot * body.velocity;
+
+            _ResolveAbs(_poseMm, _poseRot);
         }
 
         // §8.2。root 切替時に新しい root body を origin に置く。
@@ -189,12 +198,14 @@ namespace FDMi.sync
             _accMm[0] = _accMm[0] + n0; _fracMm[0] = _fracMm[0] - (float)n0;
             _accMm[1] = _accMm[1] + n1; _fracMm[1] = _fracMm[1] - (float)n1;
             _accMm[2] = _accMm[2] + n2; _fracMm[2] = _fracMm[2] - (float)n2;
-            _localAbs[0] = _accMm[0]; _localAbs[1] = _accMm[1]; _localAbs[2] = _accMm[2];
+            _poseMm[0] = _accMm[0]; _poseMm[1] = _accMm[1]; _poseMm[2] = _accMm[2];
 
             _lastBodyPos = cur;
-            _localRot = originRot * ((body != null) ? body.rotation : view.rotation);
+            _poseRot = originRot * ((body != null) ? body.rotation : view.rotation);
             Vector3 velView = (body != null) ? body.velocity : dView * 0.001f / Time.deltaTime;
-            _localVelFef = originRot * velView;
+            _poseVel = originRot * velView;
+
+            _ResolveAbs(_poseMm, _poseRot);
         }
 
         // §6.3。owner のときだけ呼ばれる (_Tick 手順 5)。owner 判定は _Tick が持つ。
@@ -205,9 +216,11 @@ namespace FDMi.sync
             if (Time.time < _nextSendTime) return;
 
             // パックは送信間隔が経過したときだけ。変化判定と送信で同じ値を使う。
-            FDMiSyncMath.PackQuat(_localRot, _tmpRot);
+            FDMiSyncMath.PackQuat(_poseRot, _tmpRot);
 
-            bool moved = !_hasSent || FDMiSyncMath.MaxAbsDeltaMm(_localAbs, _lastSentAbs) >= 1L;
+            // Why-not: 解決済みの絶対姿勢で変化を判定しない。基準アンカーが動くと、静止している
+            // プレイヤーが毎回「動いた」になり、間隔ごとに送信してしまう (§6.3 / ADR-0014)。
+            bool moved = !_hasSent || FDMiSyncMath.MaxAbsDeltaMm(_poseMm, _lastSentAbs) >= 1L;
             bool turned = !_hasSent
                 || _tmpRot[0] != _lastSentRot[0] || _tmpRot[1] != _lastSentRot[1]
                 || _tmpRot[2] != _lastSentRot[2] || _tmpRot[3] != _lastSentRot[3];
@@ -215,9 +228,9 @@ namespace FDMi.sync
 
             // §6.3。要素コピーであり参照代入ではない (T-PROTO-07)。
             _sendPending = true;
-            _absMm[0] = _accMm[0]; _absMm[1] = _accMm[1]; _absMm[2] = _accMm[2];
+            _absMm[0] = _poseMm[0]; _absMm[1] = _poseMm[1]; _absMm[2] = _poseMm[2];
             _rot[0] = _tmpRot[0]; _rot[1] = _tmpRot[1]; _rot[2] = _tmpRot[2]; _rot[3] = _tmpRot[3];
-            _vel = _localVelFef;
+            _vel = _poseVel;
             _stampMs = frameStamp;
             RequestSerialization();
         }
@@ -303,8 +316,10 @@ namespace FDMi.sync
                     continue;
                 }
 
-                _blendFromAbs[0] = _localAbs[0]; _blendFromAbs[1] = _localAbs[1]; _blendFromAbs[2] = _localAbs[2];
-                _blendFromRot = _localRot;
+                // Why-not: _localAbs を起点にしない。それは解決済みの絶対姿勢であり、基準アンカーが
+                // 動くと起点だけが動いて補間先に収束しない (§6.5 / ADR-0014)。
+                _blendFromAbs[0] = _poseMm[0]; _blendFromAbs[1] = _poseMm[1]; _blendFromAbs[2] = _poseMm[2];
+                _blendFromRot = _poseRot;
                 _blendT = nowMs;
                 _blending = true;
             }
@@ -317,10 +332,11 @@ namespace FDMi.sync
 
             if (_snap)
             {
-                _localAbs[0] = _latestAbs[0]; _localAbs[1] = _latestAbs[1]; _localAbs[2] = _latestAbs[2];
-                _localRot = _latestRot;
+                _poseMm[0] = _latestAbs[0]; _poseMm[1] = _latestAbs[1]; _poseMm[2] = _latestAbs[2];
+                _poseRot = _latestRot;
                 _snap = false;
                 _blending = false;
+                _ResolveAbs(_poseMm, _poseRot);
                 return;
             }
 
@@ -333,10 +349,10 @@ namespace FDMi.sync
             {
                 if (ahead < 0) ahead = 0;
                 // v[m/s] × Δt[ms] = Δ[mm] なので _latestVel をそのまま mm の増分に使える (§6.5)。
-                _targetAbs[0] = _latestAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.x * (float)ahead);
-                _targetAbs[1] = _latestAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.y * (float)ahead);
-                _targetAbs[2] = _latestAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.z * (float)ahead);
-                _targetRot = _ExtrapolateRot(_prevRot, _latestRot, dt, ahead);
+                _poseMm[0] = _latestAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.x * (float)ahead);
+                _poseMm[1] = _latestAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.y * (float)ahead);
+                _poseMm[2] = _latestAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.z * (float)ahead);
+                _poseRot = _ExtrapolateRot(_prevRot, _latestRot, dt, ahead);
             }
             else
             {
@@ -347,15 +363,15 @@ namespace FDMi.sync
                     && _latestStamp - renderStamp >= 0)
                 {
                     float u = (dt > 0) ? (float)(renderStamp - _prevStamp) / (float)dt : 1f;
-                    _targetAbs[0] = _prevAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[0] - _prevAbs[0]) * u);
-                    _targetAbs[1] = _prevAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[1] - _prevAbs[1]) * u);
-                    _targetAbs[2] = _prevAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[2] - _prevAbs[2]) * u);
-                    _targetRot = FDMiSyncMath.SlerpHemisphere(_prevRot, _latestRot, u);
+                    _poseMm[0] = _prevAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[0] - _prevAbs[0]) * u);
+                    _poseMm[1] = _prevAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[1] - _prevAbs[1]) * u);
+                    _poseMm[2] = _prevAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[2] - _prevAbs[2]) * u);
+                    _poseRot = FDMiSyncMath.SlerpHemisphere(_prevRot, _latestRot, u);
                 }
                 else
                 {
-                    _targetAbs[0] = _latestAbs[0]; _targetAbs[1] = _latestAbs[1]; _targetAbs[2] = _latestAbs[2];
-                    _targetRot = _latestRot;
+                    _poseMm[0] = _latestAbs[0]; _poseMm[1] = _latestAbs[1]; _poseMm[2] = _latestAbs[2];
+                    _poseRot = _latestRot;
                 }
             }
 
@@ -364,15 +380,14 @@ namespace FDMi.sync
             {
                 float u = (float)(nowMs - _blendT) / (float)_sendIntervalMs;
                 if (u < 0f) u = 0f; else if (u > 1f) u = 1f;
-                _targetAbs[0] = _blendFromAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_targetAbs[0] - _blendFromAbs[0]) * u);
-                _targetAbs[1] = _blendFromAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_targetAbs[1] - _blendFromAbs[1]) * u);
-                _targetAbs[2] = _blendFromAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_targetAbs[2] - _blendFromAbs[2]) * u);
-                _targetRot = FDMiSyncMath.SlerpHemisphere(_blendFromRot, _targetRot, u);
+                _poseMm[0] = _blendFromAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_poseMm[0] - _blendFromAbs[0]) * u);
+                _poseMm[1] = _blendFromAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_poseMm[1] - _blendFromAbs[1]) * u);
+                _poseMm[2] = _blendFromAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_poseMm[2] - _blendFromAbs[2]) * u);
+                _poseRot = FDMiSyncMath.SlerpHemisphere(_blendFromRot, _poseRot, u);
                 if (u >= 1f) _blending = false;
             }
 
-            _localAbs[0] = _targetAbs[0]; _localAbs[1] = _targetAbs[1]; _localAbs[2] = _targetAbs[2];
-            _localRot = _targetRot;
+            _ResolveAbs(_poseMm, _poseRot);
         }
 
         // §6.5。q0 → q1 の軸角を ahead / dt 倍して q1 に掛ける。
@@ -416,20 +431,21 @@ namespace FDMi.sync
                 int age = nowMs - _latestStamp;
                 if (age < 0) age = 0;
                 if (age > MAX_EXTRAP_MS) age = MAX_EXTRAP_MS;
-                _localAbs[0] = _latestAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.x * (float)age);
-                _localAbs[1] = _latestAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.y * (float)age);
-                _localAbs[2] = _latestAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.z * (float)age);
-                _localRot = _latestRot;
+                _poseMm[0] = _latestAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.x * (float)age);
+                _poseMm[1] = _latestAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.y * (float)age);
+                _poseMm[2] = _latestAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.z * (float)age);
+                _poseRot = _latestRot;
             }
             else
             {
                 // Why-not: 受信前の移転で _latestAbs (初期値 0) を使わない。地球中心へ飛ぶ (T-PROTO-14)。
-                _localAbs[0] = _absMm[0]; _localAbs[1] = _absMm[1]; _localAbs[2] = _absMm[2];
-                _localRot = FDMiSyncMath.UnpackQuat(_rot);
+                _poseMm[0] = _absMm[0]; _poseMm[1] = _absMm[1]; _poseMm[2] = _absMm[2];
+                _poseRot = FDMiSyncMath.UnpackQuat(_rot);
             }
 
-            _accMm[0] = _localAbs[0]; _accMm[1] = _localAbs[1]; _accMm[2] = _localAbs[2];
+            _accMm[0] = _poseMm[0]; _accMm[1] = _poseMm[1]; _accMm[2] = _poseMm[2];
             _fracMm[0] = 0f; _fracMm[1] = 0f; _fracMm[2] = 0f;
+            _ResolveAbs(_poseMm, _poseRot);
 
             if (body != null)
             {

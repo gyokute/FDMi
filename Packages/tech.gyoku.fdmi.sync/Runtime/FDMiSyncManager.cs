@@ -36,6 +36,10 @@ namespace FDMi.sync
         [HideInInspector]
         public FDMiSyncAnchor _root;
 
+        // root の anchors[] 内の位置。プレイヤーは基準アンカーとしてこの値だけを同期する (§9.3)。
+        [HideInInspector]
+        public int _rootIndex;
+
         // ローカルプレイヤーのアンカー。suspend の判定に使う (§8.3)。
         [HideInInspector]
         public FDMiSyncPlayer _localPlayerAnchor;
@@ -99,6 +103,7 @@ namespace FDMi.sync
             originRot = _root.GetAbsoluteRotation();
             _root._SnapRootBodyToOrigin();
             _viewVersion = 1;
+            _rootIndex = _IndexOf(_root);
 
             for (int i = 0; i < anchors.Length; i++)
                 if (anchors[i] != managerAnchor) anchors[i]._Init(this);
@@ -238,6 +243,7 @@ namespace FDMi.sync
             originMm[2] = _tmpOrigin[2];
             originRot = next.GetAbsoluteRotation();
             _root = next; // 6
+            _rootIndex = _IndexOf(next);
             if (prevRoot != null && prevRoot.IsRoot != null) prevRoot.IsRoot.Data = false;
             if (next.IsRoot != null) next.IsRoot.Data = true;
             next._SnapRootBodyToOrigin();
@@ -289,6 +295,16 @@ namespace FDMi.sync
         public FDMiSyncAnchor GetRoot()
         {
             return _root;
+        }
+
+        // §9.3。root の anchors[] 内の位置。プレイヤーは基準アンカーとしてこの値だけを同期する。
+        // Why-not: アンカー側に自分の index を持たせない。書き手が焼きと Runtime の 2 箇所になり、
+        // 焼き順と配列順が食い違ったときに気付けない。配列順だけを真実にする。
+        int _IndexOf(FDMiSyncAnchor a)
+        {
+            for (int i = 0; i < anchors.Length; i++)
+                if (anchors[i] == a) return i;
+            return -1;
         }
 
         // §8.3。suspend が止めるのはローカルプレイヤーのアンカーだけ。

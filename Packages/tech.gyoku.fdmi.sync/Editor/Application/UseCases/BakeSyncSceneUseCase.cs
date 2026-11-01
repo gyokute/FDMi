@@ -80,7 +80,7 @@ namespace FDMi.sync.Editor.Application.UseCases
             manager.anchors = anchors.ToArray();
 
             // 手順 7: VRCPlayerObject テンプレート 1 個の配線と初期姿勢 (E-06)。
-            BakePlayerTemplate(manager, pRef, qRef);
+            BakePlayerTemplate(manager);
 
             EditorUtility.SetDirty(manager);
         }
@@ -166,10 +166,13 @@ namespace FDMi.sync.Editor.Application.UseCases
             EditorUtility.SetDirty(a);
         }
 
-        // E-06。スポーン地点を view 姿勢とし、焼いた initialAnchor の絶対姿勢で FEF に写す (§3.6)。
+        // E-06。スポーン地点をそのまま初期アンカーの frame の姿勢として焼く (§3.6 / §9.3)。
+        // 基準アンカーは root 切替で変わるため、初期アンカーの索引も焼く (ADR-0014)。
+        // Why-not: FEF に写して焼かない。プレイヤーが送るのは基準フレームの姿勢であり、
+        // 初期表示だけ別の frame で持つと 2 つの真実ができる。
         // Why-not: コピーごとに焼かない。テンプレートは 1 個で、各プレイヤーの実姿勢は
         // player.GetPosition() から毎 tick 求める (§9.3)。初期姿勢は最初のパケットまでの表示にだけ使う。
-        static void BakePlayerTemplate(FDMiSyncManager manager, long[] pRef, Quaternion qRef)
+        static void BakePlayerTemplate(FDMiSyncManager manager)
         {
             // §9.4。テンプレートからシーンを参照する。シーンからテンプレートは参照できないため一方通行である。
             Transform spawn = null;
@@ -194,11 +197,22 @@ namespace FDMi.sync.Editor.Application.UseCases
 
                 if (spawn != null)
                 {
-                    FDMiEarth.ViewToAbsMm(pRef, qRef, spawn.position, players[i]._absMm);
-                    FDMiSyncMath.PackQuat(qRef * spawn.rotation, players[i]._rot);
+                    players[i]._absMm[0] = FDMiSyncMath.RoundHalfAwayFromZero(spawn.position.x * 1000f);
+                    players[i]._absMm[1] = FDMiSyncMath.RoundHalfAwayFromZero(spawn.position.y * 1000f);
+                    players[i]._absMm[2] = FDMiSyncMath.RoundHalfAwayFromZero(spawn.position.z * 1000f);
+                    FDMiSyncMath.PackQuat(spawn.rotation, players[i]._rot);
+                    players[i]._refAnchorIndex = AnchorIndex(manager, manager.initialAnchor);
                 }
                 EditorUtility.SetDirty(players[i]);
             }
+        }
+
+        // E-06。基準アンカーの anchors[] 内の位置。Runtime の Manager._rootIndex と同じ配列順を使う (§9.3)。
+        static int AnchorIndex(FDMiSyncManager manager, FDMiSyncAnchor anchor)
+        {
+            for (int i = 0; i < manager.anchors.Length; i++)
+                if (manager.anchors[i] == anchor) return i;
+            return -1;
         }
 
         // V-16。VRCPlayerObject の子孫か。コピーの生成元はシーンに 1 個だけ置く (§9.4)。

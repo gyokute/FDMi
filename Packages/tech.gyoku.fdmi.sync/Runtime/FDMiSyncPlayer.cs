@@ -4,7 +4,10 @@ using VRC.SDKBase;
 
 namespace FDMi.sync
 {
-    // §9.3。プレイヤーの絶対姿勢。owner は「そのプレイヤー本人」だけ (§6.2)。
+    // §9.3。プレイヤーの姿勢。owner は「そのプレイヤー本人」だけ (§6.2)。
+    // 姿勢は基準アンカー相対で同期する。基準アンカーはそのプレイヤーが載っているアンカーであり、
+    // 送信側では自分の root (view origin) と一致する。着席中は基準フレームの姿勢が定数になるため、
+    // root が対地速度を持っても受信側の位置は動かない (ADR-0014)。
     // 同一性は VRCPlayerObject の所有権で確定する。Start の 1 回だけ代入し、再代入の経路を持たない (§9.4)。
     // Why-not: 基底の [UdonBehaviourSyncMode] は継承されないため、派生クラスにも明示する (§5.1)。
     // ExecOrder 1000: 動的アンカーと同じ段で積分する (§5.2)。
@@ -37,8 +40,20 @@ namespace FDMi.sync
         // Why-not: 定数で持たない。アバターのコライダー数に依存するため (ADR-0004)。
         int _unseatedColliderCount = -1;
 
-        // §9.8。respawn の絶対位置の受け皿。root の絶対姿勢 + 回転した局所 offset。
-        long[] _tmpRespawnAbs = new long[3];
+        // §9.3。このプレイヤーの姿勢の基準になるアンカー。root 切替で変わるため同期する。
+        // Why-not: FDMiSyncAnchor.parent を再利用しない。parent は焼きの Transform 階層であり、
+        // プレイヤーの view は world に書くので階層化しない (§9.2)。
+        // Why-not: 基底に置かない。実行時に親が変わるのはプレイヤーだけであり、
+        // 地上固定のアンカーに 4 B と分岐を載せない (§4.4)。
+        [UdonSynced, HideInInspector] public int _refAnchorIndex;
+
+        // _refAnchorIndex の解決先。索引が変わったときだけ引き直す。−1 は未解決。
+        [HideInInspector] public int _boundIndex = -1;
+
+        [HideInInspector] public FDMiSyncAnchor _refAnchor;
+
+        // 基準アンカーの絶対位置の受け皿。
+        long[] _refAbs = new long[3];
 
         // §9.3 の 6 段。テンプレートは VRChat が無効化するため Start を実行しない想定 (U-03)。
         public void Start()
@@ -83,18 +98,54 @@ namespace FDMi.sync
             // §9.3。自分の station に座っていない間だけ、既定席へ座らせる。
             _KeepSeated();
 
-            Quaternion originRot = manager.GetOriginRot();
-            // §7.2 の自由移動行: originMm + Rotate(originRot, GetPosition() × 1000)。
+            // §9.3。自分の root が自分の view frame なので、基準フレームの姿勢は view 姿勢そのもの。
             // 車両の席に座っている間も、VRChat が返す実際の着席位置をそのまま使う。
-            manager.AbsFromView(player.GetPosition(), _localAbs);
-            _localRot = originRot * player.GetRotation();
-            _localVelFef = originRot * player.GetVelocity();
-            // 送信は _accMm を読む。
-            _accMm[0] = _localAbs[0];
-            _accMm[1] = _localAbs[1];
-            _accMm[2] = _localAbs[2];
+            // Why-not: AbsFromView を通さない。原点は FixedUpdate でしか動かないため、通すと
+            // サンプルが物理ステップに量子化される (§7.2)。
+            _refAnchorIndex = manager._rootIndex;
+            Vector3 p = player.GetPosition() * 1000f;
+            _poseMm[0] = FDMiSyncMath.RoundHalfAwayFromZero(p.x);
+            _poseMm[1] = FDMiSyncMath.RoundHalfAwayFromZero(p.y);
+            _poseMm[2] = FDMiSyncMath.RoundHalfAwayFromZero(p.z);
+            _poseRot = player.GetRotation();
 
+            // §6.5。基準フレームの相対速度は前回送信時からの差分で作る。
+            // Why-not: player.GetVelocity() を送らない。着席中の意味が VRChat の実装依存であり、
+            // 世界速度を返すなら「席に対して機体速度で流れる」同じバグを再生産する。
+            if (_hasSent)
+            {
+                float dt = Time.time - _lastSendTime;
+                if (dt > 0f)
+                {
+                    float inv = 1f / (dt * 1000f);
+                    _poseVel = new Vector3(
+                        (float)(_poseMm[0] - _lastSentAbs[0]) * inv,
+                        (float)(_poseMm[1] - _lastSentAbs[1]) * inv,
+                        (float)(_poseMm[2] - _lastSentAbs[2]) * inv);
+                }
+            }
+            else
+            {
+                _poseVel = Vector3.zero;
+            }
+
+            _ResolveAbs(_poseMm, _poseRot);
             _TrySend(frameStamp);
+        }
+
+        // §9.3。基準アンカー相対の姿勢を絶対姿勢へ写す。
+        // Why-not: 索引の比較を呼び出し側に置かない。owner 経路と受信経路の両方から呼ばれるため、
+        // 束縛の判断をここ 1 箇所に閉じる。
+        public override void _ResolveAbs(long[] poseMm, Quaternion poseRot)
+        {
+            if (_boundIndex != _refAnchorIndex)
+            {
+                _boundIndex = _refAnchorIndex;
+                _refAnchor = manager.anchors[_refAnchorIndex];
+            }
+            _refAnchor.GetAbsoluteMm(_refAbs);
+            FDMiSyncMath.ResolveAbs(_refAbs, _refAnchor.GetAbsoluteRotation(), poseMm, poseRot,
+                _localAbs, out _localRot);
         }
 
         // §9.3。自分の station に座っていないなら、既定席へ座らせる。
@@ -131,7 +182,8 @@ namespace FDMi.sync
             station.UseStation(player);
         }
 
-        // §9.8。root の respawn point へ自分の絶対姿勢を作り直す。
+        // §9.8。root の respawn point へ自分の姿勢を作り直す。respawn 先は root の焼き値であり、
+        // 基準アンカー (root) 相対の姿勢そのものなので変換しない。
         // Why-not: localPlayer.Respawn() を呼ばない。descriptor spawn は root frame に追従せず、
         // 任意の respawnPoint へ飛べない。TeleportTo が唯一の経路 (§9.8 / ADR-0002)。
         public void _RespawnLocalPlayer()
@@ -140,20 +192,22 @@ namespace FDMi.sync
             if (root == null)
                 return;
 
-            root.GetAbsoluteMm(_tmpRespawnAbs);
-            FDMiSyncMath.RespawnAbs(
-                _tmpRespawnAbs,
-                root.GetAbsoluteRotation(),
-                root._bakedRespawnRelMm,
-                root._bakedRespawnRelRot,
-                _localAbs,
-                out _localRot
-            );
-
-            // 次の _Tick が Teleport 後の GetPosition() から同じ姿勢を作り、次フレームに送る (§6.3)。
+            _poseMm[0] = root._bakedRespawnRelMm[0];
+            _poseMm[1] = root._bakedRespawnRelMm[1];
+            _poseMm[2] = root._bakedRespawnRelMm[2];
+            _poseRot = root._bakedRespawnRelRot;
+            _refAnchorIndex = manager._rootIndex;
+            // Why-not: 不連続をまたいだ差分速度を送らない。0 から作り直し、次の _Tick が最初の
+            // サンプルとして扱う (§6.5)。0 にしないと受信側がその速度で外挿して飛ぶ。
+            _hasSent = false;
             _nextSendTime = 0f;
 
-            player.TeleportTo(manager.ViewFromAbs(_localAbs), manager.ViewRotFromAbs(_localRot));
+            player.TeleportTo(
+                new Vector3(
+                    (float)_poseMm[0] * 0.001f,
+                    (float)_poseMm[1] * 0.001f,
+                    (float)_poseMm[2] * 0.001f),
+                _poseRot);
             player.SetVelocity(Vector3.zero);
         }
 

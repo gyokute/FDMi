@@ -143,7 +143,7 @@ namespace FDMi.sync.Editor.Domain
             RespawnRel(anchorAbs, anchorRot, respawnAbs, respawnRot, dstMm, out relRot);
         }
 
-        // E-09 の本体。Runtime の FDMiSyncMath.RespawnAbs と 1 対。
+        // E-09 の本体。Runtime の FDMiSyncMath.ResolveAbs と 1 対 (ADR-0014)。
         public static void RespawnRel(long[] anchorAbs, Quaternion anchorRot, long[] respawnAbs,
             Quaternion respawnRot, long[] dstMm, out Quaternion relRot)
         {

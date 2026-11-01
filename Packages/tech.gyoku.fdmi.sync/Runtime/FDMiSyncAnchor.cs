@@ -163,5 +163,16 @@ namespace FDMi.sync
         {
             return _localRot;
         }
+
+        // §9.2。基準フレームの姿勢を絶対姿勢へ写す継ぎ目。既定は「基準アンカーを持たない型」なので、
+        // 保持している姿勢がそのまま絶対姿勢 (FEF) になる。
+        // Why-not: _localAbs を読む各所で「プレイヤーなら変換」と分岐しない。読む側は frame を知らないままでよい。
+        // Why-not: 基準アンカーを基底の同期フィールドにしない。実行時に親が変わるのはプレイヤーだけであり、
+        // 地上固定のアンカーに 4 B と分岐を載せない (§4.4 / ADR-0014)。
+        public virtual void _ResolveAbs(long[] poseMm, Quaternion poseRot)
+        {
+            _localAbs[0] = poseMm[0]; _localAbs[1] = poseMm[1]; _localAbs[2] = poseMm[2];
+            _localRot = poseRot;
+        }
     }
 }
