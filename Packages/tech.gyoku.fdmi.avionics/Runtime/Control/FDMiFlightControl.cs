@@ -75,6 +75,28 @@ namespace FDMi.avionics
         [Tooltip("スポイラレバー [0,1.2]")]
         public FDMiFloat airbrakeLever;
 
+        [Header("自動操縦")]
+        [Tooltip("AP のピッチバイアスのパス")]
+        public string apPitchPath = "~/Input/AutoPilot/AP2/Pitch";
+
+        [FDMiDataPath(nameof(apPitchPath))]
+        [Tooltip("AP のピッチバイアス [-1,1]")]
+        public FDMiFloat apPitch;
+
+        [Tooltip("AP のロールバイアスのパス")]
+        public string apRollPath = "~/Input/AutoPilot/AP2/Roll";
+
+        [FDMiDataPath(nameof(apRollPath))]
+        [Tooltip("AP のロールバイアス [-1,1]")]
+        public FDMiFloat apRoll;
+
+        [Tooltip("ヨーダンパのラダーバイアスのパス")]
+        public string yawDamperPath = "~/Input/YawDamper/Rudder";
+
+        [FDMiDataPath(nameof(yawDamperPath))]
+        [Tooltip("ヨーダンパのラダーバイアス [-1,1]")]
+        public FDMiFloat yawDamper;
+
         [Header("出力")]
         [Tooltip("エレベータ舵角のパス")]
         public string elevatorPath = "~/Physics/Elevator";
@@ -132,19 +154,33 @@ namespace FDMi.avionics
         [Tooltip("スラット舵角 [deg]")]
         public FDMiFloat slat;
 
-        [Tooltip("スポイラ（左）のパス")]
-        public string spoilerLPath = "~/Physics/SpoilerL";
+        [Tooltip("内側スポイラ（左）のパス")]
+        public string spoilerInLPath = "~/Physics/SpoilerInL";
 
-        [FDMiDataPath(nameof(spoilerLPath))]
-        [Tooltip("スポイラ舵角（左）[deg]")]
-        public FDMiFloat spoilerL;
+        [FDMiDataPath(nameof(spoilerInLPath))]
+        [Tooltip("内側スポイラ舵角（左）[deg]")]
+        public FDMiFloat spoilerInL;
 
-        [Tooltip("スポイラ（右）のパス")]
-        public string spoilerRPath = "~/Physics/SpoilerR";
+        [Tooltip("内側スポイラ（右）のパス")]
+        public string spoilerInRPath = "~/Physics/SpoilerInR";
 
-        [FDMiDataPath(nameof(spoilerRPath))]
-        [Tooltip("スポイラ舵角（右）[deg]")]
-        public FDMiFloat spoilerR;
+        [FDMiDataPath(nameof(spoilerInRPath))]
+        [Tooltip("内側スポイラ舵角（右）[deg]")]
+        public FDMiFloat spoilerInR;
+
+        [Tooltip("外側スポイラ（左）のパス")]
+        public string spoilerOutLPath = "~/Physics/SpoilerOutL";
+
+        [FDMiDataPath(nameof(spoilerOutLPath))]
+        [Tooltip("外側スポイラ舵角（左）[deg]")]
+        public FDMiFloat spoilerOutL;
+
+        [Tooltip("外側スポイラ（右）のパス")]
+        public string spoilerOutRPath = "~/Physics/SpoilerOutR";
+
+        [FDMiDataPath(nameof(spoilerOutRPath))]
+        [Tooltip("外側スポイラ舵角（右）[deg]")]
+        public FDMiFloat spoilerOutR;
 
         [Header("舵角")]
         [Tooltip("エレベータの最大上げ舵 [deg]")]
@@ -167,20 +203,26 @@ namespace FDMi.avionics
         public AnimationCurve flapCurve;
         [Tooltip("レバー位置 → スラット舵角のカーブ")]
         public AnimationCurve slatCurve;
-        [Tooltip("レバー位置 → スポイラ舵角のカーブ")]
-        public AnimationCurve airbrakeCurve;
+        [Tooltip("レバー位置 → 内側スポイラ舵角のカーブ")]
+        public AnimationCurve airbrakeInCurve;
+        [Tooltip("レバー位置 → 外側スポイラ舵角のカーブ")]
+        public AnimationCurve airbrakeOutCurve;
 
         [Header("作動速度")]
         [Tooltip("フラップの作動速度 [deg/s]")]
         public float flapRateDeg = 2f;
         [Tooltip("スラットの作動速度 [deg/s]")]
         public float slatRateDeg = 2f;
-        [Tooltip("スポイラの作動速度 [deg/s]")]
-        public float airbrakeRateDeg = 30f;
+        [Tooltip("内側スポイラの作動速度 [deg/s]")]
+        public float airbrakeInRateDeg = 30f;
+        [Tooltip("外側スポイラの作動速度 [deg/s]")]
+        public float airbrakeOutRateDeg = 30f;
 
         [Header("スポイラ")]
-        [Tooltip("スポイラの最大舵角 [deg]")]
-        public float spoilerMaxDeg = 60f;
+        [Tooltip("内側スポイラの最大舵角 [deg]")]
+        public float spoilerInMaxDeg = 60f;
+        [Tooltip("外側スポイラの最大舵角 [deg]")]
+        public float spoilerOutMaxDeg = 60f;
 
         float[] _pitchL;
         float[] _pitchR;
@@ -188,6 +230,12 @@ namespace FDMi.avionics
         float[] _rollR;
         float[] _yawL;
         float[] _yawR;
+        float[] _apPitch;
+        float[] _apRoll;
+        float[] _yawDamper;
+        bool _hasApPitch;
+        bool _hasApRoll;
+        bool _hasYawDamper;
         float[] _flapLever;
         float[] _slatLever;
         float[] _airbrakeLever;
@@ -199,12 +247,15 @@ namespace FDMi.avionics
         float[] _rudder;
         float[] _flaps;
         float[] _slat;
-        float[] _spoilerL;
-        float[] _spoilerR;
+        float[] _spoilerInL;
+        float[] _spoilerInR;
+        float[] _spoilerOutL;
+        float[] _spoilerOutR;
 
         float _flapDeg;
         float _slatDeg;
-        float _airbrakeDeg;
+        float _airbrakeInDeg;
+        float _airbrakeOutDeg;
 
         void Start()
         {
@@ -214,6 +265,21 @@ namespace FDMi.avionics
             _rollR = rollR.data;
             _yawL = yawL.data;
             _yawR = yawR.data;
+            if (apPitch)
+            {
+                _apPitch = apPitch.data;
+                _hasApPitch = true;
+            }
+            if (apRoll)
+            {
+                _apRoll = apRoll.data;
+                _hasApRoll = true;
+            }
+            if (yawDamper)
+            {
+                _yawDamper = yawDamper.data;
+                _hasYawDamper = true;
+            }
             _flapLever = flapLever.data;
             _slatLever = slatLever.data;
             _airbrakeLever = airbrakeLever.data;
@@ -225,27 +291,45 @@ namespace FDMi.avionics
             _rudder = rudder.data;
             _flaps = flaps.data;
             _slat = slat.data;
-            _spoilerL = spoilerL.data;
-            _spoilerR = spoilerR.data;
+            _spoilerInL = spoilerInL.data;
+            _spoilerInR = spoilerInR.data;
+            _spoilerOutL = spoilerOutL.data;
+            _spoilerOutR = spoilerOutR.data;
 
             _flapDeg = flapCurve.Evaluate(_flapLever[0]);
             _slatDeg = slatCurve.Evaluate(_slatLever[0]);
-            _airbrakeDeg = airbrakeCurve.Evaluate(_airbrakeLever[0]);
+            _airbrakeInDeg = airbrakeInCurve.Evaluate(_airbrakeLever[0]);
+            _airbrakeOutDeg = airbrakeOutCurve.Evaluate(_airbrakeLever[0]);
         }
 
         void FixedUpdate()
         {
-            float pitch = Mathf.Clamp(_pitchL[0] + _pitchR[0], -1f, 1f);
-            float roll = Mathf.Clamp(_rollL[0] + _rollR[0], -1f, 1f);
-            float yaw = Mathf.Clamp(_yawL[0] + _yawR[0], -1f, 1f);
+            float apPitchValue = 0f;
+            float apRollValue = 0f;
+            float yawDamperValue = 0f;
+            if (_hasApPitch)
+                apPitchValue = _apPitch[0];
+            if (_hasApRoll)
+                apRollValue = _apRoll[0];
+            if (_hasYawDamper)
+                yawDamperValue = _yawDamper[0];
+
+            float pitch = Mathf.Clamp(_pitchL[0] + _pitchR[0] + apPitchValue, -1f, 1f);
+            float roll = Mathf.Clamp(_rollL[0] + _rollR[0] + apRollValue, -1f, 1f);
+            float yaw = Mathf.Clamp(_yawL[0] + _yawR[0] + yawDamperValue, -1f, 1f);
 
             float dt = Time.fixedDeltaTime;
             _flapDeg = Mathf.MoveTowards(_flapDeg, flapCurve.Evaluate(_flapLever[0]), flapRateDeg * dt);
             _slatDeg = Mathf.MoveTowards(_slatDeg, slatCurve.Evaluate(_slatLever[0]), slatRateDeg * dt);
-            _airbrakeDeg = Mathf.MoveTowards(
-                _airbrakeDeg,
-                airbrakeCurve.Evaluate(_airbrakeLever[0]),
-                airbrakeRateDeg * dt
+            _airbrakeInDeg = Mathf.MoveTowards(
+                _airbrakeInDeg,
+                airbrakeInCurve.Evaluate(_airbrakeLever[0]),
+                airbrakeInRateDeg * dt
+            );
+            _airbrakeOutDeg = Mathf.MoveTowards(
+                _airbrakeOutDeg,
+                airbrakeOutCurve.Evaluate(_airbrakeLever[0]),
+                airbrakeOutRateDeg * dt
             );
 
             _elevator[0] = -Asym(pitch, elevatorUpDeg, elevatorDownDeg);
@@ -264,9 +348,15 @@ namespace FDMi.avionics
                 _aileronOutL[0] = 0f;
             }
 
-            float spoileron = roll * spoilerMaxDeg;
-            _spoilerR[0] = Mathf.Clamp(_airbrakeDeg + spoileron, 0f, spoilerMaxDeg);
-            _spoilerL[0] = Mathf.Clamp(_airbrakeDeg - spoileron, 0f, spoilerMaxDeg);
+            // DC-10 のスポイラはインボードもアウトボードもスポイレロンとスピードブレーキを兼ねる
+            // (DC-10 FCOM Ch.9)。地上スポイラは扱わないので、両群に同じ則を適用する。
+            float spoileronIn = roll * spoilerInMaxDeg;
+            _spoilerInR[0] = Mathf.Clamp(_airbrakeInDeg + spoileronIn, 0f, spoilerInMaxDeg);
+            _spoilerInL[0] = Mathf.Clamp(_airbrakeInDeg - spoileronIn, 0f, spoilerInMaxDeg);
+
+            float spoileronOut = roll * spoilerOutMaxDeg;
+            _spoilerOutR[0] = Mathf.Clamp(_airbrakeOutDeg + spoileronOut, 0f, spoilerOutMaxDeg);
+            _spoilerOutL[0] = Mathf.Clamp(_airbrakeOutDeg - spoileronOut, 0f, spoilerOutMaxDeg);
 
             _rudder[0] = yaw * rudderDeg;
 

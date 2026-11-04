@@ -74,6 +74,14 @@ namespace FDMi.avionics
         [Range(0f, 90f)]
         public float steerMaxDeg = 70f;
 
+        [Header("自動ブレーキ")]
+        [Tooltip("自動ブレーキ指令のパス")]
+        public string autoBrakePath = "~/Input/AutoBrake/Brake";
+
+        [FDMiDataPath(nameof(autoBrakePath))]
+        [Tooltip("自動ブレーキ指令 [0,1]。手動ブレーキと max を取る")]
+        public FDMiFloat autoBrake;
+
         [Header("ブレーキ")]
         [Tooltip("Yokeのブレーキ量→ブレーキの指令")]
         [Range(0f, 1f)]
@@ -93,6 +101,8 @@ namespace FDMi.avionics
         float[] _yawL;
         float[] _yawR;
         float[] _steerOut;
+        float[] _autoBrake;
+        bool _hasAutoBrake;
 
         void Start()
         {
@@ -102,6 +112,11 @@ namespace FDMi.avionics
             _yawL = yawL.data;
             _yawR = yawR.data;
             _steerOut = steerOut.data;
+            if (autoBrake)
+            {
+                _autoBrake = autoBrake.data;
+                _hasAutoBrake = true;
+            }
         }
 
         void FixedUpdate()
@@ -116,6 +131,10 @@ namespace FDMi.avionics
                     brake * brakeEffect[i]
                     + Mathf.Clamp01(yaw * steerBrakeEffect[i])
                     + _parkBrake[0] * parkBrakeEffect[i];
+                float auto = 0f;
+                if (_hasAutoBrake)
+                    auto = _autoBrake[0];
+                eff = Mathf.Max(eff, auto);
                 brakeOut[i].data[0] = Mathf.Clamp01(eff);
             }
         }

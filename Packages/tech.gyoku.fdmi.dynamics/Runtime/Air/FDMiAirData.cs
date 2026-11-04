@@ -114,13 +114,6 @@ namespace FDMi.dynamics
         [Tooltip("全圧 Pt0 [Pa]。エンジンの入力")]
         public FDMiFloat DynamicPressure; // 全圧 Pt0 [Pa] (JetEngine の DynamicPressure 入力)
 
-        [Tooltip("鉛直速度の出力パス")]
-        public string VerticalSpeedPath = "~/Physics/VS";
-
-        [FDMiDataPath(nameof(VerticalSpeedPath))]
-        [Tooltip("世界 Y 方向の速度 [m/s]")]
-        public FDMiFloat VerticalSpeed; // 世界 Y 速度 [m/s]
-
         [Tooltip("指示対気速度の微分の出力パス")]
         public string IASAccPath = "~/Physics/IASAcc";
 
@@ -152,7 +145,6 @@ namespace FDMi.dynamics
             _mach,
             _oat,
             _pt,
-            _vs,
             _iasAcc,
             _tasAcc;
 
@@ -171,7 +163,6 @@ namespace FDMi.dynamics
             _mach = Mach.data;
             _oat = OAT.data;
             _pt = DynamicPressure.data;
-            _vs = VerticalSpeed.data;
             _iasAcc = IASAcc.data;
             _tasAcc = TASAcc.data;
         }
@@ -205,8 +196,6 @@ namespace FDMi.dynamics
             float f = 1f + 0.2f * mach * mach;
             _oat[0] = _sat[0] * f;
             _pt[0] = _ps[0] * f * f * f * Mathf.Sqrt(f);
-
-            _vs[0] = vel.y;
 
             float invDt = 1f / dt;
             float k = dt / (tauAcc + dt);
