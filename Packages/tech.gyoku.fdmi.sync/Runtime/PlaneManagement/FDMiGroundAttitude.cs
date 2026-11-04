@@ -4,11 +4,13 @@ using UnityEngine;
 
 namespace FDMi.sync
 {
-    // 地面 (FEF接平面) 基準の姿勢・高度・オイラーを出す表示専用コンポーネント (ADR-0011)。
-    // anchor の _localAbs/_localRot を読むだけ。送信・積分・補間には触らない。
+    // 地面 (FEF接平面) 基準の姿勢・高度・オイラー・速度を出す表示専用コンポーネント (ADR-0011)。
+    // anchor の _localAbs/_localRot/_poseVel/_latestVel を読むだけ。送信・積分・補間には触らない。
     // 機体用とプレイヤー用に1インスタンスずつ anchor と同 GameObject に置く。owner/remote同一式。
     // 高度は h=|p|×0.001−R の float 近似。long→float の ulp (512mm) 由来で約1mの誤差を持つ。
     // q_basis は up=normalize(p) から作る。Editor の FDMiEarth.Basis (double) は Runtime に置けない。
+    // 速度2出力は FEF 基準のアンカー (動的機体) を想定。プレイヤーアンカーの _poseVel/_latestVel は
+    // 基準フレーム相対なので、そのインスタンスでは基準フレーム相対の値になる (YAGNI: 機体表示用)。
     //
     // Udon 最適化:
     // - eulerAngles は native 1 回 + 正規化3行。Atan2 手書きより手数が少ない。
@@ -21,7 +23,7 @@ namespace FDMi.sync
     {
         [Header("Wiring")]
         [Tooltip("姿勢を読むアンカー。同一 GameObject に置く")]
-        public FDMiSyncAnchor anchor;
+        public FDMiDynamicObjectSync anchor;
 
         [Tooltip("磁偏差の解決パス")]
         public string MagneticDeclinationPath = "~/Physics/MagneticDeclination";
@@ -72,23 +74,41 @@ namespace FDMi.sync
         [Tooltip("磁北基準の方位 [deg]。0〜360")]
         public FDMiFloat HDGMAG; // HDGTRU−MagneticDeclination を 0–360 化 [deg]
 
+        [Tooltip("機体速度の出力パス")]
+        public string BodyVelocityPath = "~/Physics/BodyVelocity";
+
+        [FDMiDataPath(nameof(BodyVelocityPath))]
+        [Tooltip("機体座標の対地速度 [m/s]。+Z=前方")]
+        public FDMiVector3 BodyVelocity; // QInv(_localRot)×vFEF。AirSpeed と対称 (風を引かない)
+
+        [Tooltip("鉛直速度の出力パス")]
+        public string VerticalSpeedPath = "~/Physics/VS";
+
+        [FDMiDataPath(nameof(VerticalSpeedPath))]
+        [Tooltip("高度変化率 [m/s]。上昇を正とする")]
+        public FDMiFloat VerticalSpeed; // up⋅vFEF。球体近似では dh/dt と等価
+
         Quaternion[] _att;
+        Vector3[] _bodyVel;
         float[] _h,
             _pitch,
             _roll,
             _tru,
             _mag,
-            _dec;
+            _dec,
+            _vs;
 
         void Start()
         {
             _att = Attitude.data;
+            _bodyVel = BodyVelocity.data;
             _h = Altitude.data;
             _pitch = Pitch.data;
             _roll = Roll.data;
             _tru = HDGTRU.data;
             _mag = HDGMAG.data;
             _dec = MagneticDeclination.data;
+            _vs = VerticalSpeed.data;
         }
 
         // 表示用。DynamicObjectSync (1000) の view 確定後に読む。FixedUpdate 物理と非連動。
@@ -131,6 +151,15 @@ namespace FDMi.sync
             else if (mag >= 360f)
                 mag -= 360f;
             _mag[0] = mag;
+
+            // 権威は積分済みの _poseVel (FEF)、remote は受信済み最新の _latestVel (FEF) を使う。
+            // Why-not: 同期フィールド _vel を直接読まない。到着順が逆転した古いパケットで上書きされうる (§6.5)。
+            // Why-not: 高度を微分しない。球体近似では up⋅v が dh/dt と等価であり、状態・テレポート跳びを持たない。
+            Vector3 velFEF = anchor._poseVel;
+            if (!anchor._IsAuthority())
+                velFEF = anchor._latestVel;
+            _bodyVel[0] = FDMiSyncMath.QInv(anchor._localRot) * velFEF;
+            _vs[0] = Vector3.Dot(up, velFEF);
         }
     }
 }

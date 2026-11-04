@@ -6,8 +6,9 @@ using VRC.Udon.Common;
 namespace FDMi.sync
 {
     // §9.2。動的アンカー。絶対姿勢の積分・送信ゲート・受信サンプル・view。
-    // 同期フィールドは 4 フィールド 11 要素 48 B (§4.4)。_absMm は送信スナップショットであり、
-    // 積分は _accMm が持つ (§4.3)。この分離が「送った位置」と「送った stamp」を同一時点に揃える。
+    // 同期フィールドは 5 フィールド (_absMm / _rot / _vel / _stampMs / _pilotActive)。
+    // _absMm は送信スナップショットであり、積分は _accMm が持つ (§4.3)。この分離が
+    // 「送った位置」と「送った stamp」を同一時点に揃える。
     // 同期する姿勢は基準フレームで表す。この型の基準フレームは FEF（基準アンカーを持たない / ADR-0014）。
     // 受信器は基準フレームで動き、最後に _ResolveAbs が絶対姿勢へ写す。_localAbs は常に FEF 絶対。
     // Why-not: 基底の [UdonBehaviourSyncMode] は継承されないため、派生クラスにも明示する (§5.1)。
@@ -29,10 +30,30 @@ namespace FDMi.sync
         [UdonSynced, HideInInspector] public Vector3 _vel;
         [UdonSynced, HideInInspector] public int _stampMs;
 
+        // パイロットが有効か。所有者 (パイロット) だけが書く (§9.2)。
+        // 初期 master の所有と「立ちパイロット」を区別し、後参加者にもパイロットの継続を伝える。
+        // Why-not: PilotID を同期しない。所有者が書く 1 bit なら LWW がなく、所有権と常に一致する。
+        [UdonSynced, HideInInspector] public bool _pilotActive;
+
+        // 機体のパイロット選出・所有権移譲。プレイヤーアンカーでは null。
+        [HideInInspector] public FDMiPilotAuthority authority;
+
+        // _pilotActive の前回値。OnDeserialization は毎パケット呼ばれるため、
+        // 変化したときだけ選出・所有権の再調整を走らせる。
+        [HideInInspector] public bool _lastPilotActive;
+
         // owner のキャッシュ。更新するのは _InitLocal と OnOwnershipTransferred の 2 箇所だけ (§9.2)。
         // Why-not: Networking.IsOwner を _Tick / _ApplyView から呼ばない。毎フレームの native 呼び出しと、
         // ノードごとに owner が変わる瞬間のばらつきを避ける (§14.2)。
         [HideInInspector] public bool _isLocalOwner;
+
+        // 機体アンカーの姿勢の権威になれるのはパイロットだけ (§6.2)。
+        // _pilotGated は機体アンカーだけが立てる。FDMiSyncPlayer は自分の姿勢の権威であり、
+        // PilotID データを持たないためゲートしない (§9.3)。
+        // Why-not: 基底で PilotID データを解決しない。シーン全体を走査する Editor 解決が
+        // VRCPlayerObject テンプレートにも配線し、プレイヤーアンカーの送信を止めてしまう。
+        [HideInInspector] public bool _pilotGated;
+        [HideInInspector] public bool _isLocalPilot;
 
         // sendIntervalSec の ms 換算と、そこから導く表示遅延 (§6.5)。どちらも _InitLocal が確定する。
         // Why-not: 送信間隔と ms 系を別々に設定しない。2 つの真実ができると片方だけ直されて
@@ -96,6 +117,7 @@ namespace FDMi.sync
             _accMm[0] = _absMm[0]; _accMm[1] = _absMm[1]; _accMm[2] = _absMm[2];
             _fracMm[0] = 0f; _fracMm[1] = 0f; _fracMm[2] = 0f;
             _isLocalOwner = Networking.IsOwner(gameObject);
+            _lastPilotActive = _pilotActive;
             _sendIntervalMs = (int)FDMiSyncMath.RoundHalfAwayFromZero(sendIntervalSec * 1000f);
             _renderDelayMs = _sendIntervalMs - RENDER_DELAY_OFFSET_MS;
             _lastBodyPos = (body != null) ? body.position : view.position;
@@ -119,9 +141,19 @@ namespace FDMi.sync
         }
 
         // §9.2 の 5 手順。owner は _ComputeViewPose を呼ばない (§9.2 の注記)。
+        // 機体アンカーは所有者であってもパイロットでなければ権威にならない (§6.2)。
+        // Why-not: _isLocalOwner だけで分岐しない。所有者の離脱で VRChat が所有権を自動移譲するため、
+        // 非パイロットが姿勢を配る瞬間が構造的に残る (§9.2)。
+        public bool _IsAuthority()
+        {
+            if (!_isLocalOwner) return false;
+            if (_pilotGated) return _isLocalPilot && _pilotActive;
+            return true;
+        }
+
         public override void _Tick(int frameStamp, int nowMs)
         {
-            if (!_isLocalOwner)
+            if (!_IsAuthority())
             {
                 _IntegrateReceive(nowMs);
                 _ComputeViewPose(nowMs);
@@ -137,7 +169,7 @@ namespace FDMi.sync
         // Why-not: Update で body 差分を読まない。body を 0 に戻した後の差分を二重に拾う。
         public override void _IntegrateRootBody()
         {
-            if (!_isLocalOwner || body == null) return;
+            if (!_IsAuthority() || body == null) return;
 
             Quaternion br = body.rotation;
             Vector3 bp = body.position;
@@ -251,6 +283,12 @@ namespace FDMi.sync
         // §6.4。配列を含む全フィールドの唯一の受信経路。ここでは積むだけで、適用は次の Update。
         public override void OnDeserialization()
         {
+            // パイロットの有効/無効が変わったときだけ選出と所有権を再調整する。
+            if (_pilotActive != _lastPilotActive)
+            {
+                _lastPilotActive = _pilotActive;
+                if (authority != null) authority._OnAnchorSynced();
+            }
             if (Networking.IsOwner(gameObject)) return;
             // 3 件目は捨てる。配列外へは書かない (T-PROTO-13)。
             if (_recvCount >= 2) return;
@@ -411,12 +449,22 @@ namespace FDMi.sync
             return FDMiSyncMath.QNormalize(spin * q1);
         }
 
+        // §9.2。選出されたパイロット以外への所有権移譲を拒否する。
+        // Why-not: 既定 (常に true) に任せない。ランダムな奪取を許すと、パイロットでない
+        // クライアントが権威を持ち、ゲートで凍結する。プレイヤーアンカーは authority が null。
+        public override bool OnOwnershipRequest(VRCPlayerApi requestingPlayer, VRCPlayerApi newOwner)
+        {
+            if (authority == null) return true;
+            return authority._AllowOwnership(newOwner);
+        }
+
         // §6.7。書き込み順は固定: position/rotation → velocity → 待ち解除 → snap。
         public override void OnOwnershipTransferred(VRCPlayerApi newOwner)
         {
             // §6.7 手順の先頭。送受信の分岐はこの 1 個だけを見る。
             _isLocalOwner = newOwner.isLocal;
             _CacheRefs();
+            if (authority != null) authority._OnAnchorSynced();
 
             if (!newOwner.isLocal)
             {
@@ -470,7 +518,7 @@ namespace FDMi.sync
         // それ以外は view を書く。物理状態は外部が所有する。
         public override void _ApplyView(bool shift)
         {
-            if (!shift && _isLocalOwner && manager.GetRoot() == this) return;
+            if (!shift && _IsAuthority() && manager.GetRoot() == this) return;
             _WriteViewPose();
             if (shift) _lastBodyPos = (body != null) ? body.position : view.position;
         }

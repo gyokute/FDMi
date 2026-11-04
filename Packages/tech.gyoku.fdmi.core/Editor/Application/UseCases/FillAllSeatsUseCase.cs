@@ -30,7 +30,13 @@ namespace FDMi.core.Editor.Application.UseCases
             var seats = CollectClusterSeats(manager);
             sp.arraySize = seats.Length;
             for (int i = 0; i < seats.Length; i++)
+            {
                 sp.GetArrayElementAtIndex(i).objectReferenceValue = seats[i];
+                // 席は着席・退出のたびに manager へ再選出を要求する。
+                // Why-not: Runtime で親を辿って manager を探さない。Editor で 1 回だけ解決する。
+                seats[i].manager = manager;
+                EditorUtility.SetDirty(seats[i]);
+            }
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
