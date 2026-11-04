@@ -1,7 +1,5 @@
-using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
-using VRC.Udon;
 
 namespace FDMi.core
 {
@@ -20,17 +18,9 @@ namespace FDMi.core
         [Tooltip("ローカルプレイヤーがパイロットか。同期しないローカルフラグ")]
         public FDMiBool IsPilot;
 
-        [FDMiDataPathConst("~/HasPilot")]
-        [Tooltip("パイロットが存在するか。ローカル選出の結果")]
-        public FDMiBool HasPilot;
-
         [FDMiDataPathConst("~/PilotID")]
         [Tooltip("パイロットのプレイヤー ID。不在は -1。ローカル選出の結果")]
         public FDMiInt PilotID;
-
-        [FDMiDataPathConst("~/CurrentPilotPriority")]
-        [Tooltip("現パイロットの優先度。ローカル選出の結果")]
-        public FDMiInt CurrentPilotPriority;
 
         // 車両アンカーの同期 bit のローカルミラー。パイロットが有効な間 true。
         // ゾーン退出や所有者交代は FDMiPilotAuthority がこの値を落とし、再選出が走る。
@@ -69,45 +59,28 @@ namespace FDMi.core
             }
 
             int pilotId = -1;
-            int priority = -1;
             if (active)
             {
                 bool replaced = incumbentSeat != null
                     ? (best != null && best.pilotPriority > incumbentSeat.pilotPriority)
                     : best != null;
 
-                if (replaced)
-                {
-                    pilotId = best.seatedPlayer.playerId;
-                    priority = best.pilotPriority;
-                }
-                else
-                {
-                    pilotId = incumbent;
-                    priority = incumbentSeat != null
-                        ? incumbentSeat.pilotPriority
-                        : CurrentPilotPriority.Data; // 立ちパイロットは直前の優先度を維持
-                }
+                pilotId = replaced ? best.seatedPlayer.playerId : incumbent;
             }
             else if (best != null)
             {
                 pilotId = best.seatedPlayer.playerId;
-                priority = best.pilotPriority;
             }
 
             // FDMiData.Set は常にコールバックを発火する。同値で書かない (選出の再入を止める)。
             if (PilotID.Data != pilotId)
                 PilotID.Data = pilotId;
-            if (HasPilot.Data != (pilotId != -1))
-                HasPilot.Data = pilotId != -1;
-            if (CurrentPilotPriority.Data != priority)
-                CurrentPilotPriority.Data = priority;
             if (IsPilot.Data != (pilotId == localId))
                 IsPilot.Data = pilotId == localId;
         }
 
         // OnPlayerLeft は全クライアントで呼ばれる。離脱者の席を解放して再選出する。
-        // 離脱者がパイロットなら incumbent は GetPlayerById で無効になり、次候補へ移る。
+        // 離脱者がパイロットなら incumbent から外し、次候補へ移る。
         public override void OnPlayerLeft(VRCPlayerApi player)
         {
             int departId = player.playerId;
@@ -116,7 +89,6 @@ namespace FDMi.core
                 if (seat.seatedPlayer != null && seat.seatedPlayer.playerId == departId)
                     seat.seatedPlayer = null;
 
-            // 離脱したパイロットを incumbent から外す。以降の選出は次候補へ移る。
             if (PilotID.Data == departId)
                 PilotID.Data = -1;
 

@@ -23,11 +23,11 @@ namespace FDMi.sync
         [Tooltip("選出されたパイロットの ID。ローカル派生値")]
         public FDMiInt PilotID;
 
-        [FDMiDataPathConst("~/IsPilot"), FDMiRegisterCallback(nameof(OnPilotOrZoneChanged))]
+        [FDMiDataPathConst("~/IsPilot")]
         [Tooltip("ローカルプレイヤーがパイロットか。ローカル派生値")]
         public FDMiBool IsPilot;
 
-        [FDMiDataPathConst("~/InZone"), FDMiRegisterCallback(nameof(OnPilotOrZoneChanged))]
+        [FDMiDataPathConst("~/InZone")]
         [Tooltip("ローカルプレイヤーが機体のゾーン内にいるか")]
         public FDMiBool InZone;
 
@@ -40,6 +40,9 @@ namespace FDMi.sync
 
         void Start()
         {
+            // 機体アンカーは所有者かつパイロットのときだけ姿勢を送る (§9.2)。
+            if (anchor != null)
+                anchor._pilotGated = true;
             _OnAnchorSynced();
         }
 
@@ -75,16 +78,16 @@ namespace FDMi.sync
         }
 
         // パイロットがゾーンを出たら権限を失う。立ちパイロットはゾーン内にいる限り継続する。
-        // 着席中はゾーン内とみなす (席は機体内にある)。
-        public void OnPilotOrZoneChanged()
-        {
-            _CheckEligibility();
-        }
-
-        // 席の退出はデータ変化を伴わないことがある (立ちパイロットの継続) ため、
-        // パイロットのクライアントだけ毎フレーム資格を確認する。非パイロットは 2 回の bool 読みで抜ける。
+        // 席の退出はデータ変化を伴わないことがあるため、パイロットのクライアントは毎フレーム
+        // 資格を確認する。非パイロットは 2 回の bool 読みで抜ける。
+        // Why-not: IsPilot/InZone のコールバックを別に持たない。同じ判定を 2 経路に置くと
+        // 片方だけ直されて食い違う。
         void Update()
         {
+            if (anchor == null || IsPilot == null || InZone == null)
+                return;
+            if (anchor._isLocalPilot != IsPilot.Data)
+                anchor._isLocalPilot = IsPilot.Data;
             _CheckEligibility();
         }
 
