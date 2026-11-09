@@ -50,17 +50,17 @@ namespace FDMi.avionics
         public FDMiFloat apSwitch;
 
         [Header("モード選択")]
-        [Tooltip("縦モード選択（0=VS、1=ALT、2=GS/APP）")]
-        public string pitchModeSelectPath = "~/Input/AutoPilot/PitchModeSelect";
+        [Tooltip("縦モード選択（0=VS、1=ALT、2以上=GS/APP）")]
+        public string pitchModeSelectPath = "~/Input/PitchMode";
 
         [FDMiDataPath(nameof(pitchModeSelectPath))]
-        public FDMiFloat pitchModeSelect;
+        public FDMiInt pitchModeSelect;
 
-        [Tooltip("横モード選択（0=HDG HOLD、1=HDG SEL、2=VOR、3=LOC）")]
-        public string rollModeSelectPath = "~/Input/AutoPilot/RollModeSelect";
+        [Tooltip("横モード選択（0/2=HDG HOLD、1/3=HDG SEL、4/5=VOR、6/7=LOC）")]
+        public string rollModeSelectPath = "~/Input/RollMode";
 
         [FDMiDataPath(nameof(rollModeSelectPath))]
-        public FDMiFloat rollModeSelect;
+        public FDMiInt rollModeSelect;
 
         [Header("指令")]
         [Tooltip("VS 指令 [100 ft/min]")]
@@ -82,7 +82,7 @@ namespace FDMi.avionics
         public FDMiFloat headingCommand;
 
         [Tooltip("コース指令 [deg magnetic]")]
-        public string courseCommandPath = "~/Input/NAV1/Course";
+        public string courseCommandPath = "~/Input/CRS1/Value";
 
         [FDMiDataPath(nameof(courseCommandPath))]
         public FDMiFloat courseCommand;
@@ -137,22 +137,22 @@ namespace FDMi.avionics
         public FDMiBool navValid;
 
         [Header("ヨーク（CWS の手放し検出）")]
-        public string pitchInputLPath = "~/Input/YokeL/Input.Gesture/PitchInput";
+        public string pitchInputLPath = "~/Input/YokeL/PitchInput";
 
         [FDMiDataPath(nameof(pitchInputLPath))]
         public FDMiFloat pitchInputL;
 
-        public string pitchInputRPath = "~/Input/YokeR/Input.Gesture/PitchInput";
+        public string pitchInputRPath = "~/Input/YokeR/PitchInput";
 
         [FDMiDataPath(nameof(pitchInputRPath))]
         public FDMiFloat pitchInputR;
 
-        public string rollInputLPath = "~/Input/YokeL/Input.Gesture/RollInput";
+        public string rollInputLPath = "~/Input/YokeL/RollInput";
 
         [FDMiDataPath(nameof(rollInputLPath))]
         public FDMiFloat rollInputL;
 
-        public string rollInputRPath = "~/Input/YokeR/Input.Gesture/RollInput";
+        public string rollInputRPath = "~/Input/YokeR/RollInput";
 
         [FDMiDataPath(nameof(rollInputRPath))]
         public FDMiFloat rollInputR;
@@ -254,8 +254,6 @@ namespace FDMi.avionics
 
         float[] _fdSwitch,
             _apSwitch,
-            _pitchModeSelect,
-            _rollModeSelect,
             _vsCommand,
             _altitudeCommand,
             _headingCommand,
@@ -274,6 +272,8 @@ namespace FDMi.avionics
             _fdPitch,
             _fdRoll;
         bool[] _navValid;
+        int[] _pitchModeSelect,
+            _rollModeSelect;
         int[] _pitchModeOut, _rollModeOut, _pitchArmedOut, _rollArmedOut;
 
         FDMiPitchMode _pitchMode;
@@ -390,8 +390,8 @@ namespace FDMi.avionics
                 return;
             }
 
-            int pitchSel = Mathf.RoundToInt(_pitchModeSelect[0]);
-            int rollSel = Mathf.RoundToInt(_rollModeSelect[0]);
+            int pitchSel = _pitchModeSelect[0];
+            int rollSel = _rollModeSelect[0];
             float altCmd = _altitudeCommand[0] * 0.3048f;
             float vsSel = _vsCommand[0] * 0.508f;
             bool altCmdChanged = Mathf.Abs(_altitudeCommand[0] - _prevAltCmd) > 1f;
@@ -529,21 +529,24 @@ namespace FDMi.avionics
             float locRate = (locDev - _prevLocDev) / dt;
             _locRate = _locRate + (locRate - _locRate) * (dt / (locRateTau + dt));
 
-            if (rollSel == 0)
+            // FGCP はモード enum の値をそのまま書く（HDG HOLD=2、HDG SEL=3、VOR=4/5、LOC=6/7）。
+            // Why-not: 選択入力だけ 0..3 に振り直さない。パネルの既存配線を変えずに済む。
+            bool isVor = rollSel == 4 || rollSel == 5;
+            if (rollSel == 0 || rollSel == 2)
             {
                 _rollMode = FDMiRollMode.HdgHold;
                 _rollArmed = 0;
             }
-            else if (rollSel == 1)
+            else if (rollSel == 1 || rollSel == 3)
             {
                 _rollMode = FDMiRollMode.HdgSel;
                 _rollArmed = 0;
             }
             else
             {
-                int armed = rollSel == 2 ? (int)FDMiRollMode.VorCap : (int)FDMiRollMode.LocCap;
-                int track = rollSel == 2 ? (int)FDMiRollMode.VorTrk : (int)FDMiRollMode.LocTrk;
-                float capture = rollSel == 2 ? vorCaptureDeg : locCaptureDeg;
+                int armed = isVor ? (int)FDMiRollMode.VorCap : (int)FDMiRollMode.LocCap;
+                int track = isVor ? (int)FDMiRollMode.VorTrk : (int)FDMiRollMode.LocTrk;
+                float capture = isVor ? vorCaptureDeg : locCaptureDeg;
                 if (_rollMode != (FDMiRollMode)track)
                 {
                     _rollMode = FDMiRollMode.HdgSel;

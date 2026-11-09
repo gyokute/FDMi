@@ -25,7 +25,7 @@ namespace FDMi.avionics
         public FDMiFloat autoBrakeMode;
 
         [Tooltip("スロットルレバーのパス")]
-        public string throttlePath = "~/Input/ThrottleLever/Input.Gesture/Throttle";
+        public string throttlePath = "~/Input/ThrottleLever/Throttle";
 
         [FDMiDataPath(nameof(throttlePath))]
         [Tooltip("スロットル [0,1]。RTO のラッチと作動条件に使う")]
@@ -39,14 +39,14 @@ namespace FDMi.avionics
         public FDMiBool grounded;
 
         [Tooltip("左ヨークのブレーキ入力のパス")]
-        public string yokeBrakeLPath = "~/Input/YokeL/Input.Trigger/BrakeInput";
+        public string yokeBrakeLPath = "~/Input/YokeL/BrakeInput";
 
         [FDMiDataPath(nameof(yokeBrakeLPath))]
         [Tooltip("ヨークのブレーキ入力（左）[0,1]。手動解除の判定に使う")]
         public FDMiFloat yokeBrakeL;
 
         [Tooltip("右ヨークのブレーキ入力のパス")]
-        public string yokeBrakeRPath = "~/Input/YokeR/Input.Trigger/BrakeInput";
+        public string yokeBrakeRPath = "~/Input/YokeR/BrakeInput";
 
         [FDMiDataPath(nameof(yokeBrakeRPath))]
         [Tooltip("ヨークのブレーキ入力（右）[0,1]")]

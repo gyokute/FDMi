@@ -28,10 +28,10 @@ namespace FDMi.avionics
         public FDMiFloat atSwitch;
 
         [Tooltip("A/T モード選択（0=SPD、1=N1）")]
-        public string modeSelectPath = "~/Input/AutoThrottle/ModeSelect";
+        public string modeSelectPath = "~/Input/ATSMode";
 
         [FDMiDataPath(nameof(modeSelectPath))]
-        public FDMiFloat modeSelect;
+        public FDMiInt modeSelect;
 
         [Header("指令")]
         [Tooltip("速度指令 [kt]")]
@@ -41,7 +41,7 @@ namespace FDMi.avionics
         public FDMiFloat speedCommand;
 
         [Tooltip("N1 指令 [0,1]")]
-        public string n1CommandPath = "~/Input/AutoThrottle/N1Command";
+        public string n1CommandPath = "~/Input/N1Command";
 
         [FDMiDataPath(nameof(n1CommandPath))]
         public FDMiFloat n1Command;
@@ -85,7 +85,7 @@ namespace FDMi.avionics
 
         [Header("出力")]
         [Tooltip("スロットルレバーの値。同じノードを読み書きする")]
-        public string throttlePath = "~/Input/ThrottleLever/Input.Gesture/Throttle";
+        public string throttlePath = "~/Input/ThrottleLever/Throttle";
 
         [FDMiDataPath(nameof(throttlePath))]
         public FDMiFloat throttle;
@@ -119,7 +119,6 @@ namespace FDMi.avionics
         public float retardRate = 0.5f;
 
         float[] _atSwitch,
-            _modeSelect,
             _speedCommand,
             _n1Command,
             _ias,
@@ -127,6 +126,7 @@ namespace FDMi.avionics
             _radarAltitude,
             _verticalSpeed,
             _throttle;
+        int[] _modeSelect;
         bool[] _grounded;
         int[] _atModeOut;
 
@@ -172,7 +172,7 @@ namespace FDMi.avionics
             float throttleNow = _throttle[0];
             float ra = _radarAltitude[0];
             float vs = _verticalSpeed[0];
-            int sel = Mathf.RoundToInt(_modeSelect[0]);
+            int sel = _modeSelect[0];
 
             int mode;
             if (isGrounded)

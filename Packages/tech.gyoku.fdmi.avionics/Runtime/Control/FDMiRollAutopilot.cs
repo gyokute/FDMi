@@ -33,13 +33,13 @@ namespace FDMi.avionics
         public FDMiFloat roll;
 
         [Tooltip("左ヨークのロール入力")]
-        public string rollInputLPath = "~/Input/YokeL/Input.Gesture/RollInput";
+        public string rollInputLPath = "~/Input/YokeL/RollInput";
 
         [FDMiDataPath(nameof(rollInputLPath))]
         public FDMiFloat rollInputL;
 
         [Tooltip("右ヨークのロール入力")]
-        public string rollInputRPath = "~/Input/YokeR/Input.Gesture/RollInput";
+        public string rollInputRPath = "~/Input/YokeR/RollInput";
 
         [FDMiDataPath(nameof(rollInputRPath))]
         public FDMiFloat rollInputR;

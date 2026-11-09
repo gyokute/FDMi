@@ -44,13 +44,13 @@ namespace FDMi.avionics
         public FDMiFloat pitch;
 
         [Tooltip("左ヨークのピッチ入力")]
-        public string pitchInputLPath = "~/Input/YokeL/Input.Gesture/PitchInput";
+        public string pitchInputLPath = "~/Input/YokeL/PitchInput";
 
         [FDMiDataPath(nameof(pitchInputLPath))]
         public FDMiFloat pitchInputL;
 
         [Tooltip("右ヨークのピッチ入力")]
-        public string pitchInputRPath = "~/Input/YokeR/Input.Gesture/PitchInput";
+        public string pitchInputRPath = "~/Input/YokeR/PitchInput";
 
         [FDMiDataPath(nameof(pitchInputRPath))]
         public FDMiFloat pitchInputR;

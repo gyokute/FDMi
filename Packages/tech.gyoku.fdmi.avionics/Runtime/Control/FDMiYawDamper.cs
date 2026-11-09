@@ -21,7 +21,7 @@ namespace FDMi.avionics
 
         [Header("出力")]
         [Tooltip("ラダー指令のパス")]
-        public string rudderPath = "~/Physics/YawDamper";
+        public string rudderPath = "~/Input/YawDamper/Rudder";
 
         [FDMiDataPath(nameof(rudderPath))]
         [Tooltip("ラダー指令 [-1,1] を書く FDMiFloat")]
