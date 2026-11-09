@@ -30,6 +30,13 @@ namespace FDMi.core
         [Tooltip("回転軸。角度はこの軸のオイラー角に配る")]
         Vector3 axis;
 
+        // シーン上の角度の写し。エディタ (CaptureRotateBaseAngleUseCase) が FDMiData の
+        // [FDMiRegisterCallback] 登録と同じ Hook で更新するので、手で編集しても次の Hook で戻る。
+        // quaternion 合成ではなくオイラー加算なのは、プレビューと実行時で同一の式を使うため。
+        // 軸が単一成分という前提で、その成分だけをカーブ出力で動かす。
+        [HideInInspector]
+        public Vector3 baseAngle;
+
         public void Initialize()
         {
             OnChange();
@@ -37,11 +44,12 @@ namespace FDMi.core
 
         public void OnChange()
         {
-            target.data[0].localEulerAngles = FDMiTransformMath.EvaluateEuler(
+            Vector3 angle = FDMiTransformMath.EvaluateEuler(
                 axis,
                 outputCurve,
                 Value.GetFloat()
             );
+            target.data[0].localEulerAngles = baseAngle + angle;
         }
     }
 }

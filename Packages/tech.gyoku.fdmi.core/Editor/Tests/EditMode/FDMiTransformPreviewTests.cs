@@ -1,3 +1,4 @@
+using FDMi.core.Editor.Application.UseCases;
 using FDMi.core.Editor.Preview;
 using NUnit.Framework;
 using UnityEditor;
@@ -62,6 +63,82 @@ namespace FDMi.core.Editor.Tests
             Assert.That(preview.From, Is.EqualTo(new Vector3(1f, 2f, 3f)));
             Assert.That(preview.To, Is.EqualTo(new Vector3(4f, 5f, 6f)));
             Assert.That(preview.BaseValue, Is.EqualTo(0.25f));
+        }
+
+        [Test]
+        public void TryCreateRotate_ReadsBaseAngleAndAddsItToAngle()
+        {
+            var rotateGo = new GameObject("preview-rotate");
+            var targetGo = new GameObject("preview-rotate-target");
+            try
+            {
+                var rotate = rotateGo.AddComponent<FDMiTransformRotate>();
+                var data = rotateGo.AddComponent<FDMiFloat>();
+                var target = rotateGo.AddComponent<FDMiTransformRef>();
+                data.data[0] = 1f;
+                target.data[0] = targetGo.transform;
+                rotate.Value = data;
+                rotate.target = target;
+                rotate.outputCurve = new AnimationCurve(
+                    new Keyframe(0f, 0f),
+                    new Keyframe(1f, 90f)
+                );
+                rotate.baseAngle = new Vector3(10f, 20f, 30f);
+
+                var serializedObject = new SerializedObject(rotate);
+                serializedObject.FindProperty("axis").vector3Value = Vector3.right;
+                serializedObject.ApplyModifiedPropertiesWithoutUndo();
+
+                bool created = FDMiTransformPreview.TryCreateRotate(
+                    rotate,
+                    out FDMiRotatePreview preview,
+                    out string reason
+                );
+
+                Assert.That(created, Is.True, reason);
+                Assert.That(preview.BaseAngle, Is.EqualTo(new Vector3(10f, 20f, 30f)));
+                Assert.That(
+                    Vector3.Distance(preview.LocalEulerAt(0f), new Vector3(10f, 20f, 30f)),
+                    Is.LessThan(1e-4f)
+                );
+                Assert.That(
+                    Vector3.Distance(preview.LocalEulerAt(1f), new Vector3(100f, 20f, 30f)),
+                    Is.LessThan(1e-4f)
+                );
+            }
+            finally
+            {
+                Object.DestroyImmediate(rotateGo);
+                Object.DestroyImmediate(targetGo);
+            }
+        }
+
+        [Test]
+        public void CaptureRotateBaseAngle_RegistersSceneAngle()
+        {
+            FDMiPreviewSession.Stop();
+            var rotateGo = new GameObject("capture-rotate");
+            var targetGo = new GameObject("capture-target");
+            try
+            {
+                var rotate = rotateGo.AddComponent<FDMiTransformRotate>();
+                var target = rotateGo.AddComponent<FDMiTransformRef>();
+                target.data[0] = targetGo.transform;
+                rotate.target = target;
+                targetGo.transform.localEulerAngles = new Vector3(15f, 25f, 35f);
+
+                new CaptureRotateBaseAngleUseCase().Execute(rotate);
+
+                Assert.That(
+                    Vector3.Distance(rotate.baseAngle, new Vector3(15f, 25f, 35f)),
+                    Is.LessThan(1e-3f)
+                );
+            }
+            finally
+            {
+                Object.DestroyImmediate(rotateGo);
+                Object.DestroyImmediate(targetGo);
+            }
         }
 
         [Test]

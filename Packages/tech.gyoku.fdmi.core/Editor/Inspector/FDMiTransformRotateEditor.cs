@@ -1,4 +1,5 @@
 using FDMi.core;
+using FDMi.core.Editor.Application.UseCases;
 using FDMi.core.Editor.Preview;
 using UnityEditor;
 using UnityEngine;
@@ -29,6 +30,23 @@ namespace FDMi.core.Editor.Inspector
         protected override void DrawReadout()
         {
             FDMiRotatePreview preview = (FDMiRotatePreview)Preview;
+            var rotate = (FDMiTransformRotate)target;
+            EditorGUILayout.LabelField(
+                "初期角度 X / Y / Z",
+                preview.BaseAngle.x.ToString("F2") + "° / " + preview.BaseAngle.y.ToString("F2") + "° / " + preview.BaseAngle.z.ToString("F2") + "°"
+            );
+            // OnInspectorGUI はシーンビューのドラッグを検知しないため、姿勢を変えたらここで取り直す。
+            // プレビュー中は Transform がプレビュー値なので登録させない。
+            using (new EditorGUI.DisabledScope(FDMiPreviewSession.IsActive))
+            {
+                if (GUILayout.Button("シーン姿勢を再登録"))
+                {
+                    CaptureRotateBaseAngleUseCase.Capture(rotate);
+                    preview.BaseAngle = rotate.baseAngle;
+                    SceneView.RepaintAll();
+                }
+            }
+
             Vector3 euler = preview.LocalEulerAt(Value);
             EditorGUILayout.LabelField(
                 "角度 X / Y / Z",

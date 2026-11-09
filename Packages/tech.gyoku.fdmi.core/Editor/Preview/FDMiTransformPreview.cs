@@ -82,10 +82,11 @@ namespace FDMi.core.Editor.Preview
     public sealed class FDMiRotatePreview : FDMiTransformPreviewBase
     {
         public Vector3 Axis;
+        public Vector3 BaseAngle;
 
         public Vector3 LocalEulerAt(float value)
         {
-            return Axis * Curve.Evaluate(value);
+            return BaseAngle + Axis * Curve.Evaluate(value);
         }
 
         public Quaternion LocalRotationAt(float value)
@@ -130,10 +131,10 @@ namespace FDMi.core.Editor.Preview
                 Handles.DrawLine(position, position + axisWorld * size * 3f);
             }
 
-            if (IsSingleAxis(Axis, out float component) && axisWorld.sqrMagnitude > 0f)
+            if (IsSingleAxis(Axis, BaseAngle, out float component, out float baseComponent) && axisWorld.sqrMagnitude > 0f)
             {
-                float start = component * Curve.Evaluate(RangeMin);
-                float end = component * Curve.Evaluate(RangeMax);
+                float start = baseComponent + component * Curve.Evaluate(RangeMin);
+                float end = baseComponent + component * Curve.Evaluate(RangeMax);
                 Vector3 normal = axisWorld.normalized;
                 Vector3 from = Perpendicular(normal);
                 Handles.color = new Color(0.4f, 0.8f, 1f);
@@ -158,24 +159,33 @@ namespace FDMi.core.Editor.Preview
             );
         }
 
-        static bool IsSingleAxis(Vector3 axis, out float component)
+        static bool IsSingleAxis(
+            Vector3 axis,
+            Vector3 baseAngle,
+            out float component,
+            out float baseComponent
+        )
         {
             component = 0f;
+            baseComponent = 0f;
             int count = 0;
             if (Mathf.Abs(axis.x) > 1e-4f)
             {
                 count++;
                 component = axis.x;
+                baseComponent = baseAngle.x;
             }
             if (Mathf.Abs(axis.y) > 1e-4f)
             {
                 count++;
                 component = axis.y;
+                baseComponent = baseAngle.y;
             }
             if (Mathf.Abs(axis.z) > 1e-4f)
             {
                 count++;
                 component = axis.z;
+                baseComponent = baseAngle.z;
             }
             return count == 1;
         }
@@ -294,6 +304,7 @@ namespace FDMi.core.Editor.Preview
             {
                 Target = rotate.target.data[0],
                 Axis = axis.vector3Value,
+                BaseAngle = rotate.baseAngle,
                 Curve = rotate.outputCurve,
                 RangeMin = range.min,
                 RangeMax = range.max,
