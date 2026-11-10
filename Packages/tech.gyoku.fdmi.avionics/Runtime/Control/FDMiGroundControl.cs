@@ -76,7 +76,7 @@ namespace FDMi.avionics
 
         [Header("自動ブレーキ")]
         [Tooltip("自動ブレーキ指令のパス")]
-        public string autoBrakePath = "~/Input/AutoBrake/Brake";
+        public string autoBrakePath = "~/Avionics/autobrake";
 
         [FDMiDataPath(nameof(autoBrakePath))]
         [Tooltip("自動ブレーキ指令 [0,1]。手動ブレーキと max を取る")]

@@ -10,7 +10,7 @@ namespace FDMi.avionics
     // Why not 速度そのものを目標にする: 停止位置は滑走路の状態で変わり、則が持つべき情報ではない。
     // 減速度を閉ループにすれば、摩擦や推力の違いをブレーキ量が吸収する。
     // Why not 車輪のブレーキ率を直接書く: どの輪を制動するかはデータの所属で決まる。
-    // ~/Input/AutoBrake/Brake を輪側のブレーキ効果に配線すれば、輪の構成が変わってもここは動かない。
+    // ~/Avionics/autobrake を輪側のブレーキ効果に配線すれば、輪の構成が変わってもここは動かない。
     // Why not 実減速度を目標にそのまま追わせる: 生の差分は 1 フレームの速度変化に敏感で、
     // 目標に当たった瞬間にブレーキが振動する。時定数 0.5s で落としてから比較する。
     [DefaultExecutionOrder(-300)]
@@ -54,7 +54,7 @@ namespace FDMi.avionics
 
         [Header("出力")]
         [Tooltip("ブレーキ指令のパス")]
-        public string brakeOutPath = "~/Input/AutoBrake/Brake";
+        public string brakeOutPath = "~/Avionics/autobrake";
 
         [FDMiDataPath(nameof(brakeOutPath))]
         [Tooltip("ブレーキ指令 [0,1] を書く FDMiFloat")]
