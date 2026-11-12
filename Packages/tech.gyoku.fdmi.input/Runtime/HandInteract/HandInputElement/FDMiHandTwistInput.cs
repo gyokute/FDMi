@@ -11,8 +11,7 @@ namespace FDMi.input
         public override void WhileGrab(FDMiHandInputGroup group)
         {
             Quaternion delta = Quaternion.Inverse(group.prevHandRot) * group.handRot;
-            handMovement = Vector3.Dot(delta.eulerAngles, inputAxis);
-            handMovement = Mathf.Repeat(handMovement + 180, 360) - 180;
+            handMovement = FDMiHandInputMath.TwistAngleAboutAxis(delta, inputAxis);
 
             base.WhileGrab(group);
         }

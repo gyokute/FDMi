@@ -63,7 +63,8 @@ namespace FDMi.input.Editor
             float toMin = FDMiHandPreviewMath.TravelToBound(current, settings.min, settings.multiplier);
 
             Vector3 origin = lever.transform.position;
-            Vector3 axis = group.transform.TransformDirection(settings.axis);
+            Transform frame = group.reference != null ? group.reference : group.transform;
+            Vector3 axis = frame.TransformDirection(settings.axis);
             FDMiHandPreviewDraw.DrawTravel(
                 origin,
                 axis,

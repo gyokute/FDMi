@@ -104,29 +104,14 @@ namespace FDMi.input
             }
             else if (gesture == FDMiHandGestureType.Rotate)
             {
-                Quaternion delta = Quaternion.FromToRotation(startHandPos, handPos);
-                rawInput = SignedAngleAboutAxis(delta, axis);
+                rawInput = FDMiHandInputMath.AngleAboutAxis(startHandPos, handPos, axis);
             }
             else if (gesture == FDMiHandGestureType.Twist)
             {
                 Quaternion delta = Quaternion.Inverse(startHandRot) * handRot;
-                rawInput = SignedAngleAboutAxis(delta, axis);
+                rawInput = FDMiHandInputMath.TwistAngleAboutAxis(delta, axis);
             }
             return Mathf.Clamp(rawInput * multiplier, -1f, 1f);
-        }
-
-        private static float SignedAngleAboutAxis(Quaternion delta, Vector3 axis)
-        {
-            // swing-twist 分解の twist 側: 選択軸まわりの成分のみを厳密抽出。
-            // 特異点（180°回転かつ軸が選択軸と垂直）では Atan2(0,0)=0 を返す。
-            Vector3 n = axis.normalized;
-            Vector3 v = new Vector3(delta.x, delta.y, delta.z);
-            float angle = 2f * Mathf.Atan2(Vector3.Dot(v, n), delta.w) * Mathf.Rad2Deg;
-            if (angle > 180f)
-                angle -= 360f;
-            else if (angle < -180f)
-                angle += 360f;
-            return angle;
         }
     }
 }

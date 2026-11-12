@@ -27,6 +27,9 @@ namespace FDMi.input.Editor
             serializedObject.Update();
             SetArray(serializedObject.FindProperty(nameof(FDMiHandInputGroup.Trackers)), trackers.ToArray());
             SetArray(serializedObject.FindProperty(nameof(FDMiHandInputGroup.InputElements)), elements.ToArray());
+            SerializedProperty reference = serializedObject.FindProperty(nameof(FDMiHandInputGroup.reference));
+            if (reference != null && reference.objectReferenceValue == null)
+                reference.objectReferenceValue = group.transform.parent;
             serializedObject.ApplyModifiedProperties();
         }
 

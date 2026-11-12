@@ -15,9 +15,12 @@ namespace FDMi.input
 
         [Tooltip("この入力の操作要素。Editor が名前空間内から収集する")]
         public FDMiHandInputElement[] InputElements = new FDMiHandInputElement[0];
+
+        [Tooltip("手の位置・回転を表す固定 Transform。空なら自身。回転入力ではこの原点が回転中心になる")]
+        public Transform reference;
         private FDMiHandTracker grabHand;
 
-        // 手の姿勢 (このグループのローカル) と軸値。Update ごとにトラッカーから写す。
+        // 手の姿勢 (基準のローカル) と軸値。Update ごとにトラッカーから写す。
         [HideInInspector]
         public Vector3 handPos;
 
@@ -35,17 +38,25 @@ namespace FDMi.input
 
         protected virtual void GetHandInput(FDMiHandTracker tracker)
         {
+            Transform frame = reference;
+            if (!frame)
+                frame = transform;
+
             prevHandPos = handPos;
             prevHandRot = handRot;
-            handPos = transform.InverseTransformPoint(tracker.handPos);
-            handRot = Quaternion.Inverse(transform.rotation) * tracker.handRot;
+            handPos = frame.InverseTransformPoint(tracker.handPos);
+            handRot = Quaternion.Inverse(frame.rotation) * tracker.handRot;
             axes = tracker.axes;
         }
 
         protected virtual void OnStartHandInput(FDMiHandTracker tracker)
         {
-            handPos = transform.InverseTransformPoint(tracker.handPos);
-            handRot = Quaternion.Inverse(transform.rotation) * tracker.handRot;
+            Transform frame = reference;
+            if (!frame)
+                frame = transform;
+
+            handPos = frame.InverseTransformPoint(tracker.handPos);
+            handRot = Quaternion.Inverse(frame.rotation) * tracker.handRot;
             prevHandPos = handPos;
             prevHandRot = handRot;
             axes = tracker.axes;

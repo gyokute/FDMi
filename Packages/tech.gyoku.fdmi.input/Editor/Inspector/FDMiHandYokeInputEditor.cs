@@ -108,7 +108,8 @@ namespace FDMi.input.Editor
             if (Mathf.Approximately(multiplier, 0f) || axis.sqrMagnitude < 1e-8f)
                 return;
 
-            Vector3 worldAxis = group.transform.TransformDirection(axis);
+            Transform frame = group.reference != null ? group.reference : group.transform;
+            Vector3 worldAxis = frame.TransformDirection(axis);
             bool pull = type == FDMiHandGestureType.Pull;
             string unit = pull ? "m" : "°";
             float toPlus = 1f / multiplier;
