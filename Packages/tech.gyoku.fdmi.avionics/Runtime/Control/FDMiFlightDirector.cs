@@ -49,6 +49,16 @@ namespace FDMi.avionics
         [FDMiDataPath(nameof(apSwitchPath))]
         public FDMiFloat apSwitch;
 
+        [Header("NAV系統選択")]
+        [Tooltip("系統選択子（0=Both On A, 1=NORM, 2=Both On B）")]
+        public string navSelectorPath = "~/Input/FDCOM/Value";
+
+        [FDMiDataPath(nameof(navSelectorPath)), FDMiRegisterCallback(nameof(OnNavSelectorChanged))]
+        public FDMiData navSelector;
+
+        [Tooltip("右席なら true。NORM のとき B 系統を使う")]
+        public bool rightSeat;
+
         [Header("モード選択")]
         [Tooltip("縦モード選択（0=VS、1=ALT、2以上=GS/APP）")]
         public string pitchModeSelectPath = "~/Input/PitchMode";
@@ -87,6 +97,12 @@ namespace FDMi.avionics
         [FDMiDataPath(nameof(courseCommandPath))]
         public FDMiFloat courseCommand;
 
+        [Tooltip("B 系統のコース指令 [deg magnetic]")]
+        public string courseCommand2Path = "~/Input/CRS2/Value";
+
+        [FDMiDataPath(nameof(courseCommand2Path))]
+        public FDMiFloat courseCommand2;
+
         [Header("機体状態")]
         [Tooltip("ピッチ角 [deg]。正=機首上げ")]
         public string pitchPath = "~/Physics/Pitch";
@@ -118,23 +134,65 @@ namespace FDMi.avionics
         [FDMiDataPath(nameof(verticalSpeedPath))]
         public FDMiFloat verticalSpeed;
 
-        [Tooltip("LOC/GS 偏差（CNS 受信機の出力）")]
+        [Tooltip("A 系統の LOC 偏差（CNS 受信機の出力）")]
         public string locDeviationPath = "~/Physics/NAV1/LOCDev";
 
         [FDMiDataPath(nameof(locDeviationPath))]
         public FDMiFloat locDeviation;
 
-        [Tooltip("GS 偏差 [deg]。正=パス上方")]
+        [Tooltip("A 系統の GS 偏差 [deg]。正=パス上方")]
         public string gsDeviationPath = "~/Physics/NAV1/GSDev";
 
         [FDMiDataPath(nameof(gsDeviationPath))]
         public FDMiFloat gsDeviation;
 
-        [Tooltip("航法有効")]
+        [Tooltip("A 系統の TO/FROM")]
+        public string tofromPath = "~/Physics/NAV1/TOFROM";
+
+        [FDMiDataPath(nameof(tofromPath))]
+        public FDMiFloat tofrom;
+
+        [Tooltip("A 系統の航法源（0=なし、1=VOR、2=ILS）")]
+        public string navTypePath = "~/Physics/NAV1/Type";
+
+        [FDMiDataPath(nameof(navTypePath))]
+        public FDMiInt navType;
+
+        [Tooltip("A 系統の航法有効")]
         public string navValidPath = "~/Physics/NAV1/Valid";
 
         [FDMiDataPath(nameof(navValidPath))]
         public FDMiBool navValid;
+
+        [Tooltip("B 系統の LOC 偏差")]
+        public string locDeviation2Path = "~/Physics/NAV2/LOCDev";
+
+        [FDMiDataPath(nameof(locDeviation2Path))]
+        public FDMiFloat locDeviation2;
+
+        [Tooltip("B 系統の GS 偏差 [deg]")]
+        public string gsDeviation2Path = "~/Physics/NAV2/GSDev";
+
+        [FDMiDataPath(nameof(gsDeviation2Path))]
+        public FDMiFloat gsDeviation2;
+
+        [Tooltip("B 系統の TO/FROM")]
+        public string tofrom2Path = "~/Physics/NAV2/TOFROM";
+
+        [FDMiDataPath(nameof(tofrom2Path))]
+        public FDMiFloat tofrom2;
+
+        [Tooltip("B 系統の航法源（0=なし、1=VOR、2=ILS）")]
+        public string navType2Path = "~/Physics/NAV2/Type";
+
+        [FDMiDataPath(nameof(navType2Path))]
+        public FDMiInt navType2;
+
+        [Tooltip("B 系統の航法有効")]
+        public string navValid2Path = "~/Physics/NAV2/Valid";
+
+        [FDMiDataPath(nameof(navValid2Path))]
+        public FDMiBool navValid2;
 
         [Header("ヨーク（CWS の手放し検出）")]
         public string pitchInputLPath = "~/Input/YokeL/PitchInput";
@@ -189,6 +247,43 @@ namespace FDMi.avionics
 
         [FDMiDataPath(nameof(rollArmedOutPath))]
         public FDMiInt rollArmedOut;
+
+        [Header("選択済み NAV（計器用）")]
+        [Tooltip("選択系統のコース [deg magnetic]")]
+        public string navCrsOutPath = "~/Avionics/Autopilot/NAV/L/CRS";
+
+        [FDMiDataPath(nameof(navCrsOutPath))]
+        public FDMiFloat navCrsOut;
+
+        [Tooltip("選択系統の LOC 偏差 [deg]")]
+        public string navLocOutPath = "~/Avionics/Autopilot/NAV/L/LOCDev";
+
+        [FDMiDataPath(nameof(navLocOutPath))]
+        public FDMiFloat navLocOut;
+
+        [Tooltip("選択系統の GS 偏差 [deg]")]
+        public string navGsOutPath = "~/Avionics/Autopilot/NAV/L/GSDev";
+
+        [FDMiDataPath(nameof(navGsOutPath))]
+        public FDMiFloat navGsOut;
+
+        [Tooltip("選択系統の TO/FROM")]
+        public string navTofromOutPath = "~/Avionics/Autopilot/NAV/L/TOFROM";
+
+        [FDMiDataPath(nameof(navTofromOutPath))]
+        public FDMiFloat navTofromOut;
+
+        [Tooltip("選択系統の航法源（0=なし、1=VOR、2=ILS）")]
+        public string navTypeOutPath = "~/Avionics/Autopilot/NAV/L/Type";
+
+        [FDMiDataPath(nameof(navTypeOutPath))]
+        public FDMiInt navTypeOut;
+
+        [Tooltip("選択系統の航法有効")]
+        public string navValidOutPath = "~/Avionics/Autopilot/NAV/L/Valid";
+
+        [FDMiDataPath(nameof(navValidOutPath))]
+        public FDMiBool navValidOut;
 
         [Header("縦の誘導則")]
         [Tooltip("VS 誤差の比例ゲイン [deg/(m/s)/s]")]
@@ -258,22 +353,36 @@ namespace FDMi.avionics
             _altitudeCommand,
             _headingCommand,
             _courseCommand,
+            _courseCommand2,
             _pitch,
             _roll,
             _heading,
             _altitude,
             _verticalSpeed,
             _locDeviation,
+            _locDeviation2,
             _gsDeviation,
+            _gsDeviation2,
+            _tofrom,
+            _tofrom2,
             _pitchInputL,
             _pitchInputR,
             _rollInputL,
             _rollInputR,
             _fdPitch,
-            _fdRoll;
-        bool[] _navValid;
+            _fdRoll,
+            _navCrsOut,
+            _navLocOut,
+            _navGsOut,
+            _navTofromOut;
+        bool[] _navValid,
+            _navValid2,
+            _navValidOut;
         int[] _pitchModeSelect,
             _rollModeSelect;
+        int[] _navType,
+            _navType2,
+            _navTypeOut;
         int[] _pitchModeOut, _rollModeOut, _pitchArmedOut, _rollArmedOut;
 
         FDMiPitchMode _pitchMode;
@@ -296,6 +405,13 @@ namespace FDMi.avionics
             _locRate,
             _prevLocDev,
             _prevAltCmd;
+        float _selCourse,
+            _selLoc,
+            _selGs,
+            _selTofrom;
+        int _selType;
+        bool _selValid,
+            _useB;
         bool _cwsPitchHeld,
             _cwsRollHeld,
             _initialized;
@@ -310,14 +426,22 @@ namespace FDMi.avionics
             _altitudeCommand = altitudeCommand.data;
             _headingCommand = headingCommand.data;
             _courseCommand = courseCommand.data;
+            _courseCommand2 = courseCommand2.data;
             _pitch = pitch.data;
             _roll = roll.data;
             _heading = heading.data;
             _altitude = altitude.data;
             _verticalSpeed = verticalSpeed.data;
             _locDeviation = locDeviation.data;
+            _locDeviation2 = locDeviation2.data;
             _gsDeviation = gsDeviation.data;
+            _gsDeviation2 = gsDeviation2.data;
+            _tofrom = tofrom.data;
+            _tofrom2 = tofrom2.data;
+            _navType = navType.data;
+            _navType2 = navType2.data;
             _navValid = navValid.data;
+            _navValid2 = navValid2.data;
             _pitchInputL = pitchInputL.data;
             _pitchInputR = pitchInputR.data;
             _rollInputL = rollInputL.data;
@@ -328,11 +452,60 @@ namespace FDMi.avionics
             _rollModeOut = rollModeOut.data;
             _pitchArmedOut = pitchArmedOut.data;
             _rollArmedOut = rollArmedOut.data;
+            _navCrsOut = navCrsOut.data;
+            _navLocOut = navLocOut.data;
+            _navGsOut = navGsOut.data;
+            _navTofromOut = navTofromOut.data;
+            _navTypeOut = navTypeOut.data;
+            _navValidOut = navValidOut.data;
             _prevAltCmd = _altitudeCommand[0];
+            OnNavSelectorChanged();
+        }
+
+        // 系統選択子の変化はイベントで受ける。FixedUpdate では読まない。
+        // 0=Both On A, 1=NORM, 2=Both On B。NORM は右席だけ B 系統。
+        public void OnNavSelectorChanged()
+        {
+            int selector = navSelector.GetInt();
+            _useB = selector == 2 || (selector == 1 && rightSeat);
+            _initialized = false;
+        }
+
+        // 選択系統の NAV を計器用に publish する。FD OFF でも計器は NAV を表示するため、
+        // FD の早期 return より前に毎tick書く。
+        void UpdateSelectedNav()
+        {
+            if (_useB)
+            {
+                _selCourse = _courseCommand2[0];
+                _selLoc = _locDeviation2[0];
+                _selGs = _gsDeviation2[0];
+                _selTofrom = _tofrom2[0];
+                _selType = _navType2[0];
+                _selValid = _navValid2[0];
+            }
+            else
+            {
+                _selCourse = _courseCommand[0];
+                _selLoc = _locDeviation[0];
+                _selGs = _gsDeviation[0];
+                _selTofrom = _tofrom[0];
+                _selType = _navType[0];
+                _selValid = _navValid[0];
+            }
+
+            _navCrsOut[0] = _selCourse;
+            _navLocOut[0] = _selLoc;
+            _navGsOut[0] = _selGs;
+            _navTofromOut[0] = _selTofrom;
+            _navTypeOut[0] = _selType;
+            _navValidOut[0] = _selValid;
         }
 
         void FixedUpdate()
         {
+            UpdateSelectedNav();
+
             float dt = Time.fixedDeltaTime;
             float fdOn = _fdSwitch[0];
             if (fdOn < 0.5f)
@@ -408,7 +581,7 @@ namespace FDMi.avionics
                 _altRef = altCmd;
                 _hdgRef = hdgNow;
                 _locRate = 0f;
-                _prevLocDev = _locDeviation[0];
+                _prevLocDev = _selLoc;
                 _pitchArmed = 0;
                 _rollArmed = 0;
                 _initialized = true;
@@ -433,12 +606,21 @@ namespace FDMi.avionics
                     // GS 捕捉までは現在高度の ALT HOLD で待つ。GS は armed として出す。
                     _pitchMode = FDMiPitchMode.AltHold;
                     _altRef = altNow;
-                    _pitchArmed = (int)FDMiPitchMode.GsCap;
+                    _pitchArmed = 0;
                 }
             }
 
             _prevPitchSel = pitchSel;
             _prevRollSel = rollSel;
+
+            // APP 選択かつ ILS のときだけ GS を armed にする。
+            // VOR（Type=1）では GSDev が 0 のままなので、Type を見ないと即捕捉してしまう。
+            bool appSelected = rollSel >= 6;
+            bool gsAvailable = appSelected && _selType == 2 && _selValid;
+            if (_pitchArmed == (int)FDMiPitchMode.GsCap && !gsAvailable)
+                _pitchArmed = 0;
+            if (pitchSel >= 2 && gsAvailable && _pitchMode != FDMiPitchMode.GsTrk && _pitchArmed == 0)
+                _pitchArmed = (int)FDMiPitchMode.GsCap;
 
             // 縦モード。選択子の変更時だけ初期化し、捕捉・遷移は毎tick評価する。
             if (pitchSel == 0)
@@ -484,7 +666,7 @@ namespace FDMi.avionics
             // GS 捕捉・喪失。
             if (_pitchArmed == (int)FDMiPitchMode.GsCap)
             {
-                if (_navValid[0] && Mathf.Abs(_gsDeviation[0]) < gsCaptureDeg)
+                if (gsAvailable && Mathf.Abs(_selGs) < gsCaptureDeg)
                 {
                     _pitchMode = FDMiPitchMode.GsTrk;
                     _pitchArmed = 0;
@@ -494,11 +676,11 @@ namespace FDMi.avionics
             }
             else if (_pitchMode == FDMiPitchMode.GsTrk)
             {
-                if (!_navValid[0] || Mathf.Abs(_gsDeviation[0]) > 2f)
+                if (!gsAvailable || Mathf.Abs(_selGs) > 2f)
                 {
                     _pitchMode = FDMiPitchMode.AltHold;
                     _altRef = altNow;
-                    _pitchArmed = (int)FDMiPitchMode.GsCap;
+                    _pitchArmed = 0;
                     _vsIntegral = 0f;
                 }
             }
@@ -506,7 +688,7 @@ namespace FDMi.avionics
             if (_pitchMode == FDMiPitchMode.GsTrk)
             {
                 // 正の GSDev はパス上方。機首下げ方向（負）へ積分する。
-                float gsErr = -_gsDeviation[0];
+                float gsErr = -_selGs;
                 _pitchCmd += (gsGainP * gsErr + gsGainI * _gsIntegral) * dt;
                 _gsIntegral += gsErr * dt;
                 _gsIntegral = Mathf.Clamp(_gsIntegral, -10f, 10f);
@@ -524,14 +706,12 @@ namespace FDMi.avionics
 
             _pitchCmd = Mathf.Clamp(_pitchCmd, pitchMinDeg, pitchMaxDeg);
 
-            // 横モード。
-            float locDev = _locDeviation[0];
+            // 横モード。VOR/LOC は受信中の Type で選ぶ。4/5=NAV（横のみ）、6/7=APP（GS を許可）。
+            float locDev = _selLoc;
             float locRate = (locDev - _prevLocDev) / dt;
             _locRate = _locRate + (locRate - _locRate) * (dt / (locRateTau + dt));
 
-            // FGCP はモード enum の値をそのまま書く（HDG HOLD=2、HDG SEL=3、VOR=4/5、LOC=6/7）。
-            // Why-not: 選択入力だけ 0..3 に振り直さない。パネルの既存配線を変えずに済む。
-            bool isVor = rollSel == 4 || rollSel == 5;
+            bool isVor = _selType == 1;
             if (rollSel == 0 || rollSel == 2)
             {
                 _rollMode = FDMiRollMode.HdgHold;
@@ -555,7 +735,7 @@ namespace FDMi.avionics
                 if (_rollArmed == armed)
                 {
                     if (
-                        _navValid[0]
+                        _selValid
                         && Mathf.Abs(locDev) < capture
                         && Mathf.Abs(locDev) <= Mathf.Abs(_prevLocDev)
                     )
@@ -564,7 +744,7 @@ namespace FDMi.avionics
                         _rollArmed = 0;
                     }
                 }
-                if (_rollMode == (FDMiRollMode)track && !_navValid[0])
+                if (_rollMode == (FDMiRollMode)track && !_selValid)
                 {
                     _rollMode = FDMiRollMode.HdgSel;
                     _rollArmed = armed;
@@ -588,7 +768,7 @@ namespace FDMi.avionics
                     -interceptMax,
                     interceptMax
                 );
-                float desiredHdg = Wrap360(_courseCommand[0] + intercept);
+                float desiredHdg = Wrap360(_selCourse + intercept);
                 hdgErr = Wrap180(desiredHdg - hdgNow);
             }
 
