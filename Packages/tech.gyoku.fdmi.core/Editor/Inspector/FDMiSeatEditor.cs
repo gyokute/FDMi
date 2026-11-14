@@ -44,6 +44,14 @@ namespace FDMi.core.Editor.Inspector
             if (station)
                 serializedObject.FindProperty(nameof(FDMiSeat.station)).objectReferenceValue = station;
 
+            // 座席位置の調整先は VRCStation が着席位置に使う Transform に置く。
+            // 子孫探索だと別席の adjuster を拾い得るため、station の enter location だけを見る。
+            var adjuster =
+                station && station.stationEnterPlayerLocation
+                    ? station.stationEnterPlayerLocation.GetComponent<FDMiSeatAdjuster>()
+                    : null;
+            serializedObject.FindProperty(nameof(FDMiSeat.adjuster)).objectReferenceValue = adjuster;
+
             var root = seat.transform.parent != null ? seat.transform.parent : seat.transform;
             var inSeats = new List<UdonSharpBehaviour>();
             CollectSeatBehaviours(root, inSeats);

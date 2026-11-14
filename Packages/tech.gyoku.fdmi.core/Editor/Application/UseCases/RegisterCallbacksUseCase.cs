@@ -31,20 +31,36 @@ namespace FDMi.core.Editor.Application.UseCases
             if (entries.Length == 0)
                 return;
 
-            // 前回登録先のみを対象に target のエントリを削除（全スキャン不要）
+            // フィールド値から登録対象の FDMiData を集める。配列フィールドは要素ごとに登録する。
+            var targets = new List<(FDMiData data, FDMiRegisterCallbackAttribute[] attrs)>();
+            foreach (var (field, attrs) in entries)
+            {
+                var value = field.GetValue(mb);
+                if (value is FDMiData data)
+                {
+                    targets.Add((data, attrs));
+                    continue;
+                }
+                if (!(value is FDMiData[] array))
+                    continue;
+                foreach (var element in array)
+                    if (element != null)
+                        targets.Add((element, attrs));
+            }
+
+            // 前回登録先と今回の登録先の両方から target のエントリを削除する。
+            // Why-not: 前回分だけを消さない。ドメインリロード後は _registrations が空になり、
+            // 今回の登録先に残った前回のエントリを消せず重複登録になる。
             if (_registrations.TryGetValue(mb, out var prev))
                 foreach (var data in prev)
                     if (data != null)
                         RemoveEntriesForTarget(data, mb);
+            foreach (var (data, _) in targets)
+                RemoveEntriesForTarget(data, mb);
 
-            // 現在のフィールド値で再登録
             var next = new HashSet<FDMiData>();
-            foreach (var (field, attrs) in entries)
+            foreach (var (data, attrs) in targets)
             {
-                var data = field.GetValue(mb) as FDMiData;
-                if (data == null)
-                    continue;
-
                 var so = new SerializedObject(data);
                 so.Update();
                 var bProp = so.FindProperty("callbackBehaviour");

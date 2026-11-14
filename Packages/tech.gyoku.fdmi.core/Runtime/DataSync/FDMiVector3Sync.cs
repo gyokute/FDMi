@@ -5,7 +5,8 @@ using VRC.Udon;
 
 namespace FDMi.core
 {
-    public class FDMiVector3Sync : FDMiDataSync
+    [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+    public class FDMiVector3Sync : FDMiDataSyncValue
     {
         [UdonSynced, HideInInspector]
         public Vector3 syncedValue;
