@@ -160,9 +160,9 @@ namespace FDMi.input
                 localPlayer.PlayHapticEventInHand(VRC_Pickup.PickupHand.Right, 0.25f, 1, 1);
         }
 
-        public void UnsetContactInput(FDMiHandInputGroup group)
+        public void UnsetContactInput(string contactTag, FDMiHandInputGroup group)
         {
-            if (contactedGroup != group)
+            if (contactTag != this.contactTag || contactedGroup != group)
                 return;
 
             EndSelect();
