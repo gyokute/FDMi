@@ -16,6 +16,9 @@ namespace FDMi.core
         [Tooltip("パイロット選出を行うマネージャ。Editor が同じ名前空間から解決する")]
         public FDMiSeatManager manager;
 
+        [Tooltip("座席位置の調整先。Editor が station の enter location から解決する")]
+        public FDMiSeatAdjuster adjuster;
+
         // 着席中のプレイヤー。全クライアントで座席の占有状態を表す。
         [HideInInspector]
         public VRCPlayerApi seatedPlayer;
@@ -31,6 +34,38 @@ namespace FDMi.core
         public void ExitStation()
         {
             station.ExitStation(Networking.LocalPlayer);
+        }
+
+        // Unity UI Button の OnClick (SendCustomEvent) から呼ぶ座席位置の I/F。
+        // 位置状態とその同期は adjuster が持つので、ここは転送のみにして UI の参照先を 1 つに保つ。
+        public void SeatUp()
+        {
+            adjuster._RequestSeatUp();
+        }
+
+        public void SeatDown()
+        {
+            adjuster._RequestSeatDown();
+        }
+
+        public void SeatForward()
+        {
+            adjuster._RequestSeatForward();
+        }
+
+        public void SeatBack()
+        {
+            adjuster._RequestSeatBack();
+        }
+
+        public void SeatRight()
+        {
+            adjuster._RequestSeatRight();
+        }
+
+        public void SeatLeft()
+        {
+            adjuster._RequestSeatLeft();
         }
 
         // OnStationEntered/Exited はリモートプレイヤーでも全クライアントに届く。
