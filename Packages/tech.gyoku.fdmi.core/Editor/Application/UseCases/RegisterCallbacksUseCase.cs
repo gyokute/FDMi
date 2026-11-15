@@ -36,7 +36,9 @@ namespace FDMi.core.Editor.Application.UseCases
             foreach (var (field, attrs) in entries)
             {
                 var value = field.GetValue(mb);
-                if (value is FDMiData data)
+                // `is` は Unity の null 比較を通らない。破棄済み FDMiData の参照はここで弾かないと
+                // SerializedObject が "Object at index 0 is null" で落ちる（エディタ上では参照が残る）。
+                if (value is FDMiData data && data != null)
                 {
                     targets.Add((data, attrs));
                     continue;

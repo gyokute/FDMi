@@ -121,6 +121,22 @@ namespace FDMi.core.Editor.Tests
         }
 
         [Test]
+        public void Execute_DataFieldIsDestroyed_DoesNotThrowAndAddsNoEntries()
+        {
+            var go = NewGO();
+            var mb = go.AddComponent<BehaviourWithRegisterCallback>();
+            var dataGo = NewGO("data");
+            var data = dataGo.AddComponent<FDMiBool>();
+            mb.myData = data;
+
+            // エディタ上では破棄済み参照が C# 的には非 null のまま残る。
+            // `is FDMiData` だけの判定だと SerializedObject が落ちる。
+            Object.DestroyImmediate(data);
+
+            Assert.DoesNotThrow(() => new RegisterCallbacksUseCase().Execute(mb));
+        }
+
+        [Test]
         public void Execute_CalledTwice_NoDuplicateEntries()
         {
             var go = NewGO();
