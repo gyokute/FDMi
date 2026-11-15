@@ -21,11 +21,11 @@ namespace FDMi.avionics
     public class FDMiAutoThrottle : FDMiBehaviour
     {
         [Header("スイッチ")]
-        [Tooltip("A/T スイッチ（0=OFF、1=ON）")]
+        [Tooltip("A/T スイッチ")]
         public string atSwitchPath = "~/Input/ATSW/Value";
 
         [FDMiDataPath(nameof(atSwitchPath))]
-        public FDMiFloat atSwitch;
+        public FDMiBool atSwitch;
 
         [Tooltip("A/T モード選択（0=SPD、1=N1）")]
         public string modeSelectPath = "~/Input/ATSMode";
@@ -38,7 +38,7 @@ namespace FDMi.avionics
         public string speedCommandPath = "~/Input/SPD/Value";
 
         [FDMiDataPath(nameof(speedCommandPath))]
-        public FDMiFloat speedCommand;
+        public FDMiInt speedCommand;
 
         [Tooltip("N1 指令 [0,1]")]
         public string n1CommandPath = "~/Input/N1Command";
@@ -118,9 +118,9 @@ namespace FDMi.avionics
         [Tooltip("RETARD/CLAMP のスロットルレート [1/s]")]
         public float retardRate = 0.5f;
 
-        float[] _atSwitch,
-            _speedCommand,
-            _n1Command,
+        bool[] _atSwitch;
+        int[] _speedCommand;
+        float[] _n1Command,
             _ias,
             _iasAcc,
             _radarAltitude,
@@ -151,7 +151,7 @@ namespace FDMi.avionics
 
         void FixedUpdate()
         {
-            if (_atSwitch[0] < 0.5f)
+            if (!_atSwitch[0])
             {
                 _retardDone = false;
                 _retarded = false;
@@ -187,7 +187,7 @@ namespace FDMi.avionics
 
             if (mode == (int)FDMiAutoThrottleMode.Spd)
             {
-                float spdErr = _speedCommand[0] * 0.514444f - _ias[0];
+                float spdErr = (float)_speedCommand[0] * 0.514444f - _ias[0];
                 float tgtAcc = Mathf.Clamp(spdErr * speedErrToAccel, -maxAccel, maxAccel);
                 float accErr = Mathf.Clamp(tgtAcc - _iasAcc[0], -maxAccel, maxAccel);
                 throttleNow += ki * accErr * dt;
@@ -214,7 +214,7 @@ namespace FDMi.avionics
                     _retardDone = true;
             }
 
-            _throttle[0] = Mathf.Clamp01(throttleNow);
+            throttle.Data = Mathf.Clamp01(throttleNow);
             if (mode != _prevMode)
             {
                 _atModeOut[0] = mode;

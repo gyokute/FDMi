@@ -22,13 +22,13 @@ namespace FDMi.avionics
         public string apSwitchPath = "~/Input/AP2SW/Value";
 
         [FDMiDataPath(nameof(apSwitchPath))]
-        public FDMiFloat apSwitch;
+        public FDMiInt apSwitch;
 
         [Tooltip("FD スイッチ。OFF なら AP は解除する")]
         public string fdSwitchPath = "~/Input/FD.L/Value";
 
         [FDMiDataPath(nameof(fdSwitchPath))]
-        public FDMiFloat fdSwitch;
+        public FDMiBool fdSwitch;
 
         [Header("入力")]
         [Tooltip("FD のピッチ姿勢指令 [deg]")]
@@ -84,9 +84,9 @@ namespace FDMi.avionics
         [Tooltip("CWS の手放し判定")]
         public float cwsInputThreshold = 0.02f;
 
-        float[] _apSwitch,
-            _fdSwitch,
-            _fdPitch,
+        int[] _apSwitch;
+        bool[] _fdSwitch;
+        float[] _fdPitch,
             _pitch,
             _pitchInputL,
             _pitchInputR,
@@ -116,8 +116,8 @@ namespace FDMi.avionics
         void FixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
-            int sw = Mathf.RoundToInt(_apSwitch[0]);
-            bool fdOn = _fdSwitch[0] >= 0.5f;
+            int sw = _apSwitch[0];
+            bool fdOn = _fdSwitch[0];
             float yoke = Mathf.Clamp(_pitchInputL[0] + _pitchInputR[0], -1f, 1f);
             float pitchNow = _pitch[0];
 

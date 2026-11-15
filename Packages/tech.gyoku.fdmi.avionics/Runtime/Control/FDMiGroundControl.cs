@@ -23,8 +23,8 @@ namespace FDMi.avionics
         public string parkBrakePath = "~/Input/ParkBrakeLever/Value";
 
         [FDMiDataPath(nameof(parkBrakePath))]
-        [Tooltip("パーキングブレーキ [0,1]")]
-        public FDMiFloat parkBrake;
+        [Tooltip("パーキングブレーキ")]
+        public FDMiBool parkBrake;
 
         [Tooltip("左ヨークのブレーキ入力パス")]
         public string brakeLPath = "~/Input/YokeL/BrakeInput";
@@ -95,7 +95,7 @@ namespace FDMi.avionics
         [Range(0f, 1f)]
         public float[] parkBrakeEffect;
 
-        float[] _parkBrake;
+        bool[] _parkBrake;
         float[] _brakeL;
         float[] _brakeR;
         float[] _yawL;
@@ -130,7 +130,7 @@ namespace FDMi.avionics
                 float eff =
                     brake * brakeEffect[i]
                     + Mathf.Clamp01(yaw * steerBrakeEffect[i])
-                    + _parkBrake[0] * parkBrakeEffect[i];
+                    + (_parkBrake[0] ? 1f : 0f) * parkBrakeEffect[i];
                 float auto = 0f;
                 if (_hasAutoBrake)
                     auto = _autoBrake[0];

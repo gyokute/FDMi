@@ -21,8 +21,8 @@ namespace FDMi.avionics
         public string autoBrakeModePath = "~/Input/AutoBrake/Value";
 
         [FDMiDataPath(nameof(autoBrakeModePath))]
-        [Tooltip("モード。0=RTO, 1=OFF, 2=ONE, 3=TWO, 4=THREE, 5=MAX")]
-        public FDMiFloat autoBrakeMode;
+        [Tooltip("モード。0=RTO, 1=OFF, 2=ONE, 3=TWO, 4=THREE")]
+        public FDMiInt autoBrakeMode;
 
         [Tooltip("スロットルレバーのパス")]
         public string throttlePath = "~/Input/ThrottleLever/Throttle";
@@ -71,7 +71,7 @@ namespace FDMi.avionics
         [Tooltip("物体。速度と接地判定の基準")]
         public Rigidbody body;
 
-        float[] _mode;
+        int[] _mode;
         float[] _throttle;
         bool[] _grounded;
         float[] _yokeBrakeL;
@@ -96,7 +96,7 @@ namespace FDMi.avionics
             _yokeBrakeR = yokeBrakeR.data;
             _brakeOut = brakeOut.data;
 
-            _modePrev = (int)_mode[0];
+            _modePrev = _mode[0];
 
             Vector3 v = body.velocity;
             _prevGs = new Vector3(v.x, 0f, v.z).magnitude;
@@ -108,7 +108,7 @@ namespace FDMi.avionics
 
             // モード変更は解除も兼ねる。モードを切り替えたのに前のモードのブレーキ量が
             // 残ると、意図しない制動が続く。
-            int mode = (int)_mode[0];
+            int mode = _mode[0];
             if (mode != _modePrev)
             {
                 _modePrev = mode;
@@ -191,19 +191,15 @@ namespace FDMi.avionics
                 }
                 else if (mode == 2)
                 {
-                    target = 4f * 0.3048f;
+                    target = 5f * 0.3048f;
                 }
                 else if (mode == 3)
                 {
-                    target = 5f * 0.3048f;
+                    target = 7.2f * 0.3048f;
                 }
                 else if (mode == 4)
                 {
-                    target = 7.2f * 0.3048f;
-                }
-                else if (mode == 5)
-                {
-                    // MAX は低速域だけ 12 ft/s^2 に落とす。14 のままだと停止間際で
+                    // THREE は低速域だけ 12 ft/s^2 に落とす。14 のままだと停止間際で
                     // ブレーキが効き過ぎて機首が跳ねる。
                     if (gs < 41.15f)
                         target = 12f * 0.3048f;

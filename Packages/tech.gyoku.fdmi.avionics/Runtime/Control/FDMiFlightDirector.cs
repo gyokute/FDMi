@@ -37,17 +37,17 @@ namespace FDMi.avionics
     public class FDMiFlightDirector : FDMiBehaviour
     {
         [Header("スイッチ")]
-        [Tooltip("FD スイッチ（0=OFF、1以上=ON）")]
+        [Tooltip("FD スイッチ")]
         public string fdSwitchPath = "~/Input/FD.L/Value";
 
         [FDMiDataPath(nameof(fdSwitchPath))]
-        public FDMiFloat fdSwitch;
+        public FDMiBool fdSwitch;
 
         [Tooltip("AP スイッチ（0=OFF、1=CWS、2=CMD）。CWS 表示の判定だけに使う")]
         public string apSwitchPath = "~/Input/AP2SW/Value";
 
         [FDMiDataPath(nameof(apSwitchPath))]
-        public FDMiFloat apSwitch;
+        public FDMiInt apSwitch;
 
         [Header("NAV系統選択")]
         [Tooltip("系統選択子（0=Both On A, 1=NORM, 2=Both On B）")]
@@ -77,31 +77,31 @@ namespace FDMi.avionics
         public string vsCommandPath = "~/Input/VS/Value";
 
         [FDMiDataPath(nameof(vsCommandPath))]
-        public FDMiFloat vsCommand;
+        public FDMiInt vsCommand;
 
         [Tooltip("高度指令 [ft]")]
         public string altitudeCommandPath = "~/Input/ALT/Value";
 
         [FDMiDataPath(nameof(altitudeCommandPath))]
-        public FDMiFloat altitudeCommand;
+        public FDMiInt altitudeCommand;
 
         [Tooltip("方位指令 [deg magnetic]")]
         public string headingCommandPath = "~/Input/HDG/Value";
 
         [FDMiDataPath(nameof(headingCommandPath))]
-        public FDMiFloat headingCommand;
+        public FDMiInt headingCommand;
 
         [Tooltip("コース指令 [deg magnetic]")]
         public string courseCommandPath = "~/Input/CRS1/Value";
 
         [FDMiDataPath(nameof(courseCommandPath))]
-        public FDMiFloat courseCommand;
+        public FDMiInt courseCommand;
 
         [Tooltip("B 系統のコース指令 [deg magnetic]")]
         public string courseCommand2Path = "~/Input/CRS2/Value";
 
         [FDMiDataPath(nameof(courseCommand2Path))]
-        public FDMiFloat courseCommand2;
+        public FDMiInt courseCommand2;
 
         [Header("機体状態")]
         [Tooltip("ピッチ角 [deg]。正=機首上げ")]
@@ -347,14 +347,14 @@ namespace FDMi.avionics
         [Tooltip("CWS の手放し判定 [入力]")]
         public float cwsInputThreshold = 0.02f;
 
-        float[] _fdSwitch,
-            _apSwitch,
+        bool[] _fdSwitch;
+        int[] _apSwitch,
             _vsCommand,
             _altitudeCommand,
             _headingCommand,
             _courseCommand,
-            _courseCommand2,
-            _pitch,
+            _courseCommand2;
+        float[] _pitch,
             _roll,
             _heading,
             _altitude,
@@ -403,8 +403,8 @@ namespace FDMi.avionics
             _altRef,
             _hdgRef,
             _locRate,
-            _prevLocDev,
-            _prevAltCmd;
+            _prevLocDev;
+        int _prevAltCmd;
         float _selCourse,
             _selLoc,
             _selGs,
@@ -477,7 +477,7 @@ namespace FDMi.avionics
         {
             if (_useB)
             {
-                _selCourse = _courseCommand2[0];
+                _selCourse = (float)_courseCommand2[0];
                 _selLoc = _locDeviation2[0];
                 _selGs = _gsDeviation2[0];
                 _selTofrom = _tofrom2[0];
@@ -486,7 +486,7 @@ namespace FDMi.avionics
             }
             else
             {
-                _selCourse = _courseCommand[0];
+                _selCourse = (float)_courseCommand[0];
                 _selLoc = _locDeviation[0];
                 _selGs = _gsDeviation[0];
                 _selTofrom = _tofrom[0];
@@ -507,8 +507,7 @@ namespace FDMi.avionics
             UpdateSelectedNav();
 
             float dt = Time.fixedDeltaTime;
-            float fdOn = _fdSwitch[0];
-            if (fdOn < 0.5f)
+            if (!_fdSwitch[0])
             {
                 _fdPitch[0] = 0f;
                 _fdRoll[0] = 0f;
@@ -527,7 +526,7 @@ namespace FDMi.avionics
             float vsNow = _verticalSpeed[0];
             float yokePitch = Mathf.Clamp(_pitchInputL[0] + _pitchInputR[0], -1f, 1f);
             float yokeRoll = Mathf.Clamp(_rollInputL[0] + _rollInputR[0], -1f, 1f);
-            int apMode = Mathf.RoundToInt(_apSwitch[0]);
+            int apMode = _apSwitch[0];
 
             // CWS 中は現在姿勢を指令にし、手放した瞬間の姿勢を凍結する。
             // Why not AP に姿勢保持を持たせる: FD バーと AP が別々の基準を持つと、手放し直後にバーと機体がずれる。
@@ -565,9 +564,9 @@ namespace FDMi.avionics
 
             int pitchSel = _pitchModeSelect[0];
             int rollSel = _rollModeSelect[0];
-            float altCmd = _altitudeCommand[0] * 0.3048f;
-            float vsSel = _vsCommand[0] * 0.508f;
-            bool altCmdChanged = Mathf.Abs(_altitudeCommand[0] - _prevAltCmd) > 1f;
+            float altCmd = (float)_altitudeCommand[0] * 0.3048f;
+            float vsSel = (float)_vsCommand[0] * 0.508f;
+            bool altCmdChanged = _altitudeCommand[0] != _prevAltCmd;
             bool pitchSelChanged = !_initialized || pitchSel != _prevPitchSel;
             bool rollSelChanged = !_initialized || rollSel != _prevRollSel;
 
@@ -759,7 +758,7 @@ namespace FDMi.avionics
             }
             else if (_rollMode == FDMiRollMode.HdgSel)
             {
-                hdgErr = Wrap180(_headingCommand[0] - hdgNow);
+                hdgErr = Wrap180((float)_headingCommand[0] - hdgNow);
             }
             else
             {
