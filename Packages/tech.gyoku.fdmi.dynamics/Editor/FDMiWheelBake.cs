@@ -51,7 +51,6 @@ namespace FDMi.dynamics.Editor
             changed |= Assign(ref w.bakedCRebound, Mathf.Max(w.zetaRebound, 0f) * cCrit);
 
             float alphaP = Mathf.Max(w.alphaPeakDeg, 0.5f) * Mathf.Deg2Rad;
-            changed |= Assign(ref w.bakedAlphaP, alphaP);
             changed |= Assign(ref w.bakedInvR, 1f / w.tireRadius);
             float kp = Mathf.Max(w.kappaPeak, 1e-4f);
             changed |= Assign(ref w.bakedInvKappaPeak, 1f / kp);

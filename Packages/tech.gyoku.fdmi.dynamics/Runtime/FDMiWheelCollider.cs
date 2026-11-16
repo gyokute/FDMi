@@ -9,7 +9,7 @@ namespace FDMi.dynamics
     // 非駆動の旅客機用ホイール単体: 1 Raycast + バイリニア・バネダンパストラット + スリップベースタイヤ + キネマチック回転 + ABS。
     // WheelCollider は使わない。ホイールごとに本コンポーネントを1つ追加し、すべて同一 Rigidbody に作用させる。
     // 本コンポーネントは脚上端に配置: transform.position = o (脚上端)、transform.up = a (脚上方向)、transform.forward = 舵角ゼロ時の前方向。
-    // 力は接地点 p に ForceMode.Force で、FixedUpdate ごとにホイール1輪につき1回加える。
+    // パイロットは接地点 p に ForceMode.Force で、FixedUpdate ごとにホイール1輪につき1回加える。
     //
     // 接地力はレイキャストが持つ。物理コライダーはめり込みの下限としてだけ置く。
     // Editor の自動解決が、本コンポーネントの GameObject に最大圧縮位置のタイヤと同径の SphereCollider を付ける
@@ -17,11 +17,12 @@ namespace FDMi.dynamics
     // 高速接地で機体が滑走路を突き抜けるのを物理的に止める。タイヤ力の計算には関与しない。
     // 球の中心は原点なので、本コンポーネントの Raycast は原点がコライダーの内側になり自身を拾わない。
     //
-    // 離着陸・タキシングのオーナーシップ: 他のオーナー駆動 Rigidbody 力と同様に VRChat のオーナークライアントで実行する。
+    // パイロット限定計算 (ADR-0025): 力を生む計算 (サス・タイヤ・ABS) と加力は IsPilot のときだけ回す。
+    // 非パイロットはレイとタイヤ回転だけを回し、可視化用の出力を書く。
     //
     // 可視化は外部の責務。本コンポーネントは Transform を一切動かさない。
     // サス縮み (正規化 0..1) とタイヤ回転量 (ラジアン累積 0..2pi ラップ) は FDMiFloat で出し、
-    // 外部の FDMiTransformMove / FDMiTransformRotate 等でタイヤ・脚カバー・SteerPivot を駆動する。
+    // 外部の FDMiAnimationChangeOnUpdate の Update ポーリングがタイヤ・脚の Animator を駆動する。
     // SteerPivot 自体の回転もここでは扱わない。舵角は接地フレームの力の向きにだけ使う。
     //
     // ストラットはバイリニア・バネダンパ。折点までは基本レート k0、以深は末端レート kEnd の2段バネに、
@@ -58,7 +59,9 @@ namespace FDMi.dynamics
     // - transform.up / hit.normal は既に単位ベクトル、t = Cross(n, f) も単位ベクトルのため normalize 3回を削減。
     //   Sqrt はフレーム投影の normalize 1回のみ。
     // - 逆数・バネ・減衰は焼き付けで事前計算: 実行時の割り算は kappa + cap-scale のみ。バネは分岐+掛け算。
-    // - 因果順序は strut -> ABS -> spin -> tire: ブレーキ指令は余分な1ステップ遅れなく同ステップで Fx に届く。
+    // - 因果順序は frame -> strut -> ABS -> spin -> tire: ブレーキ指令は余分な1ステップ遅れなく同ステップで Fx に届く。
+    // - 非パイロットはレイ・縮み・スピン・出力だけ。接地フレーム (AngleAxis・normalize・Cross) と
+    //   GetPointVelocity (kinematic body では残留値) はパイロット側に閉じる。
     // - The probe ray ignores triggers (cockpit/pen UI triggers must not snag it).
     // - Damping uses stroke rate clamped to dampSpeedMax (explicit-Euler safety),
     //   and total leg force is capped at maxLoadFactor * static share (bottoming-stop proxy).
@@ -69,6 +72,18 @@ namespace FDMi.dynamics
         [Header("Wiring")]
         [Tooltip("力を加える機体の Rigidbody。非キネマチック。")]
         public Rigidbody body;
+
+        [Tooltip("パイロット判定の解決パス")]
+        public string isPilotPath = "~/IsPilot";
+        [Tooltip("ローカルプレイヤーがパイロットか。同期しないローカルフラグ")]
+        [FDMiDataPath(nameof(isPilotPath))]
+        public FDMiBool IsPilot;
+
+        [Tooltip("機体速度の解決パス。非パイロットのタイヤ回転に使う")]
+        public string bodyVelocityPath = "~/Physics/BodyVelocity";
+        [Tooltip("機体座標の対地速度 [m/s]。+Z=前方。非パイロットは z 成分だけ読む")]
+        [FDMiDataPath(nameof(bodyVelocityPath))]
+        public FDMiVector3 BodyVelocity;
 
         [Tooltip("操舵角のデータパス。空なら解決しない。")]
         public string steerPath = "";
@@ -187,7 +202,6 @@ namespace FDMi.dynamics
         [HideInInspector] public float bakedCCompress;
         [HideInInspector] public float bakedCRebound;
         [HideInInspector] public float bakedFzCap;
-        [HideInInspector] public float bakedAlphaP;
         [HideInInspector] public float bakedInvR = 2f;
         [HideInInspector] public float bakedInvKappaPeak = 8.333333f;
         [HideInInspector] public float bakedInvSlideSpan = 1.1363636f;
@@ -197,34 +211,12 @@ namespace FDMi.dynamics
         [HideInInspector] public float bakedMuCap = 0.9f;
         [HideInInspector] public float bakedKc = 0.5f;
 
-        [Header("Telemetry (read-only)")]
-        [Tooltip("タイヤの回転角速度 [rad/s]")]
-        public float outOmega;
-        [Tooltip("ABS 後の制動率 [0,1]")]
-        public float outBrakeEff;
-        [Tooltip("サス縮み [m]")]
-        public float outStroke;
-        [Tooltip("接地垂直力 [N]")]
-        public float outFz;
-        [Tooltip("縦力 [N]")]
-        public float outFx;
-        [Tooltip("横力 [N]")]
-        public float outFy;
-        [Tooltip("縦スリップ比")]
-        public float outSlip;
-        [Tooltip("横スリップ角 [deg]")]
-        public float outAlphaDeg;
-        [Tooltip("接地中か")]
-        public bool outGrounded;
-        [Tooltip("ABS が減圧中か")]
-        public bool outAbsRelease;
-        [Tooltip("機体の鉛直速度 [m/s]")]
-        public float outVelocityY;
-
         // 入出力の配列参照。Start で1回だけ受け、以降は先頭要素を読み書きする。
         // Why not 毎フレーム steerInput.Data: 他の UdonBehaviour のフィールド読みは外部呼び出しになり、
         // Data プロパティは getter 呼び出しも1回増える (docs/adr/0008-wing-reads-aero-reference-arrays.md と同じ理由)。
         // Why not 出力も Set(): Set は callback を叩くが、可視化側はポーリングする前提なので配列直書きで足りる。
+        bool[] _isPilot;
+        Vector3[] _bodyVelocity;
         float[] _steer;
         float[] _brake;
         float[] _suspension;
@@ -241,7 +233,6 @@ namespace FDMi.dynamics
         float _kEnd;
         float _cComp;
         float _cReb;
-        float _alphaP;
 
         float _strokeX;
         float _strokeDot;
@@ -250,8 +241,6 @@ namespace FDMi.dynamics
         float _fz;
         float _fx;
         float _fy;
-        float _kappa;
-        float _alpha;
         Vector3 _axisA = Vector3.up;
         Vector3 _contactPoint = Vector3.zero;
         Vector3 _contactNormal = Vector3.up;
@@ -280,6 +269,8 @@ namespace FDMi.dynamics
             if (iMax < body.mass * 0.25f)
                 Debug.LogError("[FDMiWheelCollider] Rigidbody inertia tensor far too small for its mass (radius of gyration < 0.5 m): any off-center gear force explodes the body. Disable Implicit Tensor and set a realistic tensor of order m*L^2/12 per axis.");
 
+            _isPilot = IsPilot.data;
+            _bodyVelocity = BodyVelocity.data;
             _steer = steerInput.data;
             _brake = brakeInput.data;
             _suspension = suspensionOutput.data;
@@ -317,7 +308,6 @@ namespace FDMi.dynamics
             _cComp = bakedCCompress;
             _cReb = bakedCRebound;
             _fzCap = bakedFzCap;
-            _alphaP = bakedAlphaP;
             _invR = bakedInvR;
             _invKappaPeak = bakedInvKappaPeak;
             _invSlideSpan = bakedInvSlideSpan;
@@ -335,7 +325,7 @@ namespace FDMi.dynamics
             if (muS > muPeak)
                 muS = muPeak;
 
-            _alphaP = Mathf.Max(alphaPeakDeg, 0.5f) * Mathf.Deg2Rad;
+            float alphaP = Mathf.Max(alphaPeakDeg, 0.5f) * Mathf.Deg2Rad;
 
             float mass = body.mass;
             if (mass < 1f)
@@ -373,7 +363,7 @@ namespace FDMi.dynamics
             float kp = Mathf.Max(kappaPeak, 1e-4f);
             _invKappaPeak = 1f / kp;
             _invSlideSpan = 1f / Mathf.Max(1f - kappaPeak, 1e-4f);
-            _invAlphaP = 1f / _alphaP;
+            _invAlphaP = 1f / alphaP;
             _invMaxStroke = 1f / maxStroke;
             _muSpan = muS - muPeak;
             _muCap = muPeak >= muLateral ? muPeak : muLateral;
@@ -386,33 +376,43 @@ namespace FDMi.dynamics
             if (dt <= 0f)
                 return;
 
-            _steerDeg = Mathf.Clamp(_steer[0], -Mathf.Abs(steerLimitDeg), Mathf.Abs(steerLimitDeg));
-            _brakeCmd = Mathf.Clamp01(_brake[0]);
+            bool pilot = _isPilot[0];
+            if (pilot)
+            {
+                _steerDeg = Mathf.Clamp(_steer[0], -Mathf.Abs(steerLimitDeg), Mathf.Abs(steerLimitDeg));
+                _brakeCmd = Mathf.Clamp01(_brake[0]);
+            }
 
             bool grounded = SampleContact();
-            if (!grounded)
+            if (grounded)
+            {
+                if (pilot)
+                {
+                    ComputeContactFrame();
+                    ComputeStrutForce();
+                    UpdateABS(dt);
+                    UpdateWheelSpin(dt, _vx, _bEff);
+                    ComputeSlipAndTireForce();
+                    ApplyBodyForce();
+                }
+                else
+                {
+                    // 力もサスも作らない。タイヤ回転だけ機体速度に追従させる。
+                    UpdateWheelSpin(dt, _bodyVelocity[0].z, 0f);
+                }
+            }
+            else if (pilot)
             {
                 _fz = 0f;
                 _fx = 0f;
                 _fy = 0f;
-                _kappa = 0f;
-                _alpha = 0f;
                 _absReleasing = false;
                 _bEff = 0f;
-                _spinTotal += _omega * dt;
-                WrapSpin();
-                PublishTelemetry(false);
-                return;
             }
 
-            ComputeStrutForce();
-            UpdateABS(dt);
-            UpdateWheelSpin(dt);
             _spinTotal += _omega * dt;
             WrapSpin();
-            ComputeSlipAndTireForce();
-            ApplyBodyForce();
-            PublishTelemetry(true);
+            PublishOutputs(grounded);
         }
 
         void WrapSpin()
@@ -423,23 +423,30 @@ namespace FDMi.dynamics
                 _spinTotal += 6.2831853f;
         }
 
+        // 接地レイ。縮みと可視化出力は非パイロットも使うため、ここまでは全クライアントが回す。
         bool SampleContact()
         {
-            Vector3 o = transform.position;
             Vector3 a = transform.up;
             _axisA = a;
             float rayLen = maxStroke + tireRadius;
             RaycastHit hit;
-            bool isHit = Physics.Raycast(o, -a, out hit, rayLen, _mask, QueryTriggerInteraction.Ignore);
+            bool isHit = Physics.Raycast(transform.position, -a, out hit, rayLen, _mask, QueryTriggerInteraction.Ignore);
             if (!isHit)
             {
                 return false;
             }
 
-            Vector3 p = hit.point;
-            Vector3 n = hit.normal;
-            float x = Mathf.Clamp(rayLen - hit.distance, 0f, maxStroke);
+            _contactPoint = hit.point;
+            _contactNormal = hit.normal;
+            _strokeX = Mathf.Clamp(rayLen - hit.distance, 0f, maxStroke);
+            return true;
+        }
 
+        // 接地フレームとスリップ速度。力の向きにしか使わないのでパイロット側に閉じる。
+        void ComputeContactFrame()
+        {
+            Vector3 a = _axisA;
+            Vector3 n = _contactNormal;
             Vector3 f0 = transform.forward;
             Vector3 fSteered = Quaternion.AngleAxis(_steerDeg, a) * f0;
             Vector3 f = fSteered - n * Vector3.Dot(fSteered, n);
@@ -449,24 +456,17 @@ namespace FDMi.dynamics
                 f = f.normalized;
             Vector3 t = Vector3.Cross(n, f);
 
-            Vector3 v = body.GetPointVelocity(p);
-            float vx = Vector3.Dot(v, f);
-            float vy = Vector3.Dot(v, t);
-            float vn = Vector3.Dot(v, n);
+            Vector3 v = body.GetPointVelocity(_contactPoint);
+            _vx = Vector3.Dot(v, f);
+            _vy = Vector3.Dot(v, t);
             float aDotN = Vector3.Dot(a, n);
             float xDot = 0f;
             if (aDotN > 0.1f)
-                xDot = -vn / aDotN;
+                xDot = -Vector3.Dot(v, n) / aDotN;
 
-            _contactPoint = p;
-            _contactNormal = n;
             _forwardDir = f;
             _lateralDir = t;
-            _strokeX = x;
             _strokeDot = xDot;
-            _vx = vx;
-            _vy = vy;
-            return true;
         }
 
         void ComputeStrutForce()
@@ -508,7 +508,6 @@ namespace FDMi.dynamics
                 kappa = 1f;
             else if (kappa < -1f)
                 kappa = -1f;
-            _kappa = kappa;
             float ak = kappa >= 0f ? kappa : -kappa;
 
             float mux;
@@ -526,7 +525,6 @@ namespace FDMi.dynamics
             else if (lat < -1f)
                 lat = -1f;
             float fyStar = -_fz * muLateral * lat * (1f - _kcClamped * ak);
-            _alpha = lat * _alphaP;
 
             float aFx = fxStar >= 0f ? fxStar : -fxStar;
             float aFy = fyStar >= 0f ? fyStar : -fyStar;
@@ -574,14 +572,14 @@ namespace FDMi.dynamics
                 _bEff = Mathf.Min(b, _bEff + applyRate * dt);
         }
 
-        void UpdateWheelSpin(float dt)
+        void UpdateWheelSpin(float dt, float vx, float brake)
         {
-            float bC = _bEff;
+            float bC = brake;
             if (bC < 0f)
                 bC = 0f;
             else if (bC > 1f)
                 bC = 1f;
-            float omegaTgt = _vx * (1f - bC) * _invR;
+            float omegaTgt = vx * (1f - bC) * _invR;
             float k = spinFollowRate * dt;
             if (k > 1f)
                 k = 1f;
@@ -596,20 +594,8 @@ namespace FDMi.dynamics
             body.AddForceAtPosition(f, _contactPoint, ForceMode.Force);
         }
 
-        void PublishTelemetry(bool grounded)
+        void PublishOutputs(bool grounded)
         {
-            outOmega = _omega;
-            outBrakeEff = _bEff;
-            outStroke = _strokeX;
-            outFz = _fz;
-            outFx = _fx;
-            outFy = _fy;
-            outSlip = _kappa;
-            outAlphaDeg = _alpha * Mathf.Rad2Deg;
-            outGrounded = grounded;
-            outAbsRelease = _absReleasing;
-            outVelocityY = body.velocity.y;
-
             // 外部の可視化駆動用。縮みは正規化 0..1 (% の *100 分だけ安い 1 掛け算)、回転はラジアン累積。
             float norm = grounded ? _strokeX * _invMaxStroke : 0f;
             if (norm < 0f)

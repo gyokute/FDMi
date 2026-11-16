@@ -9,6 +9,14 @@ namespace FDMi.dynamics
         [Tooltip("推力を加える機体の Rigidbody")]
         public Rigidbody body;
 
+        // 推力を作るのはパイロットだけ (ADR-0021)。状態と計器値は全クライアントが同じ式で出す。
+        [Tooltip("パイロット判定の解決パス")]
+        public string isPilotPath = "~/IsPilot";
+
+        [FDMiDataPath(nameof(isPilotPath))]
+        [Tooltip("ローカルプレイヤーがパイロットか。同期しないローカルフラグ")]
+        public FDMiBool IsPilot;
+        
         [Header("Input Variables")]
         // throttle 0~1
         [Tooltip("スロットル値の解決パス")]
@@ -221,6 +229,7 @@ namespace FDMi.dynamics
 
         void Start()
         {
+            _isPilot = IsPilot.data;
             _sat = SAT.data;
             _staticPressure = StaticPressure.data;
             _mach = Mach.data;
@@ -308,8 +317,16 @@ namespace FDMi.dynamics
             // 準定常熱力学は実スプールで駆動 (TR-515 p.3-4)。Tt4/Tt4max ≈ N2/N2max の熱スロットル則。
             // 床は不要(根因2の修理で ITT が N2 に対して単調になる)。C12 gate も不要。
             _thrEff = fuelV * _n2;
-            float thrustSS = SolveThrust();
-            body.AddForceAtPosition(transform.forward * thrustSS, transform.position, ForceMode.Force);
+            // 推力を作るのはパイロットだけ。状態 (N2/N1) と計器値は全クライアントが同じ式で出す (ADR-0021)。
+            if (_isPilot[0])
+            {
+                float thrustSS = SolveThrust();
+                body.AddForceAtPosition(transform.forward * thrustSS, transform.position, ForceMode.Force);
+            }
+            else
+            {
+                SolveGasTemps();
+            }
 
             // metered valve flow (unchanged)
             float densCorr = (pt0 / 101325f) / Mathf.Sqrt(Mathf.Max(0.01f, tt0 / 288.15f));
@@ -325,6 +342,7 @@ namespace FDMi.dynamics
         }
 
         // bus references (FDMiData .data arrays, bound in Start()). No arg structs (UdonSharp).
+        bool[] _isPilot;
         float[] _throttle;
         bool[] _starter;
         bool[] _fuelSw;
@@ -419,6 +437,22 @@ namespace FDMi.dynamics
             _ittGas = tt5; // ITT プローブ: HPT 出口 (Tt5)
             _egtGas = tt15; // EGT プローブ: LPT 出口 (Tt15) — CF6=T49, JT9D=Tt7 の計測位置
             return fnN;
+        }
+
+        // 推力を作らないクライアント用のガス温度。SolveThrust の温度側 5 行と同じ式。
+        // Why-not: SolveThrust を分割して両者で共有しない。パイロットの推力計算を無変更に保つ。
+        // Pow を使わない: EGT/ITT は Tt0 が tt4 のクランプにしか入らないため、Mach 不明でも実質正確。
+        void SolveGasTemps()
+        {
+            float dHf = _dHfD * _n1 * _n1;
+            float dHc = _dHcD * _n2 * _n2;
+            float tt0 = _oat[0];
+            float tt4 = Mathf.Max(_tt4dK * _thrEff, tt0 + (dHf + dHc) / cpAir);
+            float tH = 1f - dHc / (cpHot * tt4);
+            float tt5 = tt4 * tH;
+            float tL = 1f - (1f + bypassRatio) * dHf / (cpHot * Mathf.Max(1f, tt5));
+            _ittGas = tt5;
+            _egtGas = tt5 * tL;
         }
 
     }

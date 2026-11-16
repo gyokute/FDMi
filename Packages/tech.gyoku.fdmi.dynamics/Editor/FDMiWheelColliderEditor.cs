@@ -45,7 +45,7 @@ namespace FDMi.dynamics.Editor
             }
 
             if (w.suspensionOutput == null || w.spinOutput == null)
-                EditorGUILayout.HelpBox("可視化は外部の責務。suspensionOutput (0..1)・spinOutput (rad 0..2pi) を FDMiFloat につなぐとタイヤ・脚・SteerPivot を駆動できる。未接続でも outStroke 等のテレメトリは出る。", MessageType.Info);
+                EditorGUILayout.HelpBox("可視化は外部の責務。suspensionOutput (0..1)・spinOutput (rad 0..2pi) を FDMiFloat につなぐとタイヤ・脚・SteerPivot を駆動できる。", MessageType.Info);
         }
 
         void OnSceneGUI()
@@ -83,14 +83,6 @@ namespace FDMi.dynamics.Editor
 
             Handles.color = new Color(1f, 0.4f, 0.4f, 1f);
             Handles.DrawWireDisc(qBot, axleDir, radius, 1f);
-
-            if (Application.isPlaying)
-            {
-                float x = Mathf.Clamp(w.outStroke, 0f, stroke);
-                Vector3 qCur = o - a * (stroke - x);
-                Handles.color = Color.green;
-                Handles.DrawWireDisc(qCur, axleDir, radius, 3f);
-            }
 
             float tick = radius * 1.5f;
             Handles.color = Color.white;
