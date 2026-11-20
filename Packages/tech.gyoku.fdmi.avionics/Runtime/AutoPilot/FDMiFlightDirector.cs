@@ -103,6 +103,18 @@ namespace FDMi.avionics
         [FDMiDataPath(nameof(courseCommand2Path))]
         public FDMiInt courseCommand2;
 
+        [Tooltip("A 系統の航法基準コース（ILS はローカライザ、VOR は選択コース）")]
+        public string navCoursePath = "~/Physics/NAV1/Course";
+
+        [FDMiDataPath(nameof(navCoursePath))]
+        public FDMiFloat navCourse;
+
+        [Tooltip("B 系統の航法基準コース（ILS はローカライザ、VOR は選択コース）")]
+        public string navCourse2Path = "~/Physics/NAV2/Course";
+
+        [FDMiDataPath(nameof(navCourse2Path))]
+        public FDMiFloat navCourse2;
+
         [Header("機体状態")]
         [Tooltip("ピッチ角 [deg]。正=機首上げ")]
         public string pitchPath = "~/Physics/Pitch";
@@ -374,7 +386,9 @@ namespace FDMi.avionics
             _navCrsOut,
             _navLocOut,
             _navGsOut,
-            _navTofromOut;
+            _navTofromOut,
+            _navCourse,
+            _navCourse2;
         bool[] _navValid,
             _navValid2,
             _navValidOut;
@@ -383,7 +397,10 @@ namespace FDMi.avionics
         int[] _navType,
             _navType2,
             _navTypeOut;
-        int[] _pitchModeOut, _rollModeOut, _pitchArmedOut, _rollArmedOut;
+        int[] _pitchModeOut,
+            _rollModeOut,
+            _pitchArmedOut,
+            _rollArmedOut;
 
         FDMiPitchMode _pitchMode;
         FDMiRollMode _rollMode;
@@ -406,6 +423,7 @@ namespace FDMi.avionics
             _prevLocDev;
         int _prevAltCmd;
         float _selCourse,
+            _selRefCourse,
             _selLoc,
             _selGs,
             _selTofrom;
@@ -458,6 +476,8 @@ namespace FDMi.avionics
             _navTofromOut = navTofromOut.data;
             _navTypeOut = navTypeOut.data;
             _navValidOut = navValidOut.data;
+            _navCourse = navCourse.data;
+            _navCourse2 = navCourse2.data;
             _prevAltCmd = _altitudeCommand[0];
             OnNavSelectorChanged();
         }
@@ -473,11 +493,15 @@ namespace FDMi.avionics
 
         // 選択系統の NAV を計器用に publish する。FD OFF でも計器は NAV を表示するため、
         // FD の早期 return より前に毎tick書く。
+        // Why-not 表示コースと誘導コースを同一にする: ILS の偏差は施設ローカライザ
+        // コース基準で、パイロットが OBS を合わせていなくても誘導は正しく行う必要がある。
+        // EHSI のコース針は選択コース（_selCourse）のまま、誘導は受信機の基準コースを使う。
         void UpdateSelectedNav()
         {
             if (_useB)
             {
                 _selCourse = (float)_courseCommand2[0];
+                _selRefCourse = _navCourse2[0];
                 _selLoc = _locDeviation2[0];
                 _selGs = _gsDeviation2[0];
                 _selTofrom = _tofrom2[0];
@@ -487,6 +511,7 @@ namespace FDMi.avionics
             else
             {
                 _selCourse = (float)_courseCommand[0];
+                _selRefCourse = _navCourse[0];
                 _selLoc = _locDeviation[0];
                 _selGs = _gsDeviation[0];
                 _selTofrom = _tofrom[0];
@@ -596,9 +621,7 @@ namespace FDMi.avionics
                 {
                     _altRef = altCmd;
                     _pitchMode =
-                        Mathf.Abs(altCmd - altNow) > altCaptureBand
-                            ? FDMiPitchMode.AltCap
-                            : FDMiPitchMode.AltHold;
+                        Mathf.Abs(altCmd - altNow) > altCaptureBand ? FDMiPitchMode.AltCap : FDMiPitchMode.AltHold;
                 }
                 else
                 {
@@ -627,10 +650,7 @@ namespace FDMi.avionics
                 _vsCmd = vsSel;
                 // 選択高度が進行方向にあり、まだ捕捉帯の外なら ALT CAP を armed にする。
                 // 高度指令の変更時だけでなく、VS 選択直後から armed にする。
-                if (
-                    Mathf.Abs(altCmd - altNow) > altCaptureBand
-                    && (altCmd - altNow) * vsSel > 0f
-                )
+                if (Mathf.Abs(altCmd - altNow) > altCaptureBand && (altCmd - altNow) * vsSel > 0f)
                 {
                     _pitchArmed = (int)FDMiPitchMode.AltCap;
                 }
@@ -638,10 +658,7 @@ namespace FDMi.avionics
             else if (pitchSel == 1 && altCmdChanged)
             {
                 _altRef = altCmd;
-                _pitchMode =
-                    Mathf.Abs(altCmd - altNow) > altCaptureBand
-                        ? FDMiPitchMode.AltCap
-                        : FDMiPitchMode.AltHold;
+                _pitchMode = Mathf.Abs(altCmd - altNow) > altCaptureBand ? FDMiPitchMode.AltCap : FDMiPitchMode.AltHold;
                 _pitchArmed = 0;
             }
             if (altCmdChanged)
@@ -694,7 +711,11 @@ namespace FDMi.avionics
             }
             else
             {
-                if (_pitchMode == FDMiPitchMode.AltHold || _pitchMode == FDMiPitchMode.AltCap || _pitchMode == FDMiPitchMode.GsCap)
+                if (
+                    _pitchMode == FDMiPitchMode.AltHold
+                    || _pitchMode == FDMiPitchMode.AltCap
+                    || _pitchMode == FDMiPitchMode.GsCap
+                )
                     _vsCmd = Mathf.Clamp(altGain * (_altRef - altNow), -vsMax, vsMax);
 
                 float vsErr = _vsCmd - vsNow;
@@ -733,11 +754,7 @@ namespace FDMi.avionics
                 }
                 if (_rollArmed == armed)
                 {
-                    if (
-                        _selValid
-                        && Mathf.Abs(locDev) < capture
-                        && Mathf.Abs(locDev) <= Mathf.Abs(_prevLocDev)
-                    )
+                    if (_selValid && Mathf.Abs(locDev) < capture && Mathf.Abs(locDev) <= Mathf.Abs(_prevLocDev))
                     {
                         _rollMode = (FDMiRollMode)track;
                         _rollArmed = 0;
@@ -762,12 +779,8 @@ namespace FDMi.avionics
             }
             else
             {
-                float intercept = Mathf.Clamp(
-                    locGainP * locDev + locGainD * _locRate,
-                    -interceptMax,
-                    interceptMax
-                );
-                float desiredHdg = Wrap360(_selCourse + intercept);
+                float intercept = Mathf.Clamp(locGainP * locDev + locGainD * _locRate, -interceptMax, interceptMax);
+                float desiredHdg = Wrap360(_selRefCourse + intercept);
                 hdgErr = Wrap180(desiredHdg - hdgNow);
             }
 
