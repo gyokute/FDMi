@@ -5,6 +5,7 @@
         "UdonSharp.Runtime",
         "UdonSharp.Editor",
         "VRC.SDKBase.Editor.BuildPipeline",
+        "VRC.Udon",
         "FDMi.core",
         "FDMi.core.editor",
         "FDMi.dynamics"
