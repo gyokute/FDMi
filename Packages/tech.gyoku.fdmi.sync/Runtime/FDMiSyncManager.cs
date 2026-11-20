@@ -48,14 +48,6 @@ namespace FDMi.sync
         [HideInInspector]
         public VRCPlayerApi localPlayer;
 
-        // 原点。同期しない。クライアントごとに独立 (§7.1)。
-        // root 切替で決まる。rebase (§7.4) では整数 km だけ平行移動する。
-        [HideInInspector]
-        public long[] originMm = new long[3];
-
-        [HideInInspector]
-        public Quaternion originRot = Quaternion.identity;
-
         [HideInInspector]
         public int _frameStampMs;
 
@@ -81,6 +73,14 @@ namespace FDMi.sync
         [HideInInspector]
         public int _suspendUntilFrame = -1;
 
+        // 原点は同期しない。クライアントごとに独立 (§7.1)。root 切替で決まり、rebase (§7.4) では
+        // root と一緒に整数 km だけ動く。つまり原点は常に「root の絶対姿勢」そのものである。
+        // Why-not: 原点をフィールドにキャッシュしない。同乗者側では root の _localAbs が
+        // FixedUpdate ではなく Update 相で進む (_IntegrateRootBody は権威でないと即 return する)。
+        // FixedUpdate でキャッシュすると最大 1 フレーム古い原点が残り、ViewFromAbs が root の
+        // 移動量 (v × Δt) だけずれる。機体 body が原点周りで振動し、その station に載った
+        // アバターが 2 位置の間でちらつく (ADR-0029)。root から読めば常に同じ瞬間の値になる。
+        // この受け皿は「呼び出しのたびに root から読み直す」ためだけに存在する。
         [HideInInspector]
         public long[] _tmpOrigin = new long[3];
 
@@ -99,8 +99,6 @@ namespace FDMi.sync
             // root を先に確定する。初期化中に 1 つ失敗しても view origin は壊さない。
             if (managerAnchor != null) _root = managerAnchor;
             else _root = initialAnchor;
-            _root.GetAbsoluteMm(originMm);
-            originRot = _root.GetAbsoluteRotation();
             _root._SnapRootBodyToOrigin();
             _viewVersion = 1;
             _rootIndex = _IndexOf(_root);
@@ -132,8 +130,6 @@ namespace FDMi.sync
             if (_root == managerAnchor && _ShouldRebase()) _Rebase();
 
             if (_root == null) return;
-            _root.GetAbsoluteMm(originMm);
-            originRot = _root.GetAbsoluteRotation();
             // 自由移動中は rebase / root 切替でしか原点が変わらない。
             // 乗車中は root body が毎 FixedUpdate 動くので、毎ステップ再投影する。
             if (_root != managerAnchor)
@@ -190,17 +186,15 @@ namespace FDMi.sync
             AbsFromView(localPlayer.GetPosition(), _playerAbsMm);
 
             // 手順 1〜3。移動量は整数 km。
-            RebaseShiftMm(_playerAbsMm, originMm, _shiftMm);
+            managerAnchor.GetAbsoluteMm(_tmpOrigin);
+            RebaseShiftMm(_playerAbsMm, _tmpOrigin, _shiftMm);
             bool moved = false;
             for (int i = 0; i < 3; i++)
                 if (_shiftMm[i] != 0) moved = true;
             if (!moved) return;
 
             for (int i = 0; i < 3; i++)
-            {
                 managerAnchor._localAbs[i] = managerAnchor._localAbs[i] + _shiftMm[i];
-                originMm[i] = originMm[i] + _shiftMm[i];
-            }
 
             _viewVersion = _viewVersion + 1;
 
@@ -228,28 +222,26 @@ namespace FDMi.sync
                 return;
             }
 
-            Quaternion oldOriginRot = originRot; // 2
+            Quaternion oldOriginRot = _root.GetAbsoluteRotation(); // 2
             Vector3 oldVelFef = oldOriginRot * localPlayer.GetVelocity(); // 3
 
             // 手順 4 は旧原点でプレイヤーの絶対姿勢を捕獲する。手順 5 の後では view が変わり再現できない。
+            // 原点は _root から読むので、_root を差し替える前に済ませる (ADR-0029)。
             AbsFromView(localPlayer.GetPosition(), _playerAbsMm);
-            Quaternion qPlayer = originRot * localPlayer.GetRotation();
+            Quaternion qPlayer = oldOriginRot * localPlayer.GetRotation();
 
             FDMiSyncAnchor prevRoot = _root;
 
-            next.GetAbsoluteMm(_tmpOrigin); // 5
-            originMm[0] = _tmpOrigin[0];
-            originMm[1] = _tmpOrigin[1];
-            originMm[2] = _tmpOrigin[2];
-            originRot = next.GetAbsoluteRotation();
+            // 手順 5 は _root の差し替えそのもの。原点は _root から導出するので代入しない。
             _root = next; // 6
             _rootIndex = _IndexOf(next);
             if (prevRoot != null && prevRoot.IsRoot != null) prevRoot.IsRoot.Data = false;
             if (next.IsRoot != null) next.IsRoot.Data = true;
             next._SnapRootBodyToOrigin();
 
+            Quaternion newOriginRot = _root.GetAbsoluteRotation();
             localPlayer.TeleportTo(ViewFromAbs(_playerAbsMm), ViewRotFromAbs(qPlayer)); // 7
-            localPlayer.SetVelocity(FDMiSyncMath.QInv(originRot) * oldVelFef);
+            localPlayer.SetVelocity(FDMiSyncMath.QInv(newOriginRot) * oldVelFef);
 
             // 手順 8 の全点再投影は _viewVersion の更新で代用する (§9.1)。
             // 各アンカーが次の FixedUpdate で版の変化に気付いて再投影する。
@@ -261,9 +253,9 @@ namespace FDMi.sync
                     continue;
                 // 旧 frame → FEF → 新 frame の順に回す。角速度も同じ frame 変換を受ける。
                 Vector3 velFef = oldOriginRot * b.velocity;
-                b.velocity = FDMiSyncMath.QInv(originRot) * velFef;
+                b.velocity = FDMiSyncMath.QInv(newOriginRot) * velFef;
                 Vector3 angFef = oldOriginRot * b.angularVelocity;
-                b.angularVelocity = FDMiSyncMath.QInv(originRot) * angFef;
+                b.angularVelocity = FDMiSyncMath.QInv(newOriginRot) * angFef;
             }
 
             _suspendUntilFrame = Time.frameCount + 1; // 10
@@ -271,25 +263,28 @@ namespace FDMi.sync
         }
 
         // §7.1 の逆写像。
+        // Why-not: 原点を引数で受け取らない。呼び出し側が古い原点を持ち回ると位相がずれる (ADR-0029)。
         public void AbsFromView(Vector3 view, long[] dst)
         {
-            FDMiSyncMath.AbsFromView(originMm, originRot, view, dst);
+            _root.GetAbsoluteMm(_tmpOrigin);
+            FDMiSyncMath.AbsFromView(_tmpOrigin, _root.GetAbsoluteRotation(), view, dst);
         }
 
         // §7.1。差を long で先に取る。
         public Vector3 ViewFromAbs(long[] abs)
         {
-            return FDMiSyncMath.ViewFromAbs(originMm, originRot, abs);
+            _root.GetAbsoluteMm(_tmpOrigin);
+            return FDMiSyncMath.ViewFromAbs(_tmpOrigin, _root.GetAbsoluteRotation(), abs);
         }
 
         public Quaternion ViewRotFromAbs(Quaternion absRot)
         {
-            return FDMiSyncMath.QInv(originRot) * absRot;
+            return FDMiSyncMath.QInv(_root.GetAbsoluteRotation()) * absRot;
         }
 
         public Quaternion GetOriginRot()
         {
-            return originRot;
+            return _root.GetAbsoluteRotation();
         }
 
         public FDMiSyncAnchor GetRoot()

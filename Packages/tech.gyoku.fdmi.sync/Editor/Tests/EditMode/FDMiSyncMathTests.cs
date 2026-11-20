@@ -361,9 +361,6 @@ namespace FDMi.sync.Editor.Tests
                 child._Init(manager);
                 child.parent = parent;
 
-                manager.originMm = new long[3];
-                manager.originRot = Quaternion.identity;
-
                 child._WriteViewPose();
 
                 // yaw 90° の親フレームで Earth の +x は +z。差分は親のフレームで表される。
@@ -390,18 +387,24 @@ namespace FDMi.sync.Editor.Tests
         public void M15_原点が変わったときだけアンカーが再投影される()
         {
             // 原点の版が変わると全アンカーが再投影する。版が変わらないフレームは静的アンカーが書かない (§9.1)。
+            // 原点は root の絶対姿勢そのものなので、root を別に置く (ADR-0029)。
+            GameObject rootGo = new GameObject("root");
             GameObject go = new GameObject("anchor");
             try
             {
                 FDMiSyncManager manager = go.AddComponent<FDMiSyncManager>();
+                FDMiStaticObjectSync root = rootGo.AddComponent<FDMiStaticObjectSync>();
                 FDMiStaticObjectSync anchor = go.AddComponent<FDMiStaticObjectSync>();
+
+                root._absMm = new long[3];
+                root._rot = Pack(Quaternion.identity);
+                root._Init(manager);
+                manager._root = root;
 
                 anchor._absMm = new long[] { 2000L, 0L, 0L };
                 anchor._rot = Pack(Quaternion.identity);
                 anchor._Init(manager);
 
-                manager.originMm = new long[3];
-                manager.originRot = Quaternion.identity;
                 manager._viewVersion = 7;
 
                 anchor.LateUpdate();
@@ -421,6 +424,7 @@ namespace FDMi.sync.Editor.Tests
             finally
             {
                 UnityEngine.Object.DestroyImmediate(go);
+                UnityEngine.Object.DestroyImmediate(rootGo);
             }
         }
 
@@ -473,15 +477,14 @@ namespace FDMi.sync.Editor.Tests
                 player._refAnchorIndex = 0;
                 player._Init(manager);
 
-                manager.originMm = new long[] { 6371000000L, 0L, 0L };
-                manager.originRot = Quaternion.identity;
+                // 原点は root の絶対姿勢そのもの (ADR-0029)。別に持たない。
+                manager._root = root;
 
                 player._WriteViewPose();
                 AssertVector(new Vector3(2f, 0f, 0f), playerGo.transform.position, "位相 A (Update 直後)");
 
-                // 次の固定ステップ: root と原点が 1 m 進む。player の状態は前フレームのまま。
+                // 次の固定ステップ: root が 1 m 進む (原点も同じ 1 m 進む)。player の状態は前フレームのまま。
                 root._localAbs[0] = root._localAbs[0] + 1000L;
-                manager.originMm[0] = manager.originMm[0] + 1000L;
 
                 player._WriteViewPose();
                 AssertVector(new Vector3(2f, 0f, 0f), playerGo.transform.position, "位相 B (FixedUpdate 直後)");
@@ -489,6 +492,48 @@ namespace FDMi.sync.Editor.Tests
             finally
             {
                 UnityEngine.Object.DestroyImmediate(playerGo);
+                UnityEngine.Object.DestroyImmediate(rootGo);
+                UnityEngine.Object.DestroyImmediate(mgrGo);
+            }
+        }
+
+        [Test]
+        public void M20_原点はrootの絶対姿勢から導出され位相に依存しない()
+        {
+            // ADR-0029。原点をキャッシュすると、同乗者側で root の _localAbs が Update 相で進む分だけ
+            // 古い原点が残り、ViewFromAbs が root の移動量 (v × Δt) だけずれる。機体 body が原点周りで
+            // 振動し、その station に載ったアバターが 2 位置の間でちらついた。
+            // ここでは「root の絶対姿勢が変われば view 写像も同じ瞬間に追従する」ことを固定する。
+            GameObject mgrGo = new GameObject("mgr");
+            GameObject rootGo = new GameObject("root");
+            try
+            {
+                FDMiSyncManager manager = mgrGo.AddComponent<FDMiSyncManager>();
+                FDMiStaticObjectSync root = rootGo.AddComponent<FDMiStaticObjectSync>();
+
+                root._absMm = new long[] { 6371000000L, 0L, 0L };
+                root._rot = Pack(Quaternion.identity);
+                root._Init(manager);
+                manager._root = root;
+
+                // root 自身は常に view 原点に写る。これが崩れると機体が原点周りで振動する。
+                AssertVector(Vector3.zero, manager.ViewFromAbs(root._localAbs), "root は view 原点");
+
+                // root が 1 フレーム分進む。原点は導出なので同じ瞬間に追従する。
+                root._localAbs[0] = root._localAbs[0] + 4000L;
+                AssertVector(Vector3.zero, manager.ViewFromAbs(root._localAbs), "進んだ後も root は view 原点");
+
+                // 絶対位置が動かない点は、root が進んだ分だけ逆方向へ動く。
+                long[] fixedAbs = new long[] { 6371000000L, 0L, 0L };
+                AssertVector(new Vector3(-4f, 0f, 0f), manager.ViewFromAbs(fixedAbs), "静止点は root の移動の逆");
+
+                // 往復で元に戻る (§7.1 の逆写像)。
+                long[] back = new long[3];
+                manager.AbsFromView(new Vector3(-4f, 0f, 0f), back);
+                CollectionAssert.AreEqual(fixedAbs, back, "逆写像の往復");
+            }
+            finally
+            {
                 UnityEngine.Object.DestroyImmediate(rootGo);
                 UnityEngine.Object.DestroyImmediate(mgrGo);
             }

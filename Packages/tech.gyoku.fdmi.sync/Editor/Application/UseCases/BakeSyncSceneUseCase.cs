@@ -49,8 +49,9 @@ namespace FDMi.sync.Editor.Application.UseCases
                     anchors.RemoveAt(i);
 
             // 手順 3 / 6: 先に基準姿勢を確定し、その後に全アンカーを焼く。
-            // Why-not: full 精度の basis を基準にしない。Runtime の originRot は UnpackQuat(_rot) なので、
-            // 焼きだけ full 精度にすると Editor と Runtime で view が δ_ref だけずれる (§3.6)。
+            // Why-not: full 精度の basis を基準にしない。Runtime の原点回転は root の絶対回転、
+            // すなわち UnpackQuat(_rot) なので (ADR-0029)、焼きだけ full 精度にすると
+            // Editor と Runtime で view が δ_ref だけずれる (§3.6)。
             // 原点から 10 km で最大 0.61 m のずれになる。基準は焼き値そのものを使う。
             FDMiStaticObjectSync initial = (FDMiStaticObjectSync)manager.initialAnchor;
             FDMiEarth.LatLonAltToAbsMm(initial.latitude, initial.longitude,
