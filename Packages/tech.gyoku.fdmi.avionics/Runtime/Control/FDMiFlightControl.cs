@@ -119,6 +119,13 @@ namespace FDMi.avionics
         [Tooltip("エレベータ舵角 [deg]")]
         public FDMiFloat elevator;
 
+        [Tooltip("エルロン入力のパス")]
+        public string aileronPath = "~/Physics/Aileron";
+
+        [FDMiDataPath(nameof(aileronPath))]
+        [Tooltip("エルロン出力の合成値")]
+        public FDMiFloat aileron;
+
         [Tooltip("内側エルロン（左）のパス")]
         public string aileronInLPath = "~/Physics/AileronInL";
 
@@ -199,42 +206,55 @@ namespace FDMi.avionics
         [Header("舵角")]
         [Tooltip("エレベータの最大上げ舵 [deg]")]
         public float elevatorUpDeg = 30f;
+
         [Tooltip("エレベータの最大下げ舵 [deg]")]
         public float elevatorDownDeg = 15f;
+
         [Tooltip("内側エルロンの最大上げ舵 [deg]")]
         public float aileronInUpDeg = 23f;
+
         [Tooltip("内側エルロンの最大下げ舵 [deg]")]
         public float aileronInDownDeg = 19f;
+
         [Tooltip("外側エルロンの最大上げ舵 [deg]")]
         public float aileronOutUpDeg = 15f;
+
         [Tooltip("外側エルロンの最大下げ舵 [deg]")]
         public float aileronOutDownDeg = 12f;
+
         [Tooltip("ラダーの最大舵角 [deg]")]
         public float rudderDeg = 30f;
 
         [Header("レバー変換")]
         [Tooltip("レバー位置 → フラップ舵角のカーブ")]
         public AnimationCurve flapCurve;
+
         [Tooltip("レバー位置 → スラット舵角のカーブ")]
         public AnimationCurve slatCurve;
+
         [Tooltip("レバー位置 → 内側スポイラ舵角のカーブ")]
         public AnimationCurve airbrakeInCurve;
+
         [Tooltip("レバー位置 → 外側スポイラ舵角のカーブ")]
         public AnimationCurve airbrakeOutCurve;
 
         [Header("作動速度")]
         [Tooltip("フラップの作動速度 [deg/s]")]
         public float flapRateDeg = 2f;
+
         [Tooltip("スラットの作動速度 [deg/s]")]
         public float slatRateDeg = 2f;
+
         [Tooltip("内側スポイラの作動速度 [deg/s]")]
         public float airbrakeInRateDeg = 30f;
+
         [Tooltip("外側スポイラの作動速度 [deg/s]")]
         public float airbrakeOutRateDeg = 30f;
 
         [Header("スポイラ")]
         [Tooltip("内側スポイラの最大舵角 [deg]")]
         public float spoilerInMaxDeg = 60f;
+
         [Tooltip("外側スポイラの最大舵角 [deg]")]
         public float spoilerOutMaxDeg = 60f;
 
@@ -258,6 +278,7 @@ namespace FDMi.avionics
         float[] _slatLever;
         float[] _airbrakeLever;
         float[] _elevator;
+        float[] _aileron;
         float[] _aileronInL;
         float[] _aileronInR;
         float[] _aileronOutL;
@@ -312,6 +333,7 @@ namespace FDMi.avionics
             _slatLever = slatLever.data;
             _airbrakeLever = airbrakeLever.data;
             _elevator = elevator.data;
+            _aileron = aileron.data;
             _aileronInL = aileronInL.data;
             _aileronInR = aileronInR.data;
             _aileronOutL = aileronOutL.data;
@@ -351,6 +373,8 @@ namespace FDMi.avionics
             float pitch = Mathf.Clamp(_pitchL[0] + _pitchR[0] + apPitchValue, -1f, 1f);
             float roll = Mathf.Clamp(_rollL[0] + _rollR[0] + apRollValue, -1f, 1f);
             float yaw = Mathf.Clamp(_yawL[0] + _yawR[0] + yawDamperValue, -1f, 1f);
+
+            _aileron[0] = roll;
 
             float dt = Time.fixedDeltaTime;
             _flapDeg = Mathf.MoveTowards(_flapDeg, flapCurve.Evaluate(_flapLever[0]), flapRateDeg * dt);
