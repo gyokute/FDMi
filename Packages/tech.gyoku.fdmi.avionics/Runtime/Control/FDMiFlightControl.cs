@@ -76,19 +76,33 @@ namespace FDMi.avionics
         public FDMiFloat airbrakeLever;
 
         [Header("自動操縦")]
-        [Tooltip("AP のピッチバイアスのパス")]
-        public string apPitchPath = "~/Input/AutoPilot/AP2/Pitch";
+        [Tooltip("AP1 のピッチバイアスのパス")]
+        public string apPitchPath = "~/Input/AutoPilot/AP1/Pitch";
 
         [FDMiDataPath(nameof(apPitchPath))]
-        [Tooltip("AP のピッチバイアス [-1,1]")]
+        [Tooltip("AP1 のピッチバイアス [-1,1]")]
         public FDMiFloat apPitch;
 
-        [Tooltip("AP のロールバイアスのパス")]
-        public string apRollPath = "~/Input/AutoPilot/AP2/Roll";
+        [Tooltip("AP2 のピッチバイアスのパス")]
+        public string apPitch2Path = "~/Input/AutoPilot/AP2/Pitch";
+
+        [FDMiDataPath(nameof(apPitch2Path))]
+        [Tooltip("AP2 のピッチバイアス [-1,1]")]
+        public FDMiFloat apPitch2;
+
+        [Tooltip("AP1 のロールバイアスのパス")]
+        public string apRollPath = "~/Input/AutoPilot/AP1/Roll";
 
         [FDMiDataPath(nameof(apRollPath))]
-        [Tooltip("AP のロールバイアス [-1,1]")]
+        [Tooltip("AP1 のロールバイアス [-1,1]")]
         public FDMiFloat apRoll;
+
+        [Tooltip("AP2 のロールバイアスのパス")]
+        public string apRoll2Path = "~/Input/AutoPilot/AP2/Roll";
+
+        [FDMiDataPath(nameof(apRoll2Path))]
+        [Tooltip("AP2 のロールバイアス [-1,1]")]
+        public FDMiFloat apRoll2;
 
         [Tooltip("ヨーダンパのラダーバイアスのパス")]
         public string yawDamperPath = "~/Input/YawDamper/Rudder";
@@ -231,10 +245,14 @@ namespace FDMi.avionics
         float[] _yawL;
         float[] _yawR;
         float[] _apPitch;
+        float[] _apPitch2;
         float[] _apRoll;
+        float[] _apRoll2;
         float[] _yawDamper;
         bool _hasApPitch;
+        bool _hasApPitch2;
         bool _hasApRoll;
+        bool _hasApRoll2;
         bool _hasYawDamper;
         float[] _flapLever;
         float[] _slatLever;
@@ -270,10 +288,20 @@ namespace FDMi.avionics
                 _apPitch = apPitch.data;
                 _hasApPitch = true;
             }
+            if (apPitch2)
+            {
+                _apPitch2 = apPitch2.data;
+                _hasApPitch2 = true;
+            }
             if (apRoll)
             {
                 _apRoll = apRoll.data;
                 _hasApRoll = true;
+            }
+            if (apRoll2)
+            {
+                _apRoll2 = apRoll2.data;
+                _hasApRoll2 = true;
             }
             if (yawDamper)
             {
@@ -304,13 +332,19 @@ namespace FDMi.avionics
 
         void FixedUpdate()
         {
+            // 左右に AP が 1 組ずつ載るため 2 本のバスを加算する。同時 engage は正常系として
+            // 扱わず、DUAL の比較や優先順位は持たない（ADR-0031）。合計は下の clamp が吸収する。
             float apPitchValue = 0f;
             float apRollValue = 0f;
             float yawDamperValue = 0f;
             if (_hasApPitch)
-                apPitchValue = _apPitch[0];
+                apPitchValue += _apPitch[0];
+            if (_hasApPitch2)
+                apPitchValue += _apPitch2[0];
             if (_hasApRoll)
-                apRollValue = _apRoll[0];
+                apRollValue += _apRoll[0];
+            if (_hasApRoll2)
+                apRollValue += _apRoll2[0];
             if (_hasYawDamper)
                 yawDamperValue = _yawDamper[0];
 

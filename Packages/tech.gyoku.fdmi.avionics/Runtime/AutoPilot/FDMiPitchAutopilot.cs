@@ -4,35 +4,24 @@ using UnityEngine;
 
 namespace FDMi.avionics
 {
-    public enum FDMiAutopilotMode
-    {
-        Off = 0,
-        Cws = 1,
-        Cmd = 2,
-    }
-
     // ピッチ軸の追従サーボ。FD の姿勢指令を追従し、操縦軸に足すバイアスだけを書く。
     // Why not 舵角を直接書く: 操舵則の書き手を FDMiFlightControl 1人に保つ（ADR-0012）。
     // Why not 出力を絶対値にする: 手動入力との合成ができず、engage/解除で舵が跳ぶ。
+    // Why not AP のモードを publish する: モードは FD スイッチと AP スイッチから一意に決まる
+    // 派生値で、FMA は FD のモードを読む（ADR-0031）。
     [DefaultExecutionOrder(-300)]
     public class FDMiPitchAutopilot : FDMiBehaviour
     {
         [Header("スイッチ")]
         [Tooltip("AP スイッチ（0=OFF、1=CWS、2=CMD）")]
-        public string apSwitchPath = "~/Input/AP2SW/Value";
+        public string apSwitchPath = "~/Input/AP1SW/Value";
 
         [FDMiDataPath(nameof(apSwitchPath))]
         public FDMiInt apSwitch;
 
-        [Tooltip("FD スイッチ。OFF なら AP は解除する")]
-        public string fdSwitchPath = "~/Input/FD.L/Value";
-
-        [FDMiDataPath(nameof(fdSwitchPath))]
-        public FDMiBool fdSwitch;
-
         [Header("入力")]
         [Tooltip("FD のピッチ姿勢指令 [deg]")]
-        public string fdPitchPath = "~/Autopilot/FDPitch";
+        public string fdPitchPath = "~/Avionics/FD/L/Pitch";
 
         [FDMiDataPath(nameof(fdPitchPath))]
         public FDMiFloat fdPitch;
@@ -57,16 +46,10 @@ namespace FDMi.avionics
 
         [Header("出力")]
         [Tooltip("ピッチ軸へ足すバイアス。FDMiFlightControl がヨークと加算する")]
-        public string apOutputPath = "~/Input/AutoPilot/AP2/Pitch";
+        public string apOutputPath = "~/Input/AutoPilot/AP1/Pitch";
 
         [FDMiDataPath(nameof(apOutputPath))]
         public FDMiFloat apOutput;
-
-        [Tooltip("ピッチ AP の状態（0=OFF、1=CWS、2=CMD）。FMA 用")]
-        public string apModePath = "~/Autopilot/PitchAPMode";
-
-        [FDMiDataPath(nameof(apModePath))]
-        public FDMiInt apModeOut;
 
         [Header("追従則")]
         [Tooltip("姿勢誤差の比例ゲイン [1/deg/s]")]
@@ -85,31 +68,26 @@ namespace FDMi.avionics
         public float cwsInputThreshold = 0.02f;
 
         int[] _apSwitch;
-        bool[] _fdSwitch;
         float[] _fdPitch,
             _pitch,
             _pitchInputL,
             _pitchInputR,
             _apOutput;
-        int[] _apModeOut;
 
         float _servo;
         float _prevPitch;
         float _pitchRate;
         float _prevYoke;
         bool _cwsHeld;
-        int _prevMode = -1;
 
         void Start()
         {
             _apSwitch = apSwitch.data;
-            _fdSwitch = fdSwitch.data;
             _fdPitch = fdPitch.data;
             _pitch = pitch.data;
             _pitchInputL = pitchInputL.data;
             _pitchInputR = pitchInputR.data;
             _apOutput = apOutput.data;
-            _apModeOut = apModeOut.data;
             _prevPitch = _pitch[0];
         }
 
@@ -117,7 +95,6 @@ namespace FDMi.avionics
         {
             float dt = Time.fixedDeltaTime;
             int sw = _apSwitch[0];
-            bool fdOn = _fdSwitch[0];
             float yoke = Mathf.Clamp(_pitchInputL[0] + _pitchInputR[0], -1f, 1f);
             float pitchNow = _pitch[0];
 
@@ -125,44 +102,33 @@ namespace FDMi.avionics
             _pitchRate += (rawRate - _pitchRate) * (dt / (rateTau + dt));
             _prevPitch = pitchNow;
 
-            int mode;
-            if (sw == 0 || !fdOn)
+            switch (_apSwitch[0])
             {
-                mode = (int)FDMiAutopilotMode.Off;
-                _servo = Mathf.MoveTowards(_servo, 0f, rateMax * dt);
-                _cwsHeld = false;
-            }
-            else if (sw == 1)
-            {
-                mode = (int)FDMiAutopilotMode.Cws;
-                // 保持中はサーボを凍結する。離した瞬間に最後の入力をサーボへ移すと、
-                // ヨーク入力が 0 に戻っても舵の合計が連続になる。
-                if (Mathf.Abs(yoke) > cwsInputThreshold)
-                {
-                    _cwsHeld = true;
-                }
-                else if (_cwsHeld)
-                {
-                    _servo = Mathf.Clamp(_servo + _prevYoke, -1f, 1f);
+                case 0: // OFF
+                    _servo = Mathf.MoveTowards(_servo, 0f, rateMax * dt);
                     _cwsHeld = false;
-                }
-            }
-            else
-            {
-                mode = (int)FDMiAutopilotMode.Cmd;
-                float err = _fdPitch[0] - pitchNow;
-                float servoRate = Mathf.Clamp(kp * err - kd * _pitchRate, -rateMax, rateMax);
-                _servo = Mathf.Clamp(_servo + servoRate * dt, -1f, 1f);
-                _cwsHeld = false;
+                    break;
+                case 1: // CWS
+                    if (Mathf.Abs(yoke) > cwsInputThreshold)
+                    {
+                        _cwsHeld = true;
+                    }
+                    else if (_cwsHeld)
+                    {
+                        _servo = Mathf.Clamp(_servo + _prevYoke, -1f, 1f);
+                        _cwsHeld = false;
+                    }
+                    break;
+                case 2: // CMD
+                    float err = _fdPitch[0] - pitchNow;
+                    float servoRate = Mathf.Clamp(kp * err - kd * _pitchRate, -rateMax, rateMax);
+                    _servo = Mathf.Clamp(_servo + servoRate * dt, -1f, 1f);
+                    _cwsHeld = false;
+                    break;
             }
 
             _prevYoke = yoke;
             _apOutput[0] = _servo;
-            if (mode != _prevMode)
-            {
-                _apModeOut[0] = mode;
-                _prevMode = mode;
-            }
         }
     }
 }

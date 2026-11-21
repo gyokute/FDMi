@@ -8,20 +8,16 @@ namespace FDMi.avionics
     [DefaultExecutionOrder(-300)]
     public class FDMiRollAutopilot : FDMiBehaviour
     {
+        [Header("スイッチ")]
         [Tooltip("AP スイッチ（0=OFF、1=CWS、2=CMD）")]
-        public string apSwitchPath = "~/Input/AP2SW/Value";
+        public string apSwitchPath = "~/Input/AP1SW/Value";
 
         [FDMiDataPath(nameof(apSwitchPath))]
         public FDMiInt apSwitch;
 
-        [Tooltip("FD スイッチ。OFF なら AP は解除する")]
-        public string fdSwitchPath = "~/Input/FD.L/Value";
-
-        [FDMiDataPath(nameof(fdSwitchPath))]
-        public FDMiBool fdSwitch;
-
+        [Header("入力")]
         [Tooltip("FD のバンク指令 [deg]")]
-        public string fdRollPath = "~/Autopilot/FDRoll";
+        public string fdRollPath = "~/Avionics/FD/L/Roll";
 
         [FDMiDataPath(nameof(fdRollPath))]
         public FDMiFloat fdRoll;
@@ -44,18 +40,14 @@ namespace FDMi.avionics
         [FDMiDataPath(nameof(rollInputRPath))]
         public FDMiFloat rollInputR;
 
+        [Header("出力")]
         [Tooltip("ロール軸へ足すバイアス")]
-        public string apOutputPath = "~/Input/AutoPilot/AP2/Roll";
+        public string apOutputPath = "~/Input/AutoPilot/AP1/Roll";
 
         [FDMiDataPath(nameof(apOutputPath))]
         public FDMiFloat apOutput;
 
-        [Tooltip("ロール AP の状態（0=OFF、1=CWS、2=CMD）。FMA 用")]
-        public string apModePath = "~/Autopilot/RollAPMode";
-
-        [FDMiDataPath(nameof(apModePath))]
-        public FDMiInt apModeOut;
-
+        [Header("追従則")]
         [Tooltip("姿勢誤差の比例ゲイン [1/deg/s]")]
         public float kp = 1f;
 
@@ -72,31 +64,26 @@ namespace FDMi.avionics
         public float cwsInputThreshold = 0.02f;
 
         int[] _apSwitch;
-        bool[] _fdSwitch;
         float[] _fdRoll,
             _roll,
             _rollInputL,
             _rollInputR,
             _apOutput;
-        int[] _apModeOut;
 
         float _servo;
         float _prevRoll;
         float _rollRate;
         float _prevYoke;
         bool _cwsHeld;
-        int _prevMode = -1;
 
         void Start()
         {
             _apSwitch = apSwitch.data;
-            _fdSwitch = fdSwitch.data;
             _fdRoll = fdRoll.data;
             _roll = roll.data;
             _rollInputL = rollInputL.data;
             _rollInputR = rollInputR.data;
             _apOutput = apOutput.data;
-            _apModeOut = apModeOut.data;
             _prevRoll = _roll[0];
         }
 
@@ -104,7 +91,6 @@ namespace FDMi.avionics
         {
             float dt = Time.fixedDeltaTime;
             int sw = _apSwitch[0];
-            bool fdOn = _fdSwitch[0];
             float yoke = Mathf.Clamp(_rollInputL[0] + _rollInputR[0], -1f, 1f);
             float rollNow = _roll[0];
 
@@ -112,16 +98,13 @@ namespace FDMi.avionics
             _rollRate += (rawRate - _rollRate) * (dt / (rateTau + dt));
             _prevRoll = rollNow;
 
-            int mode;
-            if (sw == 0 || !fdOn)
+            if (sw == 0)
             {
-                mode = (int)FDMiAutopilotMode.Off;
                 _servo = Mathf.MoveTowards(_servo, 0f, rateMax * dt);
                 _cwsHeld = false;
             }
             else if (sw == 1)
             {
-                mode = (int)FDMiAutopilotMode.Cws;
                 if (Mathf.Abs(yoke) > cwsInputThreshold)
                 {
                     _cwsHeld = true;
@@ -134,7 +117,6 @@ namespace FDMi.avionics
             }
             else
             {
-                mode = (int)FDMiAutopilotMode.Cmd;
                 float err = _fdRoll[0] - rollNow;
                 float servoRate = Mathf.Clamp(kp * err - kd * _rollRate, -rateMax, rateMax);
                 _servo = Mathf.Clamp(_servo + servoRate * dt, -1f, 1f);
@@ -143,11 +125,6 @@ namespace FDMi.avionics
 
             _prevYoke = yoke;
             _apOutput[0] = _servo;
-            if (mode != _prevMode)
-            {
-                _apModeOut[0] = mode;
-                _prevMode = mode;
-            }
         }
     }
 }
