@@ -38,7 +38,7 @@ namespace FDMi.core
         // 同じ添字への再適用で複製を作り直さないためのキャッシュ。初期値 -1 で最初の OnChange は必ず適用される。
         int currentIndex = -1;
 
-        public void Initialize()
+        public void Start()
         {
             targetRenderer = target.data[0].GetComponent<Renderer>();
             OnChange();

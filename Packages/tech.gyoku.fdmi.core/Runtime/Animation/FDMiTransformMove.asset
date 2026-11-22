@@ -125,7 +125,7 @@ MonoBehaviour:
       Data: 7|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: FDMi.core.FDMiFloat, FDMi.core
+      Data: FDMi.core.FDMiData, FDMi.core
     - Name: 
       Entry: 8
       Data: 

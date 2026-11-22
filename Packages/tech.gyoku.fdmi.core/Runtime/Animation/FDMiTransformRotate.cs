@@ -37,7 +37,7 @@ namespace FDMi.core
         [HideInInspector]
         public Vector3 baseAngle;
 
-        public void Initialize()
+        public void Start()
         {
             OnChange();
         }

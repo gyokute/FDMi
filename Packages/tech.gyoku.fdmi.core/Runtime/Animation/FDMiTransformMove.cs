@@ -12,8 +12,9 @@ namespace FDMi.core
         public string dataPath;
 
         [FDMiDataPath(nameof(dataPath))]
+        [FDMiRegisterCallback(nameof(OnChange))]
         [Tooltip("移動量を決める入力。dataPath から解決する")]
-        public FDMiFloat Value;
+        public FDMiData Value;
 
         [Tooltip("入力値 → 0..1 補間係数の変換カーブ")]
         public AnimationCurve outputCurve;
@@ -29,7 +30,7 @@ namespace FDMi.core
         [Tooltip("両端のローカル位置。この間を補間する")]
         Vector3[] position = new Vector3[2];
 
-        public void Initialize()
+        public void Start()
         {
             OnChange();
         }
