@@ -109,6 +109,31 @@ namespace FDMi.sync
         [HideInInspector] public long[] _poseMm = new long[3];
         [HideInInspector] public Quaternion _poseRot = Quaternion.identity;
 
+        // §6.5。予測に使う前サンプルの軌道。_latest が新サンプル、_prev が 1 つ前。
+        // Why-not: 受信スロットを 3 つに増やさない。旧軌道は「直前の latest」であり、
+        // prev の速度・加速度・角速度をシフト時に保存すれば足りる (ADR-0035)。
+        [HideInInspector] public Vector3 _prevVel;
+        [HideInInspector] public Vector3 _prevAcc;
+        [HideInInspector] public Vector3 _latestAcc;
+        [HideInInspector] public Vector3 _prevAngVel;
+        [HideInInspector] public Vector3 _latestAngVel;
+        // 旧軌道の姿勢の受け皿。_tmpRot は PackQuat 用の short[4] なので兼用しない。
+        [HideInInspector] public Quaternion _tmpPredRot = Quaternion.identity;
+
+        // 最新サンプルを _IntegrateReceive が消化した時刻。旧/新軌道のブレンド開始点 (§6.5)。
+        [HideInInspector] public int _latestArrivalMs;
+
+        // §6.5。パイロット非アクティブ時のホールド。送信が止まった姿勢へ 1 送信間隔で寄せる。
+        [HideInInspector] public bool _holding;
+        [HideInInspector] public long[] _holdFromAbs = new long[3];
+        [HideInInspector] public Quaternion _holdFromRot = Quaternion.identity;
+        [HideInInspector] public int _holdT;
+
+        // §6.5 / ADR-0030。FDMiSyncPlayer は parent-local 書きが入るまで旧経路を使う。
+        // Why-not: プレイヤーに同じ予測を適用しない。着席中は親アンカーの予測で既に動くため、
+        // 子の相対姿勢まで予測すると二重予測になる (ADR-0035 / ADR-0030)。
+        [HideInInspector] public bool _legacyPose;
+
         // §9.2。Editor 焼きの絶対姿勢を積分の起点にする。_Init が Start より先でも成立する (§5.4)。
         public override void _InitLocal()
         {
@@ -122,6 +147,11 @@ namespace FDMi.sync
             _renderDelayMs = _sendIntervalMs - RENDER_DELAY_OFFSET_MS;
             _lastBodyPos = (body != null) ? body.position : view.position;
             _writesView = true;
+            _legacyPose = false;
+            _prevVel = Vector3.zero; _prevAcc = Vector3.zero; _latestAcc = Vector3.zero;
+            _prevAngVel = Vector3.zero; _latestAngVel = Vector3.zero;
+            _latestArrivalMs = 0;
+            _holding = false;
             _ResolveAbs(_poseMm, _poseRot);
         }
 
@@ -324,9 +354,13 @@ namespace FDMi.sync
                     _CopySlotAbs(k, _latestAbs);
                     _latestRot = _UnpackSlotRot(k);
                     _latestVel = _recvVel[k];
+                    _latestAcc = Vector3.zero;
+                    _latestAngVel = Vector3.zero;
                     _latestStamp = _recvStamp[k];
+                    _latestArrivalMs = nowMs;
                     _hasLatest = true;
                     _snap = true;
+                    _blending = false;
                     continue;
                 }
 
@@ -335,27 +369,73 @@ namespace FDMi.sync
                 long d = FDMiSyncMath.MaxAbsDeltaMm(_tmpAbs, _latestAbs);
                 bool teleport = (d > TELEPORT_DIST_MM) || (dt > TELEPORT_GAP_MS);
 
-                _prevAbs[0] = _latestAbs[0]; _prevAbs[1] = _latestAbs[1]; _prevAbs[2] = _latestAbs[2];
-                _prevRot = _latestRot;
-                _prevStamp = _latestStamp;
+                Quaternion newRot = _UnpackSlotRot(k);
+                Vector3 newVel = _recvVel[k];
 
-                _latestAbs[0] = _tmpAbs[0]; _latestAbs[1] = _tmpAbs[1]; _latestAbs[2] = _tmpAbs[2];
-                _latestRot = _UnpackSlotRot(k);
-                _latestVel = _recvVel[k];
-                _latestStamp = _recvStamp[k];
-                _hasPrev = true;
-
-                if (teleport)
+                // 新経路: 旧軌道 = 直前の latest。速度・加速度・角速度をシフトして保存する。
+                if (!_legacyPose && !teleport)
                 {
                     _prevAbs[0] = _latestAbs[0]; _prevAbs[1] = _latestAbs[1]; _prevAbs[2] = _latestAbs[2];
                     _prevRot = _latestRot;
                     _prevStamp = _latestStamp;
-                    _snap = true;
+                    _prevVel = _latestVel;
+                    _prevAcc = _latestAcc;
+                    _prevAngVel = _latestAngVel;
+
+                    // 新区間の角速度は「旧 latest → 新サンプル」。旧軌道用の _prevAngVel は
+                    // 上で退避済みであり、ここで _latestAngVel を上書きしてよい。
+                    _latestAngVel = FDMiSyncPredict.AngVelPerSec(_latestRot, newRot, dt);
+
+                    Vector3 rawAcc = FDMiSyncPredict.AccelFromVelocities(newVel, _latestVel, dt);
+                    _latestAcc = FDMiSyncPredict.SmoothAccel(rawAcc, _latestAcc, dt, newVel);
+
+                    _latestAbs[0] = _tmpAbs[0]; _latestAbs[1] = _tmpAbs[1]; _latestAbs[2] = _tmpAbs[2];
+                    _latestRot = newRot;
+                    _latestVel = newVel;
+                    _latestStamp = _recvStamp[k];
+                    _latestArrivalMs = nowMs;
+                    _hasPrev = true;
+
+                    if (_holding)
+                    {
+                        _holdFromAbs[0] = _poseMm[0]; _holdFromAbs[1] = _poseMm[1]; _holdFromAbs[2] = _poseMm[2];
+                        _holdFromRot = _poseRot;
+                        _holdT = nowMs;
+                    }
                     continue;
                 }
 
-                // Why-not: _localAbs を起点にしない。それは解決済みの絶対姿勢であり、基準アンカーが
-                // 動くと起点だけが動いて補間先に収束しない (§6.5 / ADR-0014)。
+                // ここから下は legacy プレイヤー経路と teleport。
+                _prevAbs[0] = _latestAbs[0]; _prevAbs[1] = _latestAbs[1]; _prevAbs[2] = _latestAbs[2];
+                _prevRot = _latestRot;
+                _prevStamp = _latestStamp;
+                _prevVel = _latestVel;
+                _prevAcc = _latestAcc;
+                _prevAngVel = _latestAngVel;
+
+                _latestAbs[0] = _tmpAbs[0]; _latestAbs[1] = _tmpAbs[1]; _latestAbs[2] = _tmpAbs[2];
+                _latestRot = newRot;
+                _latestVel = newVel;
+                _latestStamp = _recvStamp[k];
+                _latestArrivalMs = nowMs;
+                _hasPrev = true;
+
+                if (teleport)
+                {
+                    _latestAcc = Vector3.zero;
+                    _latestAngVel = Vector3.zero;
+                    _prevAbs[0] = _latestAbs[0]; _prevAbs[1] = _latestAbs[1]; _prevAbs[2] = _latestAbs[2];
+                    _prevRot = _latestRot;
+                    _prevStamp = _latestStamp;
+                    _prevVel = _latestVel;
+                    _prevAcc = Vector3.zero;
+                    _prevAngVel = Vector3.zero;
+                    _snap = true;
+                    _holding = false;
+                    continue;
+                }
+
+                // legacy: 旧 FDMiDynamicObjectSync の補間経路。ADR-0030 後に削除する。
                 _blendFromAbs[0] = _poseMm[0]; _blendFromAbs[1] = _poseMm[1]; _blendFromAbs[2] = _poseMm[2];
                 _blendFromRot = _poseRot;
                 _blendT = nowMs;
@@ -363,8 +443,83 @@ namespace FDMi.sync
             }
         }
 
-        // §6.5。既定は外挿。250 ms を超えたら補間のフォールバックに移る。
+        // §6.5。最新サンプルからの予測を常に走らせ、到着後 1 区間は旧/新軌道を混ぜる。
+        // Why-not: 外挿を送信間隔で打ち切らない。打ち切ると 4 Hz では ahead が毎周期
+        // MAX_EXTRAP_MS を超え、render delay の補間が最新サンプルへ落ちて後退スナップになる (ADR-0035)。
         public void _ComputeViewPose(int nowMs)
+        {
+            if (!_hasLatest) return;
+            if (_legacyPose)
+            {
+                _ComputeViewPoseLegacy(nowMs);
+                return;
+            }
+
+            if (_snap)
+            {
+                _poseMm[0] = _latestAbs[0]; _poseMm[1] = _latestAbs[1]; _poseMm[2] = _latestAbs[2];
+                _poseRot = _latestRot;
+                _snap = false;
+                _holding = false;
+                _ResolveAbs(_poseMm, _poseRot);
+                return;
+            }
+
+            // 権威が意図的に止まっているときは外挿しない。最終サンプルへ寄せてホールドする。
+            if (_pilotGated && !_pilotActive)
+            {
+                _HoldPose(nowMs);
+                _ResolveAbs(_poseMm, _poseRot);
+                return;
+            }
+            _holding = false;
+
+            int ahead = nowMs - _latestStamp;
+            if (ahead < 0) ahead = 0;
+
+            FDMiSyncPredict.PredictAbs(_latestAbs, _latestVel, _latestAcc, ahead, _poseMm);
+            _poseRot = FDMiSyncPredict.PredictRot(_latestRot, _latestAngVel, ahead);
+
+            // 到着直後は旧軌道と新軌道を混ぜる。u は「最新サンプル到着からの経過 / サンプル間隔」。
+            if (_hasPrev)
+            {
+                int dt = _latestStamp - _prevStamp;
+                float u = FDMiSyncPredict.BlendU(nowMs, _latestArrivalMs, dt);
+                if (u < 1f && dt > 0)
+                {
+                    int oldAhead = nowMs - _prevStamp;
+                    if (oldAhead < 0) oldAhead = 0;
+                    FDMiSyncPredict.PredictAbs(_prevAbs, _prevVel, _prevAcc, oldAhead, _tmpAbs);
+                    _tmpPredRot = FDMiSyncPredict.PredictRot(_prevRot, _prevAngVel, oldAhead);
+                    FDMiSyncPredict.BlendAbs(_tmpAbs, _poseMm, u, _poseMm);
+                    _poseRot = FDMiSyncMath.SlerpHemisphere(_tmpPredRot, _poseRot, u);
+                }
+            }
+
+            _ResolveAbs(_poseMm, _poseRot);
+        }
+
+        // §6.5。パイロット非アクティブ時。最終サンプルへ 1 送信間隔で寄せる。
+        void _HoldPose(int nowMs)
+        {
+            if (!_holding)
+            {
+                _holding = true;
+                _holdFromAbs[0] = _poseMm[0]; _holdFromAbs[1] = _poseMm[1]; _holdFromAbs[2] = _poseMm[2];
+                _holdFromRot = _poseRot;
+                _holdT = nowMs;
+            }
+
+            float u = (float)(nowMs - _holdT) / (float)_sendIntervalMs;
+            if (u < 0f) u = 0f; else if (u > 1f) u = 1f;
+            _poseMm[0] = _holdFromAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[0] - _holdFromAbs[0]) * u);
+            _poseMm[1] = _holdFromAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[1] - _holdFromAbs[1]) * u);
+            _poseMm[2] = _holdFromAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero((float)(_latestAbs[2] - _holdFromAbs[2]) * u);
+            _poseRot = FDMiSyncMath.SlerpHemisphere(_holdFromRot, _latestRot, u);
+        }
+
+        // §6.5 / ADR-0030。FDMiSyncPlayer 用の旧経路。parent-local 書きが入ったら削除する。
+        void _ComputeViewPoseLegacy(int nowMs)
         {
             if (!_hasLatest) return;
 
@@ -478,11 +633,19 @@ namespace FDMi.sync
             {
                 int age = nowMs - _latestStamp;
                 if (age < 0) age = 0;
-                if (age > MAX_EXTRAP_MS) age = MAX_EXTRAP_MS;
-                _poseMm[0] = _latestAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.x * (float)age);
-                _poseMm[1] = _latestAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.y * (float)age);
-                _poseMm[2] = _latestAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.z * (float)age);
-                _poseRot = _latestRot;
+                if (_legacyPose)
+                {
+                    if (age > MAX_EXTRAP_MS) age = MAX_EXTRAP_MS;
+                    _poseMm[0] = _latestAbs[0] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.x * (float)age);
+                    _poseMm[1] = _latestAbs[1] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.y * (float)age);
+                    _poseMm[2] = _latestAbs[2] + FDMiSyncMath.RoundHalfAwayFromZero(_latestVel.z * (float)age);
+                    _poseRot = _latestRot;
+                }
+                else
+                {
+                    FDMiSyncPredict.PredictAbs(_latestAbs, _latestVel, _latestAcc, age, _poseMm);
+                    _poseRot = FDMiSyncPredict.PredictRot(_latestRot, _latestAngVel, age);
+                }
             }
             else
             {

@@ -55,6 +55,14 @@ namespace FDMi.sync
         // 基準アンカーの絶対位置の受け皿。
         long[] _refAbs = new long[3];
 
+        // §6.5 / ADR-0030。プレイヤーは親アンカーの予測で既に動くため、子の相対姿勢まで
+        // 予測しない。parent-local 書きと合わせて予測経路へ移すのは ADR-0030 の後。
+        public override void _InitLocal()
+        {
+            base._InitLocal();
+            _legacyPose = true;
+        }
+
         // §9.3 の 6 段。テンプレートは VRChat が無効化するため Start を実行しない想定 (U-03)。
         public void Start()
         {
