@@ -384,10 +384,20 @@ namespace FDMi.sync
 
                     // 新区間の角速度は「旧 latest → 新サンプル」。旧軌道用の _prevAngVel は
                     // 上で退避済みであり、ここで _latestAngVel を上書きしてよい。
-                    _latestAngVel = FDMiSyncPredict.AngVelPerSec(_latestRot, newRot, dt);
+                    // コースト開始を超える空白の後は、差分から加速度・角速度を作らない。
+                    // 1.9 s の空白で速度差を割ると、次の予測が大きく飛ぶ。
+                    if (dt > FDMiSyncPredict.COAST_START_MS)
+                    {
+                        _latestAcc = Vector3.zero;
+                        _latestAngVel = Vector3.zero;
+                    }
+                    else
+                    {
+                        _latestAngVel = FDMiSyncPredict.AngVelPerSec(_latestRot, newRot, dt);
 
-                    Vector3 rawAcc = FDMiSyncPredict.AccelFromVelocities(newVel, _latestVel, dt);
-                    _latestAcc = FDMiSyncPredict.SmoothAccel(rawAcc, _latestAcc, dt, newVel);
+                        Vector3 rawAcc = FDMiSyncPredict.AccelFromVelocities(newVel, _latestVel, dt);
+                        _latestAcc = FDMiSyncPredict.SmoothAccel(rawAcc, _latestAcc, dt, newVel);
+                    }
 
                     _latestAbs[0] = _tmpAbs[0]; _latestAbs[1] = _tmpAbs[1]; _latestAbs[2] = _tmpAbs[2];
                     _latestRot = newRot;
