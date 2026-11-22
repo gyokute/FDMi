@@ -4,14 +4,16 @@ using UnityEngine;
 
 namespace FDMi.avionics
 {
-    // ピッチ軸の追従サーボ。FD の姿勢差分を追従し、操縦軸に足すバイアスだけを書く。
+    // ピッチ軸の追従則。FD の姿勢差分を追従し、操縦軸へ足す PD 補正と、
+    // ピッチトリムへ渡すレートを書く。
     // Why not 舵角を直接書く: 操舵則の書き手を FDMiFlightControl 1人に保つ（ADR-0012）。
     // Why not 出力を絶対値にする: 手動入力との合成ができず、engage/解除で舵が跳ぶ。
-    // Why not C* 則（Δnz とピッチレートの混合）にする: 荷重倍数の生産者が無く、AP が重力の
-    // 与え方を知ることになる（ADR-0032）。
+    // Why not 積分サーボ（servo += servoRate·dt）: レート制限付きの積分器が姿勢誤差を
+    // 溜め続け、目標姿勢で止まらない（ADR-0033）。
+    // Why not PID を AP に持つ: 定常分は実機のトリム角へ移す。AP は PD 補正だけを持つ。
     //
-    // 状態は目標姿勢 _ref 1本。CMD は差分から絶対目標を復元し、CWS は保持中の現在姿勢・解除時の
-    // 凍結値を入れる。則は両モードで同じ（ADR-0032）。
+    // 状態は目標姿勢 _ref 1本。CMD は差分から絶対目標を復元し、CWS は保持中の現在姿勢・
+    // 解除時の凍結値を入れる。則は両モードで同じ（ADR-0032、ADR-0033）。
     [DefaultExecutionOrder(-300)]
     public class FDMiPitchAutopilot : FDMiBehaviour
     {
@@ -48,24 +50,39 @@ namespace FDMi.avionics
         public FDMiFloat pitchInputR;
 
         [Header("出力")]
-        [Tooltip("ピッチ軸へ足すバイアス。FDMiFlightControl がヨークと加算する")]
+        [Tooltip("ピッチ軸へ足す PD 補正。FDMiFlightControl がヨークと加算する")]
         public string apOutputPath = "~/Input/AutoPilot/AP1/Pitch";
 
         [FDMiDataPath(nameof(apOutputPath))]
         public FDMiFloat apOutput;
 
+        [Tooltip("ピッチトリムへ出すレート [-1,1]。FDMiTrimControl が 0.5 deg/s で積分する")]
+        public string trimRatePath = "~/Input/AutoPilot/AP1/TrimRate";
+
+        [FDMiDataPath(nameof(trimRatePath))]
+        public FDMiFloat trimRate;
+
         [Header("追従則")]
-        [Tooltip("姿勢誤差の比例ゲイン [1/deg/s]")]
-        public float kp = 0.5f;
+        [Tooltip("姿勢誤差の比例ゲイン [1/deg]")]
+        public float kp = 0.2f;
 
-        [Tooltip("姿勢レートの制動ゲイン [1/s]")]
-        public float kd = 0.15f;
+        [Tooltip("姿勢レートの積分ゲイン")]
+        public float kiRate = 0.2f;
 
-        [Tooltip("サーボの最大速度 [1/s]")]
-        public float rateMax = 0.8f;
+        [Tooltip("姿勢レートの制動ゲイン [1/(deg/s)]")]
+        public float kd = 0.1f;
+
+        [Tooltip("PD 補正→トリムレートのゲイン [1/s]")]
+        public float kiTrim = 0.5f;
 
         [Tooltip("姿勢レートの LPF 時定数 [s]")]
         public float rateTau = 0.3f;
+
+        [Tooltip("レートの制限値 ")]
+        public float rateLimit = 2f;
+
+        [Tooltip("ロールレート累積項の制限値 ")]
+        public float rateCumLimit = 0.2f;
 
         [Header("CWS")]
         [Tooltip("CWS へ入るヨーク入力 [1]。ヒステリシスの上の値")]
@@ -79,14 +96,15 @@ namespace FDMi.avionics
             _pitch,
             _pitchInputL,
             _pitchInputR,
-            _apOutput;
+            _apOutput,
+            _trimRate;
 
         float _ref;
-        float _servo;
         float _prevPitch;
         float _pitchRate;
-        int _prevSwitch = -1;
+        float _pitchRateCum;
         bool _holding;
+        int _prevSwitch = -1;
 
         void Start()
         {
@@ -96,6 +114,7 @@ namespace FDMi.avionics
             _pitchInputL = pitchInputL.data;
             _pitchInputR = pitchInputR.data;
             _apOutput = apOutput.data;
+            _trimRate = trimRate.data;
             _prevPitch = _pitch[0];
             _ref = _pitch[0];
         }
@@ -110,49 +129,27 @@ namespace FDMi.avionics
             float rawRate = (pitchNow - _prevPitch) / dt;
             _pitchRate += (rawRate - _pitchRate) * (dt / (rateTau + dt));
             _prevPitch = pitchNow;
+            _pitchRateCum = Mathf.Clamp(_pitchRateCum - _pitchRate * kiRate * dt, -rateCumLimit, rateCumLimit);
 
-            if (sw != _prevSwitch)
-            {
-                // モードが変わった tick は目標を現在姿勢へ置き直す。古い目標のままだと舵が跳ぶ。
-                _ref = pitchNow;
-                _holding = false;
-                _prevSwitch = sw;
-            }
+            _holding = Mathf.Abs(yoke) > (_holding ? cwsReleaseThreshold : cwsForceThreshold);
 
-            if (sw == 0)
+            if (sw == 0 || _holding)
             {
-                // OFF は増分を残さない。残すと手動操縦に AP のバイアスが乗り続ける（ADR-0032）。
-                _servo = 0f;
-                _ref = pitchNow;
-                _holding = false;
                 _apOutput[0] = 0f;
+                _trimRate[0] = 0f;
+                _pitchRateCum = 0f;
                 return;
             }
 
-            bool force = Mathf.Abs(yoke) > (_holding ? cwsReleaseThreshold : cwsForceThreshold);
-            if (force)
-            {
-                // 操縦中は目標を現在姿勢へ引き直す。離した瞬間の姿勢が保持目標になる。
-                _holding = true;
-                _ref = pitchNow;
-            }
-            else if (sw == 1)
-            {
-                // CWS: 離した姿勢を凍結して保持する。次の操縦まで目標を動かさない。
-                if (_holding)
-                    _ref = pitchNow;
-                _holding = false;
-            }
-            else
-            {
-                // CMD: 差分から絶対目標を復元する。override が解けたら CMD の指示へ戻る。
-                _holding = false;
-                _ref = pitchNow + _pitchDelta[0];
-            }
+            float pitchCmd = (sw == 2) ? kp * _pitchDelta[0] : 0f;
 
-            float servoRate = Mathf.Clamp(kp * (_ref - pitchNow) - kd * _pitchRate, -rateMax, rateMax);
-            _servo = Mathf.Clamp(_servo + servoRate * dt, -1f, 1f);
-            _apOutput[0] = _servo;
+            float correction = Mathf.Clamp(pitchCmd + _pitchRateCum - kd * _pitchRate, -1f, 1f);
+            correction = Mathf.MoveTowards(_apOutput[0], correction, dt * rateLimit);
+            _apOutput[0] = correction;
+
+            // 正の補正（機首上げ）でトリム角を減らす向き。トリム角の正は前縁上がりで機首下げ。
+            // 定常ではトリムが舵の代わりを引き受け、correction は 0 に収束する（ADR-0033）。
+            _trimRate[0] = Mathf.Clamp(-kiTrim * correction, -1f, 1f);
         }
     }
 }

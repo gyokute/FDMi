@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace FDMi.avionics
 {
-    // ロール軸の追従則。FD の姿勢差分を追従し、操縦軸へ足す PD 補正だけを書く。
+    // ロール軸の追従則。FD のロール差分を追従し、操縦軸へ足す PD 補正だけを書く。
     // ロールには実機のトリムが無いため、ピッチのようなトリムレートは持たない（ADR-0033）。
     // CWS の保持はピッチと同じ規則で、解除時のバンクが 5° 未満なら目標を 0（wings level）にする。
     // Why not 5° 以上の判定を毎tick続ける: 実機の 6° 則は解除時のバンクで決まる規則であり、
@@ -17,7 +17,6 @@ namespace FDMi.avionics
         public string apSwitchPath = "~/Input/AP1SW/Value";
 
         [FDMiDataPath(nameof(apSwitchPath))]
-        [FDMiRegisterCallback(nameof(OnChangeAPSW))]
         public FDMiInt apSwitch;
 
         [Header("入力")]
@@ -53,16 +52,22 @@ namespace FDMi.avionics
         public FDMiFloat apOutput;
 
         [Header("追従則")]
-        [Tooltip("姿勢誤差の比例ゲイン [1/deg]")]
-        public float kp = 0.08f;
+        [Tooltip("ロール誤差の比例ゲイン [1/deg]")]
+        public float kp = 0.2f;
 
-        [Tooltip("姿勢レートの制動ゲイン [1/(deg/s)]")]
-        public float kd = 0.2f;
+        [Tooltip("ロールレートの積分ゲイン")]
+        public float kiRate = 0.2f;
 
-        [Tooltip("姿勢レートの制限値 ")]
+        [Tooltip("ロールレートの制動ゲイン [1/(deg/s)]")]
+        public float kd = 0.1f;
+
+        [Tooltip("ロールレートの制限値 ")]
         public float rateLimit = 2f;
 
-        [Tooltip("姿勢レートの LPF 時定数 [s]")]
+        [Tooltip("ロールレート累積項の制限値 ")]
+        public float rateCumLimit = 0.2f;
+
+        [Tooltip("ロールレートの LPF 時定数 [s]")]
         public float rateTau = 0.3f;
 
         [Header("CWS")]
@@ -84,7 +89,7 @@ namespace FDMi.avionics
 
         float _prevRoll;
         float _rollRate;
-        float _cwsRef;
+        float _rollRateCum;
         bool _holding;
 
         void Start()
@@ -98,12 +103,6 @@ namespace FDMi.avionics
             _prevRoll = _roll[0];
         }
 
-        public void OnChangeAPSW()
-        {
-            // モードが変わった tick は目標を現在姿勢へ置き直す。古い目標のままだと舵が跳ぶ。
-            _cwsRef = _roll[0];
-        }
-
         void FixedUpdate()
         {
             float dt = Time.fixedDeltaTime;
@@ -114,24 +113,20 @@ namespace FDMi.avionics
             float rawRate = (rollNow - _prevRoll) / dt;
             _rollRate += (rawRate - _rollRate) * (dt / (rateTau + dt));
             _prevRoll = rollNow;
+            _rollRateCum = Mathf.Clamp(_rollRateCum - _rollRate * kiRate * dt, -rateCumLimit, rateCumLimit);
 
-            bool yokePushing = Mathf.Abs(yoke) > (_holding ? cwsReleaseThreshold : cwsForceThreshold);
-            bool isYokeReleased = !yokePushing && _holding;
-            _holding = yokePushing;
+            _holding = Mathf.Abs(yoke) > (_holding ? cwsReleaseThreshold : cwsForceThreshold);
 
             if (sw == 0 || _holding)
             {
                 _apOutput[0] = 0f;
+                _rollRateCum = 0f;
                 return;
             }
 
-            // CWS: yoke入力を離したときの姿勢を目標角とする。5° 未満なら ０°を目標にする
-            if (sw == 1 && isYokeReleased)
-                _cwsRef = Mathf.Abs(rollNow) < wingsLevelBankDeg ? 0f : rollNow;
+            float rollCmd = (sw == 2) ? kp * _rollDelta[0] : 0f;
 
-            float rollCmd = (sw == 2) ? _rollDelta[0] : (_cwsRef - rollNow);
-
-            float apOutput = _holding ? 0f : Mathf.Clamp(kp * rollCmd - kd * _rollRate, -1f, 1f);
+            float apOutput = _holding ? 0f : Mathf.Clamp(rollCmd + _rollRateCum - kd * _rollRate, -1f, 1f);
             _apOutput[0] = Mathf.MoveTowards(_apOutput[0], apOutput, dt * rateLimit);
         }
     }
