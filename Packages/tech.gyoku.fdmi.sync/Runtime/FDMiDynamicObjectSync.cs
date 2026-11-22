@@ -19,6 +19,7 @@ namespace FDMi.sync
     {
         // §3.3 / §6.5 / §6.6。定数は仕様値。
         public const int MAX_EXTRAP_MS = 250;
+        public const int MAX_SMOOTH_STEP_MS = 250;
         public const long TELEPORT_DIST_MM = 500000L;
         public const int TELEPORT_GAP_MS = 2000;
         public const int RENDER_DELAY_OFFSET_MS = 50;
@@ -109,19 +110,18 @@ namespace FDMi.sync
         [HideInInspector] public long[] _poseMm = new long[3];
         [HideInInspector] public Quaternion _poseRot = Quaternion.identity;
 
-        // §6.5。予測に使う前サンプルの軌道。_latest が新サンプル、_prev が 1 つ前。
-        // Why-not: 受信スロットを 3 つに増やさない。旧軌道は「直前の latest」であり、
-        // prev の速度・加速度・角速度をシフト時に保存すれば足りる (ADR-0035)。
-        [HideInInspector] public Vector3 _prevVel;
-        [HideInInspector] public Vector3 _prevAcc;
+        // §6.5 / ADR-0036。受信サンプルから作る raw の加速度・角速度・角加速度。
         [HideInInspector] public Vector3 _latestAcc;
-        [HideInInspector] public Vector3 _prevAngVel;
         [HideInInspector] public Vector3 _latestAngVel;
-        // 旧軌道の姿勢の受け皿。_tmpRot は PackQuat 用の short[4] なので兼用しない。
-        [HideInInspector] public Quaternion _tmpPredRot = Quaternion.identity;
+        [HideInInspector] public Vector3 _latestAngAcc;
 
-        // 最新サンプルを _IntegrateReceive が消化した時刻。旧/新軌道のブレンド開始点 (§6.5)。
-        [HideInInspector] public int _latestArrivalMs;
+        // §6.5 / ADR-0036。SAV 型の smooth。表示位置・姿勢を積分する速度と角速度。
+        // Why-not: 受信姿勢を直接表示しない。raw との差分を補正しながら積分することで、
+        // サンプル到着時の角速度段差と旧/新軌道の逆回転を消す (ADR-0036)。
+        [HideInInspector] public Vector3 _smoothVel;
+        [HideInInspector] public Vector3 _smoothAngVel;
+        [HideInInspector] public int _lastPoseMs;
+        [HideInInspector] public float _lastPosError;
 
         // §6.5。パイロット非アクティブ時のホールド。送信が止まった姿勢へ 1 送信間隔で寄せる。
         [HideInInspector] public bool _holding;
@@ -131,7 +131,7 @@ namespace FDMi.sync
 
         // §6.5 / ADR-0030。FDMiSyncPlayer は parent-local 書きが入るまで旧経路を使う。
         // Why-not: プレイヤーに同じ予測を適用しない。着席中は親アンカーの予測で既に動くため、
-        // 子の相対姿勢まで予測すると二重予測になる (ADR-0035 / ADR-0030)。
+        // 子の相対姿勢まで予測すると二重予測になる (ADR-0036 / ADR-0030)。
         [HideInInspector] public bool _legacyPose;
 
         // §9.2。Editor 焼きの絶対姿勢を積分の起点にする。_Init が Start より先でも成立する (§5.4)。
@@ -148,9 +148,9 @@ namespace FDMi.sync
             _lastBodyPos = (body != null) ? body.position : view.position;
             _writesView = true;
             _legacyPose = false;
-            _prevVel = Vector3.zero; _prevAcc = Vector3.zero; _latestAcc = Vector3.zero;
-            _prevAngVel = Vector3.zero; _latestAngVel = Vector3.zero;
-            _latestArrivalMs = 0;
+            _latestAcc = Vector3.zero; _latestAngVel = Vector3.zero; _latestAngAcc = Vector3.zero;
+            _smoothVel = Vector3.zero; _smoothAngVel = Vector3.zero;
+            _lastPoseMs = 0; _lastPosError = 0f;
             _holding = false;
             _ResolveAbs(_poseMm, _poseRot);
         }
@@ -356,8 +356,8 @@ namespace FDMi.sync
                     _latestVel = _recvVel[k];
                     _latestAcc = Vector3.zero;
                     _latestAngVel = Vector3.zero;
+                    _latestAngAcc = Vector3.zero;
                     _latestStamp = _recvStamp[k];
-                    _latestArrivalMs = nowMs;
                     _hasLatest = true;
                     _snap = true;
                     _blending = false;
@@ -372,39 +372,43 @@ namespace FDMi.sync
                 Quaternion newRot = _UnpackSlotRot(k);
                 Vector3 newVel = _recvVel[k];
 
-                // 新経路: 旧軌道 = 直前の latest。速度・加速度・角速度をシフトして保存する。
+                // 新経路: 受信サンプルから raw の加速度・角速度・角加速度を作る。
                 if (!_legacyPose && !teleport)
                 {
-                    _prevAbs[0] = _latestAbs[0]; _prevAbs[1] = _latestAbs[1]; _prevAbs[2] = _latestAbs[2];
-                    _prevRot = _latestRot;
-                    _prevStamp = _latestStamp;
-                    _prevVel = _latestVel;
-                    _prevAcc = _latestAcc;
-                    _prevAngVel = _latestAngVel;
+                    Vector3 prevVel = _latestVel;
+                    Vector3 prevAngVel = _latestAngVel;
 
-                    // 新区間の角速度は「旧 latest → 新サンプル」。旧軌道用の _prevAngVel は
-                    // 上で退避済みであり、ここで _latestAngVel を上書きしてよい。
-                    // コースト開始を超える空白の後は、差分から加速度・角速度を作らない。
-                    // 1.9 s の空白で速度差を割ると、次の予測が大きく飛ぶ。
                     if (dt > FDMiSyncPredict.COAST_START_MS)
                     {
+                        // 長い空白の差分で加速度を作らない。新しい姿勢へは smooth の補正で寄せる。
                         _latestAcc = Vector3.zero;
                         _latestAngVel = Vector3.zero;
+                        _latestAngAcc = Vector3.zero;
                     }
                     else
                     {
                         _latestAngVel = FDMiSyncPredict.AngVelPerSec(_latestRot, newRot, dt);
+                        if (dt > 10)
+                        {
+                            Vector3 rawAngAcc = (_latestAngVel - prevAngVel) / ((float)dt * 0.001f);
+                            // 停止サンプルでは角加速度は「直前の減速」であり、未来の逆回転ではない。
+                            if (_latestAngVel.sqrMagnitude < 1e-4f) rawAngAcc = Vector3.zero;
+                            _latestAngAcc = FDMiSyncPredict.ClampMag(rawAngAcc, FDMiSyncPredict.MAX_ANG_ACC_RAD);
 
-                        Vector3 rawAcc = FDMiSyncPredict.AccelFromVelocities(newVel, _latestVel, dt);
-                        _latestAcc = FDMiSyncPredict.SmoothAccel(rawAcc, _latestAcc, dt, newVel);
+                            Vector3 rawAcc = FDMiSyncPredict.AccelFromVelocities(newVel, prevVel, dt);
+                            _latestAcc = FDMiSyncPredict.SmoothAccel(rawAcc, _latestAcc, dt, newVel);
+                        }
+                        else
+                        {
+                            _latestAngAcc = Vector3.zero;
+                            _latestAcc = Vector3.zero;
+                        }
                     }
 
                     _latestAbs[0] = _tmpAbs[0]; _latestAbs[1] = _tmpAbs[1]; _latestAbs[2] = _tmpAbs[2];
                     _latestRot = newRot;
                     _latestVel = newVel;
                     _latestStamp = _recvStamp[k];
-                    _latestArrivalMs = nowMs;
-                    _hasPrev = true;
 
                     if (_holding)
                     {
@@ -419,27 +423,21 @@ namespace FDMi.sync
                 _prevAbs[0] = _latestAbs[0]; _prevAbs[1] = _latestAbs[1]; _prevAbs[2] = _latestAbs[2];
                 _prevRot = _latestRot;
                 _prevStamp = _latestStamp;
-                _prevVel = _latestVel;
-                _prevAcc = _latestAcc;
-                _prevAngVel = _latestAngVel;
 
                 _latestAbs[0] = _tmpAbs[0]; _latestAbs[1] = _tmpAbs[1]; _latestAbs[2] = _tmpAbs[2];
                 _latestRot = newRot;
                 _latestVel = newVel;
                 _latestStamp = _recvStamp[k];
-                _latestArrivalMs = nowMs;
                 _hasPrev = true;
 
                 if (teleport)
                 {
                     _latestAcc = Vector3.zero;
                     _latestAngVel = Vector3.zero;
+                    _latestAngAcc = Vector3.zero;
                     _prevAbs[0] = _latestAbs[0]; _prevAbs[1] = _latestAbs[1]; _prevAbs[2] = _latestAbs[2];
                     _prevRot = _latestRot;
                     _prevStamp = _latestStamp;
-                    _prevVel = _latestVel;
-                    _prevAcc = Vector3.zero;
-                    _prevAngVel = Vector3.zero;
                     _snap = true;
                     _holding = false;
                     continue;
@@ -453,9 +451,9 @@ namespace FDMi.sync
             }
         }
 
-        // §6.5。最新サンプルからの予測を常に走らせ、到着後 1 区間は旧/新軌道を混ぜる。
-        // Why-not: 外挿を送信間隔で打ち切らない。打ち切ると 4 Hz では ahead が毎周期
-        // MAX_EXTRAP_MS を超え、render delay の補間が最新サンプルへ落ちて後退スナップになる (ADR-0035)。
+        // §6.5 / ADR-0036。raw 予測を積分した smooth を表示する。
+        // Why-not: 旧/新軌道を角度で混ぜない。混ぜると開始時に角速度が段差で立ち上がり、
+        // 停止時に旧軌道の先読み分を逆回転させる (ADR-0036)。
         public void _ComputeViewPose(int nowMs)
         {
             if (!_hasLatest) return;
@@ -469,6 +467,10 @@ namespace FDMi.sync
             {
                 _poseMm[0] = _latestAbs[0]; _poseMm[1] = _latestAbs[1]; _poseMm[2] = _latestAbs[2];
                 _poseRot = _latestRot;
+                _smoothVel = _latestVel;
+                _smoothAngVel = Vector3.zero;
+                _lastPoseMs = nowMs;
+                _lastPosError = 0f;
                 _snap = false;
                 _holding = false;
                 _ResolveAbs(_poseMm, _poseRot);
@@ -479,32 +481,48 @@ namespace FDMi.sync
             if (_pilotGated && !_pilotActive)
             {
                 _HoldPose(nowMs);
+                _lastPoseMs = nowMs;
                 _ResolveAbs(_poseMm, _poseRot);
                 return;
             }
             _holding = false;
 
+            int dtMs = nowMs - _lastPoseMs;
+            if (dtMs <= 0)
+            {
+                _ResolveAbs(_poseMm, _poseRot);
+                return;
+            }
+            if (dtMs > MAX_SMOOTH_STEP_MS) dtMs = MAX_SMOOTH_STEP_MS;
+            _lastPoseMs = nowMs;
+
             int ahead = nowMs - _latestStamp;
             if (ahead < 0) ahead = 0;
 
-            FDMiSyncPredict.PredictAbs(_latestAbs, _latestVel, _latestAcc, ahead, _poseMm);
-            _poseRot = FDMiSyncPredict.PredictRot(_latestRot, _latestAngVel, ahead);
+            // 位置: raw 位置・raw 速度を作り、smooth 速度を low-pass して積分する。
+            FDMiSyncPredict.PredictAbs(_latestAbs, _latestVel, _latestAcc, ahead, _tmpAbs);
+            Vector3 targetVel = FDMiSyncPredict.PredictVel(_latestVel, _latestAcc, ahead);
+            Vector3 errorM = FDMiSyncPredict.PositionErrorM(_tmpAbs, _poseMm);
+            float error = errorM.magnitude;
+            Vector3 correction = errorM * FDMiSyncPredict.POS_CORRECTION_PER_SEC;
+            Vector3 deriv = FDMiSyncPredict.PositionDeriv(errorM, _lastPosError, dtMs);
+            _lastPosError = error;
 
-            // 到着直後は旧軌道と新軌道を混ぜる。u は「最新サンプル到着からの経過 / サンプル間隔」。
-            if (_hasPrev)
-            {
-                int dt = _latestStamp - _prevStamp;
-                float u = FDMiSyncPredict.BlendU(nowMs, _latestArrivalMs, dt);
-                if (u < 1f && dt > 0)
-                {
-                    int oldAhead = nowMs - _prevStamp;
-                    if (oldAhead < 0) oldAhead = 0;
-                    FDMiSyncPredict.PredictAbs(_prevAbs, _prevVel, _prevAcc, oldAhead, _tmpAbs);
-                    _tmpPredRot = FDMiSyncPredict.PredictRot(_prevRot, _prevAngVel, oldAhead);
-                    FDMiSyncPredict.BlendAbs(_tmpAbs, _poseMm, u, _poseMm);
-                    _poseRot = FDMiSyncMath.SlerpHemisphere(_tmpPredRot, _poseRot, u);
-                }
-            }
+            Vector3 target = targetVel + correction + deriv;
+            _smoothVel = FDMiSyncPredict.SmoothVec(_smoothVel, target, FDMiSyncPredict.POS_SPEED_LERP_PER_SEC, dtMs);
+            _poseMm[0] += FDMiSyncMath.RoundHalfAwayFromZero(_smoothVel.x * (float)dtMs);
+            _poseMm[1] += FDMiSyncMath.RoundHalfAwayFromZero(_smoothVel.y * (float)dtMs);
+            _poseMm[2] += FDMiSyncMath.RoundHalfAwayFromZero(_smoothVel.z * (float)dtMs);
+
+            // 姿勢: raw 姿勢・raw 角速度を作り、smooth 角速度で積分して raw へ寄せる。
+            Quaternion rawRot = FDMiSyncPredict.PredictRotAccel(_latestRot, _latestAngVel, _latestAngAcc, ahead);
+            Vector3 targetAngVel = FDMiSyncPredict.PredictAngVel(_latestAngVel, _latestAngAcc, ahead);
+            _smoothAngVel = FDMiSyncPredict.SmoothVec(_smoothAngVel, targetAngVel, FDMiSyncPredict.ROT_SPEED_LERP_PER_SEC, dtMs);
+            _poseRot = FDMiSyncPredict.ApplyAngVel(_poseRot, _smoothAngVel, (float)dtMs / 1000f);
+
+            float rotCorr = FDMiSyncPredict.ROT_CORRECTION_PER_SEC * (float)dtMs / 1000f;
+            if (rotCorr > 1f) rotCorr = 1f;
+            _poseRot = FDMiSyncMath.SlerpHemisphere(_poseRot, rawRot, rotCorr);
 
             _ResolveAbs(_poseMm, _poseRot);
         }
@@ -518,6 +536,9 @@ namespace FDMi.sync
                 _holdFromAbs[0] = _poseMm[0]; _holdFromAbs[1] = _poseMm[1]; _holdFromAbs[2] = _poseMm[2];
                 _holdFromRot = _poseRot;
                 _holdT = nowMs;
+                _smoothVel = Vector3.zero;
+                _smoothAngVel = Vector3.zero;
+                _lastPosError = 0f;
             }
 
             float u = (float)(nowMs - _holdT) / (float)_sendIntervalMs;
@@ -654,7 +675,7 @@ namespace FDMi.sync
                 else
                 {
                     FDMiSyncPredict.PredictAbs(_latestAbs, _latestVel, _latestAcc, age, _poseMm);
-                    _poseRot = FDMiSyncPredict.PredictRot(_latestRot, _latestAngVel, age);
+                    _poseRot = FDMiSyncPredict.PredictRotAccel(_latestRot, _latestAngVel, _latestAngAcc, age);
                 }
             }
             else
@@ -666,6 +687,10 @@ namespace FDMi.sync
 
             _accMm[0] = _poseMm[0]; _accMm[1] = _poseMm[1]; _accMm[2] = _poseMm[2];
             _fracMm[0] = 0f; _fracMm[1] = 0f; _fracMm[2] = 0f;
+            _smoothVel = _latestVel;
+            _smoothAngVel = Vector3.zero;
+            _lastPoseMs = nowMs;
+            _lastPosError = 0f;
             _ResolveAbs(_poseMm, _poseRot);
 
             if (body != null)

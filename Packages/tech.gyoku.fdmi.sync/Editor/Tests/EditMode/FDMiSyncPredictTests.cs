@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace FDMi.sync.Editor.Tests
 {
-    // §13.1。FDMiSyncPredict の純粋計算。実時間・シーン・ネットワークに依存しない。
+    // §13.1。FDMiSyncPredict の純粋計算と、受信→表示の実経路。
     // テスト名は仕様文として読めること (t-wada の 4 象限: テスト = What)。
     public class FDMiSyncPredictTests
     {
@@ -52,30 +52,16 @@ namespace FDMi.sync.Editor.Tests
         }
 
         [Test]
-        public void P04_減速時も軌道ブレンドは後退しない()
+        public void P04_位置の予測速度は加速度とコーストで連続する()
         {
-            // 旧軌道: t=0, p=0, v=200 m/s。新軌道: t=250 ms, p=50000 mm, v=100 m/s。
-            long[] prevAbs = { 0L, 0L, 0L };
-            long[] latestAbs = { 50000L, 0L, 0L };
-            long[] oldPose = new long[3];
-            long[] newPose = new long[3];
-            long[] blended = new long[3];
-
-            long last = -1L;
-            for (int now = 250; now <= 500; now += 5)
-            {
-                int oldAhead = now;
-                int newAhead = now - 250;
-                FDMiSyncPredict.PredictAbs(prevAbs, new Vector3(200f, 0f, 0f), Vector3.zero, oldAhead, oldPose);
-                FDMiSyncPredict.PredictAbs(latestAbs, new Vector3(100f, 0f, 0f), Vector3.zero, newAhead, newPose);
-
-                float u = FDMiSyncPredict.BlendU(now, 250, 250);
-                FDMiSyncPredict.BlendAbs(oldPose, newPose, u, blended);
-
-                if (last >= 0L)
-                    Assert.GreaterOrEqual(blended[0], last, "旧/新軌道のブレンドで後退しない");
-                last = blended[0];
-            }
+            Assert.AreEqual(110f, FDMiSyncPredict.PredictVel(
+                new Vector3(100f, 0f, 0f), new Vector3(10f, 0f, 0f), 1000).x, 1e-3f);
+            Assert.AreEqual(100f, FDMiSyncPredict.PredictVel(
+                new Vector3(100f, 0f, 0f), Vector3.zero, 1000).x, 1e-3f);
+            Assert.AreEqual(50f, FDMiSyncPredict.PredictVel(
+                new Vector3(100f, 0f, 0f), Vector3.zero, 1500).x, 1e-3f);
+            Assert.AreEqual(0f, FDMiSyncPredict.PredictVel(
+                new Vector3(100f, 0f, 0f), Vector3.zero, 2001).x, 1e-3f);
         }
 
         [Test]
@@ -110,19 +96,19 @@ namespace FDMi.sync.Editor.Tests
         }
 
         [Test]
-        public void P07_軌道ブレンドはuで旧新を線形補間する()
+        public void P07_姿勢の予測角速度は角加速度とコーストで連続する()
         {
-            long[] from = { 0L, 0L, 0L };
-            long[] to = { 1000L, 2000L, -3000L };
-            long[] dst = new long[3];
+            Vector3 omega = new Vector3(0f, Mathf.PI / 2f, 0f); // 90 deg/s
+            Vector3 alpha = new Vector3(0f, -Mathf.PI, 0f);     // -180 deg/s²
 
-            FDMiSyncPredict.BlendAbs(from, to, 0.25f, dst);
-            Assert.AreEqual(250L, dst[0]);
-            Assert.AreEqual(500L, dst[1]);
-            Assert.AreEqual(-750L, dst[2]);
+            Vector3 at250 = FDMiSyncPredict.PredictAngVel(omega, alpha, 250);
+            Assert.AreEqual(Mathf.PI / 4f, at250.y, 1e-3f, "0.25 s で 45 deg/s");
 
-            FDMiSyncPredict.BlendAbs(from, to, 1f, dst);
-            CollectionAssert.AreEqual(to, dst);
+            Vector3 stopped = FDMiSyncPredict.PredictAngVel(omega, alpha, 1000);
+            Assert.AreEqual(Vector3.zero, stopped, "0.5 s で停止した後はゼロ");
+
+            Vector3 coast = FDMiSyncPredict.PredictAngVel(omega, Vector3.zero, 1500);
+            Assert.AreEqual(Mathf.PI / 4f, coast.y, 1e-3f, "コースト中央は半分");
         }
 
         [Test]
@@ -134,10 +120,8 @@ namespace FDMi.sync.Editor.Tests
         }
 
         [Test]
-        public void P09_受信と表示は旧軌道から新軌道へ連続する()
+        public void P09_位置は平滑化しても前進し続ける()
         {
-            // _IntegrateReceive → _ComputeViewPose の実経路。到着フレームで旧軌道の位置を維持し、
-            // 減速サンプルでもフレーム間で後退しないことを固定する。
             GameObject go = new GameObject("sync");
             try
             {
@@ -151,29 +135,24 @@ namespace FDMi.sync.Editor.Tests
                 a._ComputeViewPose(1050);
                 Assert.AreEqual(0L, a._poseMm[0]);
 
-                a._ComputeViewPose(1299);
-                Assert.AreEqual(59800L, a._poseMm[0], "サンプル 1 からの等速予測");
-
-                Feed(a, 1250, 50000L, 200f, 1300);
-                a._ComputeViewPose(1300);
-                Assert.AreEqual(60000L, a._poseMm[0], "到着フレームは旧/新軌道が一致する");
-
-                a._ComputeViewPose(1425);
-                Assert.AreEqual(85000L, a._poseMm[0], "ブレンド中間でも等速");
-
-                // 200 → 190 m/s (4 g) の現実的な減速。旧/新軌道のどちらも前進するため、
-                // ブレンド経路も後退しない。
-                Feed(a, 1500, 98750L, 190f, 1550);
                 long last = a._poseMm[0];
                 long worstBack = 0L;
-                for (int now = 1550; now <= 1800; now += 10)
+                bool fed = false;
+                for (int now = 1066; now <= 1600; now += 16)
                 {
+                    if (!fed && now >= 1300)
+                    {
+                        Feed(a, 1250, 50000L, 200f, now);
+                        fed = true;
+                    }
                     a._ComputeViewPose(now);
                     long d = a._poseMm[0] - last;
                     if (d < worstBack) worstBack = d;
                     last = a._poseMm[0];
                 }
-                Assert.GreaterOrEqual(worstBack, -1L, "現実的な減速では後退しない (丸め 1 mm を許容)");
+
+                Assert.GreaterOrEqual(worstBack, -10L, "補正で大きく後退しない (1 mm 未満の丸めは許容)");
+                Assert.Greater(a._poseMm[0], 50000L, "サンプル位置を越えて前進する");
             }
             finally
             {
@@ -203,7 +182,7 @@ namespace FDMi.sync.Editor.Tests
                 Assert.AreEqual(0L, a._poseMm[0], "保持は最終サンプルのまま");
 
                 a._pilotActive = true;
-                a._ComputeViewPose(2000);
+                a._ComputeViewPose(2016);
                 Assert.Greater(a._poseMm[0], 0L, "アクティブに戻ると予測を再開する");
             }
             finally
@@ -212,10 +191,193 @@ namespace FDMi.sync.Editor.Tests
             }
         }
 
+        [Test]
+        public void P11_角加速度は二次項で積分し停止時刻で止まる()
+        {
+            Quaternion q0 = Quaternion.identity;
+            Vector3 omega = new Vector3(0f, Mathf.PI / 2f, 0f);
+            Vector3 alpha = new Vector3(0f, -Mathf.PI, 0f);
+
+            Quaternion atStop = FDMiSyncPredict.PredictRotAccel(q0, omega, alpha, 1000);
+            Assert.AreEqual(22.5f, Quaternion.Angle(q0, atStop), 0.1f, "0.5 s で停止した 22.5 deg");
+
+            Quaternion afterStop = FDMiSyncPredict.PredictRotAccel(q0, omega, alpha, 2000);
+            Assert.AreEqual(22.5f, Quaternion.Angle(q0, afterStop), 0.1f, "停止後は凍結");
+
+            Quaternion fromZero = FDMiSyncPredict.PredictRotAccel(
+                q0, Vector3.zero, new Vector3(0f, Mathf.PI, 0f), 1000);
+            Assert.AreEqual(90f, Quaternion.Angle(q0, fromZero), 0.1f, "0.5·α·t² = 90 deg");
+        }
+
+        [Test]
+        public void P12_姿勢の開始は角速度の段差を作らない()
+        {
+            GameObject go = new GameObject("sync");
+            try
+            {
+                FDMiDynamicObjectSync a = go.AddComponent<FDMiDynamicObjectSync>();
+                a._pilotGated = false;
+                a._legacyPose = false;
+                a._sendIntervalMs = 250;
+                a._isLocalOwner = false;
+
+                Feed(a, 1000, 0L, 0f, 1050, Quaternion.identity);
+                a._ComputeViewPose(1050);
+
+                float previous = 0f;
+                float maxRate = 0f;
+                bool fed = false;
+                for (int now = 1066; now <= 1400; now += 16)
+                {
+                    if (!fed && now >= 1300)
+                    {
+                        Feed(a, 1250, 0L, 0f, now, Quaternion.AngleAxis(7.5f, Vector3.up));
+                        fed = true;
+                    }
+                    a._ComputeViewPose(now);
+                    float angle = Quaternion.Angle(Quaternion.identity, a._poseRot);
+                    float rate = (angle - previous) / 0.016f;
+                    if (rate > maxRate) maxRate = rate;
+                    previous = angle;
+                }
+
+                Assert.Greater(maxRate, 0f, "動き出す");
+                Assert.Less(maxRate, 45f, "開始の角速度は定常 30 deg/s の 1.5 倍未満");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void P13_ステップ停止の前進は1サンプル区間以内で戻りは滑らか()
+        {
+            GameObject go = new GameObject("sync");
+            try
+            {
+                FDMiDynamicObjectSync a = go.AddComponent<FDMiDynamicObjectSync>();
+                a._pilotGated = false;
+                a._legacyPose = false;
+                a._sendIntervalMs = 250;
+                a._isLocalOwner = false;
+
+                Feed(a, 1000, 0L, 0f, 1050, Quaternion.identity);
+                a._ComputeViewPose(1050);
+
+                int[] stamps = { 1250, 1500, 1750, 2000, 2250 };
+                float[] angles = { 7.5f, 15f, 22.5f, 30f, 30f };
+                int si = 0;
+                float lastAngle = 0f;
+                float maxAngle = 0f;
+                float maxBack = 0f;
+
+                for (int now = 1060; now <= 2600; now += 10)
+                {
+                    if (si < stamps.Length && now >= stamps[si] + 50)
+                    {
+                        Feed(a, stamps[si], 0L, 0f, now,
+                            Quaternion.AngleAxis(angles[si], Vector3.up));
+                        si++;
+                    }
+                    a._ComputeViewPose(now);
+                    float angle = Quaternion.Angle(Quaternion.identity, a._poseRot);
+                    if (now > 2300)
+                    {
+                        if (angle - lastAngle < maxBack) maxBack = angle - lastAngle;
+                        if (angle > maxAngle) maxAngle = angle;
+                    }
+                    lastAngle = angle;
+                }
+
+                Assert.Less(maxAngle - 30f, 10f, "ステップ停止の前進は 1 サンプル区間 (30 deg/s × 250 ms = 7.5 deg) 程度");
+                Assert.Greater(maxBack, -1f, "逆回転は 1 frame あたり 1 deg 未満");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void P15_段階的な停止は戻りを3度未満に抑える()
+        {
+            GameObject go = new GameObject("sync");
+            try
+            {
+                FDMiDynamicObjectSync a = go.AddComponent<FDMiDynamicObjectSync>();
+                a._pilotGated = false;
+                a._legacyPose = false;
+                a._sendIntervalMs = 250;
+                a._isLocalOwner = false;
+
+                Feed(a, 1000, 0L, 0f, 1050, Quaternion.identity);
+                a._ComputeViewPose(1050);
+
+                int[] stamps = { 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000, 3250, 3500, 3750 };
+                float[] angles =
+                {
+                    7.5f, 15f, 22.5f, 30f, 33.75f, 35.625f, 36.5625f, 37.03125f,
+                    37.265625f, 37.3828125f, 37.3828125f
+                };
+                float finalAngle = 37.3828125f;
+                int si = 0;
+                float lastAngle = 0f;
+                float maxAngle = 0f;
+                float maxBack = 0f;
+
+                for (int now = 1060; now <= 4200; now += 10)
+                {
+                    if (si < stamps.Length && now >= stamps[si] + 50)
+                    {
+                        Feed(a, stamps[si], 0L, 0f, now,
+                            Quaternion.AngleAxis(angles[si], Vector3.up));
+                        si++;
+                    }
+                    a._ComputeViewPose(now);
+                    float angle = Quaternion.Angle(Quaternion.identity, a._poseRot);
+                    if (now > 3800)
+                    {
+                        if (angle - lastAngle < maxBack) maxBack = angle - lastAngle;
+                        if (angle > maxAngle) maxAngle = angle;
+                    }
+                    lastAngle = angle;
+                }
+
+                Assert.Less(maxAngle - finalAngle, 3f, "段階的な停止の戻りは 3 deg 未満");
+                Assert.Greater(maxBack, -1f, "逆回転は 1 frame あたり 1 deg 未満");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(go);
+            }
+        }
+
+        [Test]
+        public void P14_位置の誤差と平滑化はmとsで扱う()
+        {
+            long[] raw = { 1000L, 0L, 0L };
+            long[] pose = { 0L, 0L, 0L };
+            Assert.AreEqual(1f, FDMiSyncPredict.PositionErrorM(raw, pose).x, 1e-4f);
+
+            Vector3 full = FDMiSyncPredict.SmoothVec(
+                Vector3.zero, new Vector3(10f, 0f, 0f), 4f, 250);
+            Assert.AreEqual(10f, full.x, 1e-4f, "4/s × 250 ms で 1 区間ぶん");
+
+            Vector3 part = FDMiSyncPredict.SmoothVec(
+                Vector3.zero, new Vector3(10f, 0f, 0f), 4f, 25);
+            Assert.AreEqual(1f, part.x, 1e-4f);
+        }
+
         static void Feed(FDMiDynamicObjectSync a, int stamp, long xMm, float vx, int nowMs)
         {
+            Feed(a, stamp, xMm, vx, nowMs, Quaternion.identity);
+        }
+
+        static void Feed(FDMiDynamicObjectSync a, int stamp, long xMm, float vx, int nowMs, Quaternion rot)
+        {
             a._recvAbs[0] = xMm; a._recvAbs[1] = 0L; a._recvAbs[2] = 0L;
-            FDMiSyncMath.PackQuat(Quaternion.identity, a._recvRot);
+            FDMiSyncMath.PackQuat(rot, a._recvRot);
             a._recvVel[0] = new Vector3(vx, 0f, 0f);
             a._recvStamp[0] = stamp;
             a._recvCount = 1;
