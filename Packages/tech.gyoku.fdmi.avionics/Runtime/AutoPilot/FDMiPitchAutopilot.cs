@@ -4,16 +4,23 @@ using UnityEngine;
 
 namespace FDMi.avionics
 {
-    // ピッチ軸の追従則。FD の姿勢差分を追従し、操縦軸へ足す PD 補正と、
-    // ピッチトリムへ渡すレートを書く。
+    // ピッチ軸の追従則。FD の姿勢差分に比例する補正へ、姿勢レートの制動とレート積分を
+    // 足し、操縦軸とピッチトリムへ書く。
+    // 追従則は correction = clamp(kp·Delta + rateCum - kd·q, ±1)。
+    // rateCum は LPF を通した姿勢レート q を -kiRate で積分し、±rateCumLimit で
+    // クランプしたもの。定常ではリセット時点からの姿勢変化に比例する（姿勢誤差の積分器
+    // ではない）。
     // Why not 舵角を直接書く: 操舵則の書き手を FDMiFlightControl 1人に保つ（ADR-0012）。
     // Why not 出力を絶対値にする: 手動入力との合成ができず、engage/解除で舵が跳ぶ。
     // Why not 積分サーボ（servo += servoRate·dt）: レート制限付きの積分器が姿勢誤差を
     // 溜め続け、目標姿勢で止まらない（ADR-0033）。
-    // Why not PID を AP に持つ: 定常分は実機のトリム角へ移す。AP は PD 補正だけを持つ。
+    // Why not 姿勢誤差の積分器を AP に持つ: 定常分は実機のトリム角へ移す。レート累積は
+    // CWS の姿勢保持と外乱の吸収だけを担い、定常舵はトリムが持つ。
     //
-    // 状態は目標姿勢 _ref 1本。CMD は差分から絶対目標を復元し、CWS は保持中の現在姿勢・
-    // 解除時の凍結値を入れる。則は両モードで同じ（ADR-0032、ADR-0033）。
+    // CMD は kp·Delta を足し、CWS は Delta を 0 として rateCum とレート制動だけで姿勢を
+    // 保持する。rateCum は AP OFF とヨーク override 中に 0 へ戻るので、CWS の保持基準は
+    // 最後にリセットした時点（解除時）の姿勢になる。目標姿勢を陽には持たない
+    // （ADR-0032、ADR-0033）。
     [DefaultExecutionOrder(-300)]
     public class FDMiPitchAutopilot : FDMiBehaviour
     {
@@ -50,7 +57,7 @@ namespace FDMi.avionics
         public FDMiFloat pitchInputR;
 
         [Header("出力")]
-        [Tooltip("ピッチ軸へ足す PD 補正。FDMiFlightControl がヨークと加算する")]
+        [Tooltip("ピッチ軸へ足す補正（PD＋レート累積）。FDMiFlightControl がヨークと加算する")]
         public string apOutputPath = "~/Input/AutoPilot/AP1/Pitch";
 
         [FDMiDataPath(nameof(apOutputPath))]
@@ -66,7 +73,7 @@ namespace FDMi.avionics
         [Tooltip("姿勢誤差の比例ゲイン [1/deg]")]
         public float kp = 0.2f;
 
-        [Tooltip("姿勢レートの積分ゲイン")]
+        [Tooltip("姿勢レートの積分ゲイン [1/deg]")]
         public float kiRate = 0.2f;
 
         [Tooltip("姿勢レートの制動ゲイン [1/(deg/s)]")]
@@ -78,17 +85,17 @@ namespace FDMi.avionics
         [Tooltip("姿勢レートの LPF 時定数 [s]")]
         public float rateTau = 0.3f;
 
-        [Tooltip("レートの制限値 ")]
+        [Tooltip("補正出力の変化速度 [1/s]")]
         public float rateLimit = 2f;
 
-        [Tooltip("ロールレート累積項の制限値 ")]
+        [Tooltip("ピッチレート累積項の制限値（無次元）")]
         public float rateCumLimit = 0.2f;
 
         [Header("CWS")]
-        [Tooltip("CWS へ入るヨーク入力 [1]。ヒステリシスの上の値")]
+        [Tooltip("ヨーク override に入る入力 [1]。ヒステリシスの上の値")]
         public float cwsForceThreshold = 0.08f;
 
-        [Tooltip("CWS を解除するヨーク入力 [1]。保持中の目標の凍結はこの値を下回ったとき")]
+        [Tooltip("ヨーク override を解除する入力 [1]。この値を下回ると AP 出力を再開する")]
         public float cwsReleaseThreshold = 0.03f;
 
         int[] _apSwitch;
@@ -99,12 +106,10 @@ namespace FDMi.avionics
             _apOutput,
             _trimRate;
 
-        float _ref;
         float _prevPitch;
         float _pitchRate;
         float _pitchRateCum;
         bool _holding;
-        int _prevSwitch = -1;
 
         void Start()
         {
@@ -116,7 +121,6 @@ namespace FDMi.avionics
             _apOutput = apOutput.data;
             _trimRate = trimRate.data;
             _prevPitch = _pitch[0];
-            _ref = _pitch[0];
         }
 
         void FixedUpdate()

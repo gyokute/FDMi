@@ -4,11 +4,17 @@ using UnityEngine;
 
 namespace FDMi.avionics
 {
-    // ロール軸の追従則。FD のロール差分を追従し、操縦軸へ足す PD 補正だけを書く。
-    // ロールには実機のトリムが無いため、ピッチのようなトリムレートは持たない（ADR-0033）。
-    // CWS の保持はピッチと同じ規則で、解除時のバンクが 5° 未満なら目標を 0（wings level）にする。
-    // Why not 5° 以上の判定を毎tick続ける: 実機の 6° 則は解除時のバンクで決まる規則であり、
-    // 保持中に判定すると翼が勝手に水平へ落ちる（ADR-0032）。
+    // ロール軸の追従則。FD のロール差分に比例する補正へ、ロールレートの制動と
+    // レート積分を足し、操縦軸へ書く。
+    // 追従則は correction = clamp(kp·Delta + rateCum - kd·q, ±1)。式と rateCum の
+    // 扱いはピッチと同じ（ADR-0033）。
+    // ロールには実機のトリムが無いため、ピッチのようなトリムレートは持たない。
+    // CMD は kp·Delta を足し、CWS は Delta を 0 として rateCum とレート制動だけで
+    // バンクを保持する。保持基準は rateCum を最後にリセットした時点（解除時）の姿勢で、
+    // wings level の 5°/6° 則は持たない。
+    // Why not 解除時のバンクで wings level を判定する: rateCum のリセット時点の姿勢を
+    // 暗黙の保持基準にしており、5° 則を足すには解除時のバンクを別に保存して目標を
+    // 差し替える必要がある。状態が二重になる（ADR-0032、ADR-0033）。
     [DefaultExecutionOrder(-300)]
     public class FDMiRollAutopilot : FDMiBehaviour
     {
@@ -45,7 +51,7 @@ namespace FDMi.avionics
         public FDMiFloat rollInputR;
 
         [Header("出力")]
-        [Tooltip("ロール軸へ足す PD 補正。FDMiFlightControl がヨークと加算する")]
+        [Tooltip("ロール軸へ足す補正（PD＋レート累積）。FDMiFlightControl がヨークと加算する")]
         public string apOutputPath = "~/Input/AutoPilot/AP1/Roll";
 
         [FDMiDataPath(nameof(apOutputPath))]
@@ -55,29 +61,29 @@ namespace FDMi.avionics
         [Tooltip("ロール誤差の比例ゲイン [1/deg]")]
         public float kp = 0.2f;
 
-        [Tooltip("ロールレートの積分ゲイン")]
+        [Tooltip("ロールレートの積分ゲイン [1/deg]")]
         public float kiRate = 0.2f;
 
         [Tooltip("ロールレートの制動ゲイン [1/(deg/s)]")]
         public float kd = 0.1f;
 
-        [Tooltip("ロールレートの制限値 ")]
+        [Tooltip("補正出力の変化速度 [1/s]")]
         public float rateLimit = 2f;
 
-        [Tooltip("ロールレート累積項の制限値 ")]
+        [Tooltip("ロールレート累積項の制限値（無次元）")]
         public float rateCumLimit = 0.2f;
 
         [Tooltip("ロールレートの LPF 時定数 [s]")]
         public float rateTau = 0.3f;
 
         [Header("CWS")]
-        [Tooltip("CWS へ入るヨーク入力 [1]。ヒステリシスの上の値")]
+        [Tooltip("ヨーク override に入る入力 [1]。ヒステリシスの上の値")]
         public float cwsForceThreshold = 0.08f;
 
-        [Tooltip("CWS を解除するヨーク入力 [1]。保持中の目標の凍結はこの値を下回ったとき")]
+        [Tooltip("ヨーク override を解除する入力 [1]。この値を下回ると AP 出力を再開する")]
         public float cwsReleaseThreshold = 0.03f;
 
-        [Tooltip("解除時に wings level へ落とすバンク角 [deg]")]
+        [Tooltip("未使用。wings level 則は実装していない")]
         public float wingsLevelBankDeg = 5f;
 
         int[] _apSwitch;
