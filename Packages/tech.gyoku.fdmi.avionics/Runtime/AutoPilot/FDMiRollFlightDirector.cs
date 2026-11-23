@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace FDMi.avionics
 {
-    // FD の横モード。
+    // 横モード。番号は FMA の表示インデックスそのもの。
+    // RollMode は人間の選択と FD の自動遷移が共有する単一ノードで、FD はこの値に従って制御する。
     public enum FDMiRollMode
     {
         Cws = 0,
@@ -16,24 +17,22 @@ namespace FDMi.avionics
         LocTrk = 6,
     }
 
-    // ロール軸の飛行誘導。バンク指令と現在バンク角の差だけを出す。
+    // ロール軸の飛行誘導。モードごとの誘導則を持ち、バンク指令と現在バンク角の差だけを出す。
     // Why not 絶対バンク指令を出す: 読み手（AP と EADI）はどちらも現在姿勢を既に持っており、
     // 差にすると引き算が1箇所で済む（ADR-0032）。
-    // Why not 縦の誘導と同じクラス: 軸をまたぐ状態（セレクタ変更時の一括リセット）が残り、
-    // 縦の FD が無い席で横が動かなくなる（ADR-0032）。
-    // Why not 縦モード選択子を読む: 横の誘導に入力は要らない。GS の armed は縦の FD の仕事。
-    //
-    // FD は FD スイッチを読まない。スイッチ OFF は「誘導を止める」ではなく「表示と AP を止める」
-    // であり、FD 自身は常に計算し続ける。
+    // Why not AP スイッチを読む: CWS は横モード 0 で表す。AP スイッチは AP の状態であり、
+    // FD のモードを変えると要求モードと実作動モードが分裂する（ADR-0032 改訂）。
+    // Why not モードを別ノードで publish する: FMA が読むモードと FD が使うモードが二重になる。
+    // RollMode 1本を人間と FD の両方が書き、FMA はそれを直読みする（ADR-0032 改訂）。
     [DefaultExecutionOrder(-400)]
     public class FDMiRollFlightDirector : FDMiBehaviour
     {
-        [Header("スイッチ")]
-        [Tooltip("AP スイッチ（0=OFF、1=CWS、2=CMD）。CWS では差分 0 を出す")]
-        public string apSwitchPath = "~/Input/AP1SW/Value";
+        [Header("モード")]
+        [Tooltip("横モード。人間の選択と FD の自動遷移が同じノードを書く")]
+        public string rollModeSelectPath = "~/Input/RollMode";
 
-        [FDMiDataPath(nameof(apSwitchPath))]
-        public FDMiInt apSwitch;
+        [FDMiDataPath(nameof(rollModeSelectPath))]
+        public FDMiInt rollModeSelect;
 
         [Header("航法（自系統の受信機と 1:1）")]
         [Tooltip("航法基準コース [deg magnetic]。ILS はローカライザ、VOR は選択コース")]
@@ -59,13 +58,6 @@ namespace FDMi.avionics
 
         [FDMiDataPath(nameof(navValidPath))]
         public FDMiBool navValid;
-
-        [Header("モード選択")]
-        [Tooltip("横モード選択（0/2=HDG HOLD、1/3=HDG SEL、4/5=VOR、6/7=LOC）")]
-        public string rollModeSelectPath = "~/Input/RollMode";
-
-        [FDMiDataPath(nameof(rollModeSelectPath))]
-        public FDMiInt rollModeSelect;
 
         [Header("指令")]
         [Tooltip("方位指令 [deg magnetic]")]
@@ -110,8 +102,11 @@ namespace FDMi.avionics
         [Tooltip("偏差変化率→方位のゲイン [deg/(deg/s)]")]
         public float locGainD = 0.5f;
 
-        [Tooltip("インターセプト方位の上限 [deg]")]
+        [Tooltip("CAP 中のインターセプト方位の上限 [deg]")]
         public float interceptMax = 30f;
+
+        [Tooltip("TRK 中のインターセプト方位の上限 [deg]")]
+        public float trackInterceptMax = 10f;
 
         [Tooltip("LOC 捕捉の偏差 [deg]")]
         public float locCaptureDeg = 2.3f;
@@ -122,21 +117,18 @@ namespace FDMi.avionics
         [Tooltip("偏差変化率の LPF 時定数 [s]")]
         public float locRateTau = 0.5f;
 
-        int[] _apSwitch, _rollModeSelect, _headingCommand, _navType;
+        int[] _rollModeSelect, _headingCommand, _navType;
         float[] _roll, _heading, _navCourse, _locDeviation, _rollDelta;
         bool[] _navValid;
 
         FDMiRollMode _rollMode;
-        int _rollArmed,
-            _prevRollSel = -1;
-        float _hdgRef,
+        float _rollCmd,
+            _hdgRef,
             _locRate,
             _prevLocDev;
-        bool _initialized;
 
         void Start()
         {
-            _apSwitch = apSwitch.data;
             _rollModeSelect = rollModeSelect.data;
             _headingCommand = headingCommand.data;
             _navCourse = navCourse.data;
@@ -150,15 +142,6 @@ namespace FDMi.avionics
 
         void FixedUpdate()
         {
-            // CWS では差分 0 を出す。姿勢の保持は AP のサーボが担う（ADR-0032）。
-            // 誘導の基準（方位・捕捉状態）は現在値から再シードされるので、CWS から戻っても跳ばない。
-            if (_apSwitch[0] == 1)
-            {
-                _rollDelta[0] = 0f;
-                _initialized = false;
-                return;
-            }
-
             float dt = Time.fixedDeltaTime;
             float rollNow = _roll[0];
             float hdgNow = _heading[0];
@@ -167,80 +150,158 @@ namespace FDMi.avionics
             int navTypeNow = _navType[0];
             bool navValidNow = _navValid[0];
 
-            int rollSel = _rollModeSelect[0];
-            bool rollSelChanged = !_initialized || rollSel != _prevRollSel;
+            // モードノードは両席の FD が共有する。他席の受信機が捕捉した TRK に自席の
+            // 受信機が追従できないとき、拒否をノードへ書き戻すと捕捉した席まで巻き戻る。
+            // そのときは CAP の待ちとして留まり、書き戻さない。
+            FDMiRollMode requested = (FDMiRollMode)_rollModeSelect[0];
+            if (requested == FDMiRollMode.LocTrk && !(navValidNow && navTypeNow == 2))
+                requested = FDMiRollMode.LocCap;
+            else if (requested == FDMiRollMode.VorTrk && !(navValidNow && navTypeNow == 1))
+                requested = FDMiRollMode.VorCap;
+            if (requested != _rollMode)
+                EnterRollMode(requested, rollNow, hdgNow, locDev);
 
-            if (rollSelChanged)
+            // 偏差変化率は CAP/TRK の誘導だけが読む。他モードでは LPF を回さない。
+            if (IsNavMode(_rollMode))
             {
-                _hdgRef = hdgNow;
-                _locRate = 0f;
-                _prevLocDev = locDev;
-                _rollArmed = 0;
-                _initialized = true;
-            }
-
-            _prevRollSel = rollSel;
-
-            // 横モード。VOR/LOC は受信中の Type で選ぶ。4/5=NAV（横のみ）、6/7=APP（縦が GS を持つ）。
-            float locRate = (locDev - _prevLocDev) / dt;
-            _locRate = _locRate + (locRate - _locRate) * (dt / (locRateTau + dt));
-
-            bool isVor = navTypeNow == 1;
-            if (rollSel == 0 || rollSel == 2)
-            {
-                _rollMode = FDMiRollMode.HdgHold;
-                _rollArmed = 0;
-            }
-            else if (rollSel == 1 || rollSel == 3)
-            {
-                _rollMode = FDMiRollMode.HdgSel;
-                _rollArmed = 0;
-            }
-            else
-            {
-                int armed = isVor ? (int)FDMiRollMode.VorCap : (int)FDMiRollMode.LocCap;
-                int track = isVor ? (int)FDMiRollMode.VorTrk : (int)FDMiRollMode.LocTrk;
-                float capture = isVor ? vorCaptureDeg : locCaptureDeg;
-                if (_rollMode != (FDMiRollMode)track)
-                {
-                    _rollMode = FDMiRollMode.HdgSel;
-                    _rollArmed = armed;
-                }
-                if (_rollArmed == armed)
-                {
-                    if (navValidNow && Mathf.Abs(locDev) < capture && Mathf.Abs(locDev) <= Mathf.Abs(_prevLocDev))
-                    {
-                        _rollMode = (FDMiRollMode)track;
-                        _rollArmed = 0;
-                    }
-                }
-                if (_rollMode == (FDMiRollMode)track && !navValidNow)
-                {
-                    _rollMode = FDMiRollMode.HdgSel;
-                    _rollArmed = armed;
-                }
+                float rawRate = (locDev - _prevLocDev) / dt;
+                _locRate += (rawRate - _locRate) * (dt / (locRateTau + dt));
             }
 
-            float hdgErr;
-            float bankLimit = _rollArmed != 0 ? bankMaxCapture : bankMax;
-            if (_rollMode == FDMiRollMode.HdgHold)
-            {
-                hdgErr = Wrap180(_hdgRef - hdgNow);
-            }
-            else if (_rollMode == FDMiRollMode.HdgSel)
-            {
-                hdgErr = Wrap180((float)_headingCommand[0] - hdgNow);
-            }
-            else
-            {
-                float intercept = Mathf.Clamp(locGainP * locDev + locGainD * _locRate, -interceptMax, interceptMax);
-                float desiredHdg = Wrap360(refCourse + intercept);
-                hdgErr = Wrap180(desiredHdg - hdgNow);
-            }
+            UpdateRollMode(locDev, navTypeNow, navValidNow);
+            bool navReady = navValidNow && NavMatches(_rollMode, navTypeNow);
 
+            ComputeRollGuidance(rollNow, hdgNow, locDev, refCourse, navReady);
+            _rollDelta[0] = _rollCmd - rollNow;
             _prevLocDev = locDev;
-            float rollCmd = Mathf.Clamp(hdgGain * hdgErr, -bankLimit, bankLimit);
-            _rollDelta[0] = rollCmd - rollNow;
+        }
+
+        // 人間がモードを選び直したときだけ、そのモードの初期状態へ入る。
+        // FD 自身の遷移は SetRollMode でノードを書き換えるだけにして、指令とレートを継続する。
+        void EnterRollMode(FDMiRollMode mode, float rollNow, float hdgNow, float locDev)
+        {
+            _rollMode = mode;
+            _rollCmd = rollNow;
+            _hdgRef = hdgNow;
+            _locRate = 0f;
+            _prevLocDev = locDev;
+        }
+
+        void SetRollMode(FDMiRollMode mode)
+        {
+            if (_rollMode == mode)
+                return;
+            _rollMode = mode;
+            if (_rollModeSelect[0] != (int)mode)
+                rollModeSelect.Data = (int)mode;
+        }
+
+        void UpdateRollMode(float locDev, int navTypeNow, bool navValidNow)
+        {
+            switch (_rollMode)
+            {
+                case FDMiRollMode.Cws:
+                case FDMiRollMode.HdgHold:
+                case FDMiRollMode.HdgSel:
+                    return;
+                case FDMiRollMode.VorCap:
+                    UpdateNavCapture(FDMiRollMode.VorTrk, 1, vorCaptureDeg, locDev, navTypeNow, navValidNow);
+                    return;
+                case FDMiRollMode.LocCap:
+                    UpdateNavCapture(FDMiRollMode.LocTrk, 2, locCaptureDeg, locDev, navTypeNow, navValidNow);
+                    return;
+                case FDMiRollMode.VorTrk:
+                    UpdateNavTrack(1, navTypeNow, navValidNow);
+                    return;
+                case FDMiRollMode.LocTrk:
+                    UpdateNavTrack(2, navTypeNow, navValidNow);
+                    return;
+            }
+        }
+
+        // CAP は能動捕捉。ビームに近づいているときだけ TRK へ移る。
+        void UpdateNavCapture(
+            FDMiRollMode trackMode,
+            int requiredType,
+            float captureDeg,
+            float locDev,
+            int navTypeNow,
+            bool navValidNow
+        )
+        {
+            if (navTypeNow != requiredType || !navValidNow)
+                return;
+            if (Mathf.Abs(locDev) < captureDeg && Mathf.Abs(locDev) <= Mathf.Abs(_prevLocDev))
+                SetRollMode(trackMode);
+        }
+
+        // TRK 中に受信が切れたら HDG SEL へ戻す。モードノードも同時に書き換える。
+        void UpdateNavTrack(int requiredType, int navTypeNow, bool navValidNow)
+        {
+            if (navTypeNow != requiredType || !navValidNow)
+                SetRollMode(FDMiRollMode.HdgSel);
+        }
+
+        bool IsNavMode(FDMiRollMode mode)
+        {
+            return mode == FDMiRollMode.VorCap
+                || mode == FDMiRollMode.VorTrk
+                || mode == FDMiRollMode.LocCap
+                || mode == FDMiRollMode.LocTrk;
+        }
+
+        bool NavMatches(FDMiRollMode mode, int navTypeNow)
+        {
+            if (mode == FDMiRollMode.VorCap || mode == FDMiRollMode.VorTrk)
+                return navTypeNow == 1;
+            if (mode == FDMiRollMode.LocCap || mode == FDMiRollMode.LocTrk)
+                return navTypeNow == 2;
+            return false;
+        }
+
+        void ComputeRollGuidance(float rollNow, float hdgNow, float locDev, float refCourse, bool navReady)
+        {
+            switch (_rollMode)
+            {
+                case FDMiRollMode.Cws:
+                    _rollCmd = rollNow;
+                    return;
+                case FDMiRollMode.HdgHold:
+                    ComputeHeading(Wrap180(_hdgRef - hdgNow), bankMax);
+                    return;
+                case FDMiRollMode.HdgSel:
+                    ComputeHeading(Wrap180((float)_headingCommand[0] - hdgNow), bankMax);
+                    return;
+                case FDMiRollMode.VorCap:
+                case FDMiRollMode.LocCap:
+                    if (navReady)
+                        ComputeNav(locDev, refCourse, hdgNow, interceptMax, bankMaxCapture);
+                    else
+                    {
+                        // nav 不成立の CAP は HDG SEL で待つ。バンク上限は通常の 25°。
+                        ComputeHeading(Wrap180((float)_headingCommand[0] - hdgNow), bankMax);
+                    }
+                    return;
+                case FDMiRollMode.VorTrk:
+                case FDMiRollMode.LocTrk:
+                    ComputeNav(locDev, refCourse, hdgNow, trackInterceptMax, bankMax);
+                    return;
+            }
+        }
+
+        void ComputeHeading(float hdgErr, float bankLimit)
+        {
+            _rollCmd = Mathf.Clamp(hdgGain * hdgErr, -bankLimit, bankLimit);
+        }
+
+        void ComputeNav(float locDev, float refCourse, float hdgNow, float interceptLimit, float bankLimit)
+        {
+            float intercept = Mathf.Clamp(
+                locGainP * locDev + locGainD * _locRate,
+                -interceptLimit,
+                interceptLimit
+            );
+            ComputeHeading(Wrap180(Wrap360(refCourse + intercept) - hdgNow), bankLimit);
         }
 
         static float Wrap360(float d)

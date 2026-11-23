@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace FDMi.avionics
 {
-    // 縦モード。番号は FMA の表示インデックスそのもの。Cws が 0 なのは「モードが無い」状態を
-    // 持たないため。FD OFF はモードではなくスイッチであり、表示器と AP が持つ（ADR-0031）。
+    // 縦モード。番号は FMA の表示インデックスそのもの。
+    // PitchMode は人間の選択と FD の自動遷移が共有する単一ノードで、FD はこの値に従って制御する。
     public enum FDMiPitchMode
     {
         Cws = 0,
@@ -16,28 +16,22 @@ namespace FDMi.avionics
         GsTrk = 5,
     }
 
-    // ピッチ軸の飛行誘導。姿勢指令と現在ピッチ角の差だけを出す。
+    // ピッチ軸の飛行誘導。モードごとの誘導則を持ち、姿勢指令と現在ピッチ角の差だけを出す。
     // Why not 絶対姿勢指令を出す: 読み手（AP と EADI）はどちらも現在姿勢を既に持っており、
     // 差にすると引き算が1箇所で済む（ADR-0032）。
-    // Why not 横の誘導と同じクラス: 軸をまたぐ状態（セレクタ変更時の一括リセット、APP 選択に
-    // よる GS の armed）が残り、横の FD が無い席で縦が動かなくなる（ADR-0032）。
-    // Why not 横モード選択子を読む: GS の armed は縦の選択子と航法源だけで決まる。読むと横の
-    // FD と AP スイッチが縦の前提になり、完全分離が崩れる。
-    //
-    // FD は FD スイッチを読まない。スイッチ OFF は「誘導を止める」ではなく「表示と AP を止める」
-    // であり、FD 自身は常に計算し続ける。Why not スイッチ OFF を Off モードにする: モードに
-    // 「無い」を持たせると Cws と衝突し、FMA のインデックスに穴が空く。
-    //
-    // 受信機とは席 1:1 で、自系統の NAV だけを読む（ADR-0032 で 1:1 を「受信機 : 席」に読み替え）。
+    // Why not AP スイッチを読む: CWS は縦モード 0 で表す。AP スイッチは AP の状態であり、
+    // FD のモードを変えると要求モードと実作動モードが分裂する（ADR-0032 改訂）。
+    // Why not モードを別ノードで publish する: FMA が読むモードと FD が使うモードが二重になる。
+    // PitchMode 1本を人間と FD の両方が書き、FMA はそれを直読みする（ADR-0032 改訂）。
     [DefaultExecutionOrder(-400)]
     public class FDMiPitchFlightDirector : FDMiBehaviour
     {
-        [Header("スイッチ")]
-        [Tooltip("AP スイッチ（0=OFF、1=CWS、2=CMD）。CWS では差分 0 を出す")]
-        public string apSwitchPath = "~/Input/AP1SW/Value";
+        [Header("モード")]
+        [Tooltip("縦モード。人間の選択と FD の自動遷移が同じノードを書く")]
+        public string pitchModeSelectPath = "~/Input/PitchMode";
 
-        [FDMiDataPath(nameof(apSwitchPath))]
-        public FDMiInt apSwitch;
+        [FDMiDataPath(nameof(pitchModeSelectPath))]
+        public FDMiInt pitchModeSelect;
 
         [Header("航法（自系統の受信機と 1:1）")]
         [Tooltip("GS 偏差 [deg]。正=パス上方")]
@@ -57,13 +51,6 @@ namespace FDMi.avionics
 
         [FDMiDataPath(nameof(navValidPath))]
         public FDMiBool navValid;
-
-        [Header("モード選択")]
-        [Tooltip("縦モード選択（0=VS、1=ALT、2以上=GS/APP）")]
-        public string pitchModeSelectPath = "~/Input/PitchMode";
-
-        [FDMiDataPath(nameof(pitchModeSelectPath))]
-        public FDMiInt pitchModeSelect;
 
         [Header("指令")]
         [Tooltip("VS 指令 [100 ft/min]")]
@@ -114,10 +101,16 @@ namespace FDMi.avionics
         [Tooltip("高度誤差→VS のゲイン [1/s]")]
         public float altGain = 0.05f;
 
-        [Tooltip("ALT HOLD/CAP の VS 上限 [m/s]")]
+        [Tooltip("ALT CAP の VS 上限 [m/s]")]
         public float vsMax = 5.08f;
 
-        [Tooltip("ALT CAP を ALT HOLD に切り替える残高度 [m]")]
+        [Tooltip("ALT HOLD と GS CAP 待ちの VS 上限 [m/s]")]
+        public float vsHoldMax = 2.54f;
+
+        [Tooltip("VS から ALT CAP へ移る残高度 [m]")]
+        public float altAcqBand = 304.8f;
+
+        [Tooltip("ALT CAP から ALT HOLD へ移る残高度 [m]")]
         public float altCaptureBand = 30.48f;
 
         [Tooltip("GS 誤差の比例ゲイン [deg/deg/s]")]
@@ -126,8 +119,17 @@ namespace FDMi.avionics
         [Tooltip("GS 誤差の積分ゲイン")]
         public float gsGainI = 0.05f;
 
+        [Tooltip("GS 偏差変化率のゲイン [deg/(deg/s)/s]")]
+        public float gsGainD = 0.2f;
+
+        [Tooltip("GS 偏差変化率の LPF 時定数 [s]")]
+        public float gsRateTau = 0.5f;
+
         [Tooltip("GS 捕捉の偏差 [deg]")]
         public float gsCaptureDeg = 0.108f;
+
+        [Tooltip("GS TRK を失う偏差 [deg]")]
+        public float gsTrackLossDeg = 2f;
 
         [Tooltip("ピッチ指令の下限 [deg]")]
         public float pitchMinDeg = -10f;
@@ -135,24 +137,22 @@ namespace FDMi.avionics
         [Tooltip("ピッチ指令の上限 [deg]")]
         public float pitchMaxDeg = 20f;
 
-        int[] _apSwitch, _vsCommand, _altitudeCommand, _pitchModeSelect, _navType;
+        int[] _pitchModeSelect, _vsCommand, _altitudeCommand, _navType;
         float[] _pitch, _altitude, _verticalSpeed, _gsDeviation, _pitchDelta;
         bool[] _navValid;
 
         FDMiPitchMode _pitchMode;
-        int _pitchArmed,
-            _prevPitchSel = -1,
-            _prevAltCmd;
+        int _prevAltCmd;
         float _pitchCmd,
             _vsCmd,
             _vsIntegral,
             _gsIntegral,
+            _gsRate,
+            _prevGsDev,
             _altRef;
-        bool _initialized;
 
         void Start()
         {
-            _apSwitch = apSwitch.data;
             _pitchModeSelect = pitchModeSelect.data;
             _vsCommand = vsCommand.data;
             _altitudeCommand = altitudeCommand.data;
@@ -168,15 +168,6 @@ namespace FDMi.avionics
 
         void FixedUpdate()
         {
-            // CWS では差分 0 を出す。姿勢の保持と手放しの捕捉は AP のサーボが担う（ADR-0032）。
-            // 指令は現在姿勢から再シードさせるので、CWS から CMD に戻っても舵が跳ばない。
-            if (_apSwitch[0] == 1)
-            {
-                _pitchDelta[0] = 0f;
-                _initialized = false;
-                return;
-            }
-
             float dt = Time.fixedDeltaTime;
             float pitchNow = _pitch[0];
             float altNow = _altitude[0];
@@ -184,131 +175,213 @@ namespace FDMi.avionics
             float gsDev = _gsDeviation[0];
             int navTypeNow = _navType[0];
             bool navValidNow = _navValid[0];
-
-            int pitchSel = _pitchModeSelect[0];
             float altCmd = (float)_altitudeCommand[0] * 0.3048f;
             float vsSel = (float)_vsCommand[0] * 0.508f;
             bool altCmdChanged = _altitudeCommand[0] != _prevAltCmd;
-            bool pitchSelChanged = !_initialized || pitchSel != _prevPitchSel;
-
-            if (pitchSelChanged)
-            {
-                _pitchCmd = pitchNow;
-                _vsIntegral = 0f;
-                _gsIntegral = 0f;
-                _vsCmd = vsSel;
-                _altRef = altCmd;
-                _pitchArmed = 0;
-                _initialized = true;
-
-                if (pitchSel == 0)
-                {
-                    _pitchMode = FDMiPitchMode.Vs;
-                }
-                else if (pitchSel == 1)
-                {
-                    _pitchMode =
-                        Mathf.Abs(altCmd - altNow) > altCaptureBand ? FDMiPitchMode.AltCap : FDMiPitchMode.AltHold;
-                }
-                else
-                {
-                    // GS 捕捉までは現在高度の ALT HOLD で待つ。GS は armed として出す。
-                    _pitchMode = FDMiPitchMode.AltHold;
-                    _altRef = altNow;
-                }
-            }
-
-            _prevPitchSel = pitchSel;
-
-            // APP 選択かつ ILS のときだけ GS を armed にする。縦の選択子 2 以上が APP の要求で
-            // あり、横の選択子は読まない（ADR-0032）。
             bool gsAvailable = navTypeNow == 2 && navValidNow;
-            if (_pitchArmed == (int)FDMiPitchMode.GsCap && !gsAvailable)
-                _pitchArmed = 0;
-            if (pitchSel >= 2 && gsAvailable && _pitchMode != FDMiPitchMode.GsTrk && _pitchArmed == 0)
-                _pitchArmed = (int)FDMiPitchMode.GsCap;
 
-            // 縦モード。選択子の変更時だけ初期化し、捕捉・遷移は毎tick評価する。
-            if (pitchSel == 0)
-            {
-                _vsCmd = vsSel;
-                // 選択高度が進行方向にあり、まだ捕捉帯の外なら ALT CAP を armed にする。
-                if (Mathf.Abs(altCmd - altNow) > altCaptureBand && (altCmd - altNow) * vsSel > 0f)
-                {
-                    _pitchArmed = (int)FDMiPitchMode.AltCap;
-                }
-            }
-            else if (pitchSel == 1 && altCmdChanged)
-            {
-                _altRef = altCmd;
-                _pitchMode = Mathf.Abs(altCmd - altNow) > altCaptureBand ? FDMiPitchMode.AltCap : FDMiPitchMode.AltHold;
-                _pitchArmed = 0;
-            }
-            if (altCmdChanged)
-                _prevAltCmd = _altitudeCommand[0];
+            // モードノードは両席の FD が共有する。他席の受信機が捕捉した GsTrk に自席の
+            // 受信機が追従できないとき、拒否をノードへ書き戻すと捕捉した席まで巻き戻る。
+            // そのときは GS CAP の待ちとして留まり、書き戻さない。
+            FDMiPitchMode requested = (FDMiPitchMode)_pitchModeSelect[0];
+            if (requested == FDMiPitchMode.GsTrk && !gsAvailable)
+                requested = FDMiPitchMode.GsCap;
+            if (requested != _pitchMode)
+                EnterPitchMode(requested, pitchNow, altNow, altCmd, gsDev);
 
-            // ALT CAP の捕捉。残高度が帯に入ったら ALT HOLD へ。
-            if (_pitchMode == FDMiPitchMode.AltCap && Mathf.Abs(_altRef - altNow) <= altCaptureBand)
-            {
-                _pitchMode = FDMiPitchMode.AltHold;
-                _pitchArmed = 0;
-                _vsIntegral = 0f;
-            }
-            if (_pitchArmed == (int)FDMiPitchMode.AltCap && Mathf.Abs(altCmd - altNow) <= altCaptureBand)
-            {
-                _pitchMode = FDMiPitchMode.AltHold;
-                _altRef = altCmd;
-                _pitchArmed = 0;
-                _vsIntegral = 0f;
-            }
+            UpdatePitchMode(pitchNow, altNow, vsSel, altCmd, altCmdChanged, gsDev, gsAvailable);
+            _prevAltCmd = _altitudeCommand[0];
 
-            // GS 捕捉・喪失。
-            if (_pitchArmed == (int)FDMiPitchMode.GsCap)
-            {
-                if (gsAvailable && Mathf.Abs(gsDev) < gsCaptureDeg)
-                {
-                    _pitchMode = FDMiPitchMode.GsTrk;
-                    _pitchArmed = 0;
-                    _pitchCmd = pitchNow;
-                    _gsIntegral = 0f;
-                }
-            }
-            else if (_pitchMode == FDMiPitchMode.GsTrk)
-            {
-                if (!gsAvailable || Mathf.Abs(gsDev) > 2f)
-                {
-                    _pitchMode = FDMiPitchMode.AltHold;
-                    _altRef = altNow;
-                    _pitchArmed = 0;
-                    _vsIntegral = 0f;
-                }
-            }
-
-            if (_pitchMode == FDMiPitchMode.GsTrk)
-            {
-                // 正の GSDev はパス上方。機首下げ方向（負）へ積分する。
-                float gsErr = -gsDev;
-                _pitchCmd += (gsGainP * gsErr + gsGainI * _gsIntegral) * dt;
-                _gsIntegral += gsErr * dt;
-                _gsIntegral = Mathf.Clamp(_gsIntegral, -10f, 10f);
-            }
-            else
-            {
-                if (
-                    _pitchMode == FDMiPitchMode.AltHold
-                    || _pitchMode == FDMiPitchMode.AltCap
-                    || _pitchMode == FDMiPitchMode.GsCap
-                )
-                    _vsCmd = Mathf.Clamp(altGain * (_altRef - altNow), -vsMax, vsMax);
-
-                float vsErr = _vsCmd - vsNow;
-                _pitchCmd += (vsGainP * vsErr + vsGainI * _vsIntegral) * dt;
-                _vsIntegral += vsErr * dt;
-                _vsIntegral = Mathf.Clamp(_vsIntegral, -5f, 5f);
-            }
+            ComputePitchGuidance(dt, pitchNow, altNow, vsNow, gsDev);
 
             _pitchCmd = Mathf.Clamp(_pitchCmd, pitchMinDeg, pitchMaxDeg);
             _pitchDelta[0] = _pitchCmd - pitchNow;
+        }
+
+        // 人間がモードを選び直したときだけ、そのモードの初期状態へ入る。
+        // FD 自身の遷移は SetPitchMode でノードを書き換え、遷移地点で必要な積分器だけを
+        // リセットする。_pitchCmd を現在姿勢へ戻すのは GsCap→GsTrk の捕捉時だけ。
+        void EnterPitchMode(FDMiPitchMode mode, float pitchNow, float altNow, float altCmd, float gsDev)
+        {
+            _pitchMode = mode;
+            _pitchCmd = pitchNow;
+            _vsIntegral = 0f;
+            _gsIntegral = 0f;
+            _gsRate = 0f;
+            _prevGsDev = gsDev;
+
+            switch (mode)
+            {
+                case FDMiPitchMode.Cws:
+                case FDMiPitchMode.Vs:
+                    break;
+                case FDMiPitchMode.AltCap:
+                    _altRef = altCmd;
+                    break;
+                case FDMiPitchMode.AltHold:
+                case FDMiPitchMode.GsCap:
+                case FDMiPitchMode.GsTrk:
+                    _altRef = altNow;
+                    break;
+            }
+        }
+
+        // モードノードは人間と FD の共有状態。同じ値なら書かない（コールバックの無駄打ちを避ける）。
+        void SetPitchMode(FDMiPitchMode mode)
+        {
+            if (_pitchMode == mode)
+                return;
+            _pitchMode = mode;
+            if (_pitchModeSelect[0] != (int)mode)
+                pitchModeSelect.Data = (int)mode;
+        }
+
+        void UpdatePitchMode(
+            float pitchNow,
+            float altNow,
+            float vsSel,
+            float altCmd,
+            bool altCmdChanged,
+            float gsDev,
+            bool gsAvailable
+        )
+        {
+            switch (_pitchMode)
+            {
+                case FDMiPitchMode.Cws:
+                    return;
+                case FDMiPitchMode.AltHold:
+                    // ALT HOLD は _altRef を保持し、選択高度の変更は追わない。
+                    // 高度を変えるときは ALT CAP を選ぶ。
+                    return;
+                case FDMiPitchMode.Vs:
+                    UpdateVs(altNow, vsSel, altCmd);
+                    return;
+                case FDMiPitchMode.AltCap:
+                    UpdateAltCap(altNow, altCmd, altCmdChanged);
+                    return;
+                case FDMiPitchMode.GsCap:
+                    UpdateGsCap(pitchNow, gsDev, gsAvailable);
+                    return;
+                case FDMiPitchMode.GsTrk:
+                    UpdateGsTrk(altNow, gsDev, gsAvailable);
+                    return;
+            }
+        }
+
+        // VS は選択 VS を保持する。選択高度が進行方向にあり捕捉帯へ入ったら、
+        // ノードを ALT CAP / ALT HOLD へ書き換える。armed を別状態に持たない。
+        void UpdateVs(float altNow, float vsSel, float altCmd)
+        {
+            _vsCmd = vsSel;
+            float altDiff = altCmd - altNow;
+            if (vsSel == 0f || altDiff * vsSel <= 0f)
+                return;
+
+            if (Mathf.Abs(altDiff) <= altCaptureBand)
+            {
+                _altRef = altCmd;
+                _vsIntegral = 0f;
+                SetPitchMode(FDMiPitchMode.AltHold);
+                return;
+            }
+            if (Mathf.Abs(altDiff) <= altAcqBand)
+            {
+                _altRef = altCmd;
+                _vsIntegral = 0f;
+                SetPitchMode(FDMiPitchMode.AltCap);
+            }
+        }
+
+        // ALT CAP は選択高度を捕捉する。高度指令が変わったら捕捉先も変える。
+        void UpdateAltCap(float altNow, float altCmd, bool altCmdChanged)
+        {
+            if (altCmdChanged)
+            {
+                _altRef = altCmd;
+                _vsIntegral = 0f;
+            }
+            if (Mathf.Abs(_altRef - altNow) <= altCaptureBand)
+            {
+                _altRef = altCmd;
+                _vsIntegral = 0f;
+                SetPitchMode(FDMiPitchMode.AltHold);
+            }
+        }
+
+        // GS CAP は捕捉待ち。現在高度の ALT HOLD で待ち、ビームに入ったら GS TRK へ。
+        void UpdateGsCap(float pitchNow, float gsDev, bool gsAvailable)
+        {
+            float prevDev = _prevGsDev;
+            _prevGsDev = gsDev;
+            if (!gsAvailable)
+                return;
+            if (Mathf.Abs(gsDev) < gsCaptureDeg && Mathf.Abs(gsDev) <= Mathf.Abs(prevDev))
+            {
+                _pitchCmd = pitchNow;
+                _gsIntegral = 0f;
+                _gsRate = 0f;
+                SetPitchMode(FDMiPitchMode.GsTrk);
+            }
+        }
+
+        void UpdateGsTrk(float altNow, float gsDev, bool gsAvailable)
+        {
+            if (!gsAvailable || Mathf.Abs(gsDev) > gsTrackLossDeg)
+            {
+                _altRef = altNow;
+                _vsIntegral = 0f;
+                _gsIntegral = 0f;
+                _prevGsDev = gsDev;
+                SetPitchMode(FDMiPitchMode.AltHold);
+            }
+        }
+
+        void ComputePitchGuidance(float dt, float pitchNow, float altNow, float vsNow, float gsDev)
+        {
+            switch (_pitchMode)
+            {
+                case FDMiPitchMode.Cws:
+                    _pitchCmd = pitchNow;
+                    return;
+                case FDMiPitchMode.Vs:
+                    // _vsCmd は UpdateVs が選択値を書いている。
+                    ApplyVsLoop(dt, vsNow);
+                    return;
+                case FDMiPitchMode.AltCap:
+                    _vsCmd = Mathf.Clamp(altGain * (_altRef - altNow), -vsMax, vsMax);
+                    ApplyVsLoop(dt, vsNow);
+                    return;
+                case FDMiPitchMode.AltHold:
+                case FDMiPitchMode.GsCap:
+                    _vsCmd = Mathf.Clamp(altGain * (_altRef - altNow), -vsHoldMax, vsHoldMax);
+                    ApplyVsLoop(dt, vsNow);
+                    return;
+                case FDMiPitchMode.GsTrk:
+                    ApplyGsLoop(dt, gsDev);
+                    return;
+            }
+        }
+
+        void ApplyVsLoop(float dt, float vsNow)
+        {
+            float vsErr = _vsCmd - vsNow;
+            _pitchCmd += (vsGainP * vsErr + vsGainI * _vsIntegral) * dt;
+            _vsIntegral += vsErr * dt;
+            _vsIntegral = Mathf.Clamp(_vsIntegral, -5f, 5f);
+        }
+
+        void ApplyGsLoop(float dt, float gsDev)
+        {
+            float rawRate = (gsDev - _prevGsDev) / dt;
+            _gsRate += (rawRate - _gsRate) * (dt / (gsRateTau + dt));
+            _prevGsDev = gsDev;
+
+            // 正の GSDev はパス上方。機首下げ方向（負）へ比例・微分・積分する。
+            float gsErr = -gsDev;
+            _pitchCmd += (gsGainP * gsErr - gsGainD * _gsRate + gsGainI * _gsIntegral) * dt;
+            _gsIntegral += gsErr * dt;
+            _gsIntegral = Mathf.Clamp(_gsIntegral, -10f, 10f);
         }
     }
 }
