@@ -84,6 +84,12 @@ namespace FDMi.avionics
         [FDMiDataPath(nameof(verticalSpeedPath))]
         public FDMiFloat verticalSpeed;
 
+        [Tooltip("真対気速度 [m/s]")]
+        public string tasPath = "~/Physics/TAS";
+
+        [FDMiDataPath(nameof(tasPath))]
+        public FDMiFloat tas;
+
         [Header("出力")]
         [Tooltip("ピッチ姿勢指令と現在ピッチ角の差 [deg]。正=機首上げ方向の補正")]
         public string pitchDeltaPath = "~/Avionics/FD/L/PitchDelta";
@@ -93,10 +99,21 @@ namespace FDMi.avionics
 
         [Header("誘導則")]
         [Tooltip("VS 誤差の比例ゲイン [deg/(m/s)/s]")]
-        public float vsGainP = 0.8f;
+        public float vsGainP = 0.1f;
 
-        [Tooltip("VS 誤差の積分ゲイン [deg/(m/s)/s]")]
-        public float vsGainI = 0.12f;
+        // 外側の _pitchCmd 積分が定常分を担うため、内側のレート積分は既定で切る。
+        // 降下反転時の windup を避ける（ADR-0033 の rateCum バイアスは外側で吸収する）。
+        [Tooltip("VS 誤差の積分ゲイン [deg/(m/s)/s]。0 で内側積分なし")]
+        public float vsGainI = 0f;
+
+        [Tooltip("VS ゲインを正規化する基準 TAS [m/s]")]
+        public float tasRef = 150f;
+
+        [Tooltip("TAS の下限 [m/s]。0 除算を避ける")]
+        public float tasMin = 30f;
+
+        [Tooltip("ピッチ指令の変化率上限 [deg/s]")]
+        public float pitchCmdRateMax = 1.25f;
 
         [Tooltip("高度誤差→VS のゲイン [1/s]")]
         public float altGain = 0.05f;
@@ -131,14 +148,16 @@ namespace FDMi.avionics
         [Tooltip("GS TRK を失う偏差 [deg]")]
         public float gsTrackLossDeg = 2f;
 
+        // 4000 fpm を 150 kt で成立させるには 20° では足りない。
+        // 実際の機体姿勢は空力が制限するため、指令側は余裕を持たせる。
         [Tooltip("ピッチ指令の下限 [deg]")]
-        public float pitchMinDeg = -10f;
+        public float pitchMinDeg = -15f;
 
         [Tooltip("ピッチ指令の上限 [deg]")]
-        public float pitchMaxDeg = 20f;
+        public float pitchMaxDeg = 30f;
 
         int[] _pitchModeSelect, _vsCommand, _altitudeCommand, _navType;
-        float[] _pitch, _altitude, _verticalSpeed, _gsDeviation, _pitchDelta;
+        float[] _pitch, _altitude, _verticalSpeed, _tas, _gsDeviation, _pitchDelta;
         bool[] _navValid;
 
         FDMiPitchMode _pitchMode;
@@ -162,6 +181,7 @@ namespace FDMi.avionics
             _pitch = pitch.data;
             _altitude = altitude.data;
             _verticalSpeed = verticalSpeed.data;
+            _tas = tas.data;
             _pitchDelta = pitchDelta.data;
             _prevAltCmd = _altitudeCommand[0];
         }
@@ -172,6 +192,7 @@ namespace FDMi.avionics
             float pitchNow = _pitch[0];
             float altNow = _altitude[0];
             float vsNow = _verticalSpeed[0];
+            float tasNow = _tas[0];
             float gsDev = _gsDeviation[0];
             int navTypeNow = _navType[0];
             bool navValidNow = _navValid[0];
@@ -192,7 +213,7 @@ namespace FDMi.avionics
             UpdatePitchMode(pitchNow, altNow, vsSel, altCmd, altCmdChanged, gsDev, gsAvailable);
             _prevAltCmd = _altitudeCommand[0];
 
-            ComputePitchGuidance(dt, pitchNow, altNow, vsNow, gsDev);
+            ComputePitchGuidance(dt, pitchNow, altNow, vsNow, tasNow, gsDev);
 
             _pitchCmd = Mathf.Clamp(_pitchCmd, pitchMinDeg, pitchMaxDeg);
             _pitchDelta[0] = _pitchCmd - pitchNow;
@@ -337,7 +358,14 @@ namespace FDMi.avionics
             }
         }
 
-        void ComputePitchGuidance(float dt, float pitchNow, float altNow, float vsNow, float gsDev)
+        void ComputePitchGuidance(
+            float dt,
+            float pitchNow,
+            float altNow,
+            float vsNow,
+            float tasNow,
+            float gsDev
+        )
         {
             switch (_pitchMode)
             {
@@ -346,16 +374,16 @@ namespace FDMi.avionics
                     return;
                 case FDMiPitchMode.Vs:
                     // _vsCmd は UpdateVs が選択値を書いている。
-                    ApplyVsLoop(dt, vsNow);
+                    ApplyVsLoop(dt, vsNow, tasNow);
                     return;
                 case FDMiPitchMode.AltCap:
                     _vsCmd = Mathf.Clamp(altGain * (_altRef - altNow), -vsMax, vsMax);
-                    ApplyVsLoop(dt, vsNow);
+                    ApplyVsLoop(dt, vsNow, tasNow);
                     return;
                 case FDMiPitchMode.AltHold:
                 case FDMiPitchMode.GsCap:
                     _vsCmd = Mathf.Clamp(altGain * (_altRef - altNow), -vsHoldMax, vsHoldMax);
-                    ApplyVsLoop(dt, vsNow);
+                    ApplyVsLoop(dt, vsNow, tasNow);
                     return;
                 case FDMiPitchMode.GsTrk:
                     ApplyGsLoop(dt, gsDev);
@@ -363,12 +391,27 @@ namespace FDMi.avionics
             }
         }
 
-        void ApplyVsLoop(float dt, float vsNow)
+        // VS のプラントゲインは TAS に比例する。ゲインを TAS で正規化しないと、
+        // 250 kt で合わせた値が 150 kt で鈍く、350 kt で振動する。
+        // Why not 高度・VS 誤差から直接ピッチ角を出す: 既存の外側積分（_pitchCmd）を
+        // 残し、AP の rateCum バイアスを吸収する役割を1箇所に閉じる。
+        // 指令の変化率を制限するのは、内側 AP の応答より速く目標を動かさないため。
+        void ApplyVsLoop(float dt, float vsNow, float tasNow)
         {
             float vsErr = _vsCmd - vsNow;
-            _pitchCmd += (vsGainP * vsErr + vsGainI * _vsIntegral) * dt;
-            _vsIntegral += vsErr * dt;
+            float tasScale = tasRef / Mathf.Max(tasNow, tasMin);
+            float rate = (vsGainP * tasScale) * vsErr + (vsGainI * tasScale) * _vsIntegral;
+            rate = Mathf.Clamp(rate, -pitchCmdRateMax, pitchCmdRateMax);
+
+            float next = _pitchCmd + rate * dt;
+            // 指令が上限・下限に張り付いている間は積分を止める。
+            // 降下側で _pitchCmd が下限に達したまま積分が回り、復帰時に
+            // オーバーシュートするのを防ぐ。
+            bool saturating = (next > pitchMaxDeg && rate > 0f) || (next < pitchMinDeg && rate < 0f);
+            if (!saturating)
+                _vsIntegral += vsErr * dt;
             _vsIntegral = Mathf.Clamp(_vsIntegral, -5f, 5f);
+            _pitchCmd = Mathf.Clamp(next, pitchMinDeg, pitchMaxDeg);
         }
 
         void ApplyGsLoop(float dt, float gsDev)

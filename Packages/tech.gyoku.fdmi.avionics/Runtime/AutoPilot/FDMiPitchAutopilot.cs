@@ -44,6 +44,19 @@ namespace FDMi.avionics
         [FDMiDataPath(nameof(pitchPath))]
         public FDMiFloat pitch;
 
+        [Tooltip("指示対気速度 [m/s]")]
+        public string iasPath = "~/Physics/IAS";
+
+        [FDMiDataPath(nameof(iasPath))]
+        public FDMiFloat ias;
+
+        [Header("速度スケジューリング")]
+        [Tooltip("kp を正規化する基準 IAS [m/s]")]
+        public float iasRef = 128.6f;
+
+        [Tooltip("IAS の下限 [m/s]。0 除算を避ける")]
+        public float iasMin = 30f;
+
         [Tooltip("左ヨークのピッチ入力")]
         public string pitchInputLPath = "~/Input/YokeL/PitchInput";
 
@@ -74,22 +87,25 @@ namespace FDMi.avionics
         public float kp = 0.2f;
 
         [Tooltip("姿勢レートの積分ゲイン [1/deg]")]
-        public float kiRate = 0.2f;
+        public float kiRate = 0.03f;
 
         [Tooltip("姿勢レートの制動ゲイン [1/(deg/s)]")]
-        public float kd = 0.1f;
+        public float kd = 0.02f;
 
         [Tooltip("PD 補正→トリムレートのゲイン [1/s]")]
-        public float kiTrim = 0.5f;
+        public float kiTrim = 1f;
 
         [Tooltip("姿勢レートの LPF 時定数 [s]")]
         public float rateTau = 0.3f;
 
         [Tooltip("補正出力の変化速度 [1/s]")]
-        public float rateLimit = 2f;
+        public float rateLimit = 1f;
 
+        // トリムが -2° に張り付く 150 kt では 0.2 では定常舵を持てず、
+        // CWS が姿勢を保持できない。0.5 でその状態と ±2 deg/s 級の
+        // 定常モーメントバイアスを保持できる。
         [Tooltip("ピッチレート累積項の制限値（無次元）")]
-        public float rateCumLimit = 0.2f;
+        public float rateCumLimit = 0.5f;
 
         [Header("CWS")]
         [Tooltip("ヨーク override に入る入力 [1]。ヒステリシスの上の値")]
@@ -101,6 +117,7 @@ namespace FDMi.avionics
         int[] _apSwitch;
         float[] _pitchDelta,
             _pitch,
+            _ias,
             _pitchInputL,
             _pitchInputR,
             _apOutput,
@@ -116,6 +133,7 @@ namespace FDMi.avionics
             _apSwitch = apSwitch.data;
             _pitchDelta = pitchDelta.data;
             _pitch = pitch.data;
+            _ias = ias.data;
             _pitchInputL = pitchInputL.data;
             _pitchInputR = pitchInputR.data;
             _apOutput = apOutput.data;
@@ -145,7 +163,16 @@ namespace FDMi.avionics
                 return;
             }
 
-            float pitchCmd = (sw == 2) ? kp * _pitchDelta[0] : 0f;
+            // 操舵権威は動圧（IAS²）に比例する。kp を IAS² で正規化しないと、
+            // 150 kt で鈍く、350 kt で振動する。CWS は Delta=0 なので kp の
+            // スケジューリングを受けない（ADR-0033 の CWS 保持を壊さない）。
+            float kpEff = kp;
+            if (sw == 2)
+            {
+                float speedScale = iasRef / Mathf.Max(_ias[0], iasMin);
+                kpEff = kp * speedScale * speedScale;
+            }
+            float pitchCmd = (sw == 2) ? kpEff * _pitchDelta[0] : 0f;
 
             float correction = Mathf.Clamp(pitchCmd + _pitchRateCum - kd * _pitchRate, -1f, 1f);
             correction = Mathf.MoveTowards(_apOutput[0], correction, dt * rateLimit);
