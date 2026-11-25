@@ -98,8 +98,11 @@ namespace FDMi.avionics
         public FDMiFloat pitchDelta;
 
         [Header("誘導則")]
+        // 3DOF 検証で旧 0.1 は 4000 fpm の 90% 到達が 150/250/350 kt で 13.6/10.1/9.6 s。
+        // 0.2 + pitchCmdRateMax 2.0 で 9.0/6.3/5.5 s（約 1.5〜1.8 倍速）。
+        // 一時的なオーバーシュートは約 325 fpm まで許容し、定常誤差は 0 にする。
         [Tooltip("VS 誤差の比例ゲイン [deg/(m/s)/s]")]
-        public float vsGainP = 0.1f;
+        public float vsGainP = 0.2f;
 
         // 外側の _pitchCmd 積分が定常分を担うため、内側のレート積分は既定で切る。
         // 降下反転時の windup を避ける（ADR-0033 の rateCum バイアスは外側で吸収する）。
@@ -113,34 +116,48 @@ namespace FDMi.avionics
         public float tasMin = 30f;
 
         [Tooltip("ピッチ指令の変化率上限 [deg/s]")]
-        public float pitchCmdRateMax = 1.25f;
+        public float pitchCmdRateMax = 2f;
 
+        // 500 ft からの捕捉を高速化する。0.08 + vsMax 5.08 では 250 kt で
+        // ±50 ft 整定に 23 s かかった。0.2 + vsMax 18 では 7.8 s（約 1/3）。
+        // 150 kt は 7.7 s（約 1/2.3）で、30 ft の一時オーバーシュートに収まる。
         [Tooltip("高度誤差→VS のゲイン [1/s]")]
-        public float altGain = 0.05f;
+        public float altGain = 0.2f;
 
+        // 5.08 m/s（1000 fpm）では 4000 fpm の上昇から早期に減速しすぎて
+        // 捕捉が遅かった。18 m/s（3543 fpm）で初期の上昇をほぼ維持し、
+        // 残高度が減ってから減速する。20.32 m/s（4000 fpm）では 150 kt の
+        // オーバーシュートが 78 ft まで増えるため、18 を上限にする。
         [Tooltip("ALT CAP の VS 上限 [m/s]")]
-        public float vsMax = 5.08f;
+        public float vsMax = 18f;
 
         [Tooltip("ALT HOLD と GS CAP 待ちの VS 上限 [m/s]")]
         public float vsHoldMax = 2.54f;
 
-        [Tooltip("VS から ALT CAP へ移る残高度 [m]")]
-        public float altAcqBand = 304.8f;
+        [Tooltip("VS から ALT CAP へ移る残高度 [m]。500 ft")]
+        public float altAcqBand = 152.4f;
 
         [Tooltip("ALT CAP から ALT HOLD へ移る残高度 [m]")]
         public float altCaptureBand = 30.48f;
 
+        // GS 偏差は 1/x で感度が上がる幾何量で、_pitchCmd はその積分器になる。
+        // 旧 0.5 / 0.05 / 0.2 は 350 kt で発散した（最大 51°、定常振幅 29°）。
+        // 比例を下げ、微分を上げ、積分を小さくして 150–350 kt で安定させる。
+        // 定常 GS 偏差は ±0.1° 以内、捕捉中の最大偏差は 0.45° 以内。
         [Tooltip("GS 誤差の比例ゲイン [deg/deg/s]")]
-        public float gsGainP = 0.5f;
+        public float gsGainP = 0.25f;
 
+        // 0.05 は水平飛行からパスへ入る間の積分が巻き上がり、定常偏差を残す。
+        // 0.001 でオフセットを消しつつ、捕捉時の振動を出さない。
         [Tooltip("GS 誤差の積分ゲイン")]
-        public float gsGainI = 0.05f;
+        public float gsGainI = 0.001f;
 
+        // GS 偏差の変化率に対する強い制動。gsRateTau で高周波を落としてから使う。
         [Tooltip("GS 偏差変化率のゲイン [deg/(deg/s)/s]")]
-        public float gsGainD = 0.2f;
+        public float gsGainD = 8f;
 
         [Tooltip("GS 偏差変化率の LPF 時定数 [s]")]
-        public float gsRateTau = 0.5f;
+        public float gsRateTau = 0.3f;
 
         [Tooltip("GS 捕捉の偏差 [deg]")]
         public float gsCaptureDeg = 0.108f;

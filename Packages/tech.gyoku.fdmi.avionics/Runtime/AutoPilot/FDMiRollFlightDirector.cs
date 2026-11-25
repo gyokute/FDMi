@@ -87,8 +87,10 @@ namespace FDMi.avionics
         public FDMiFloat rollDelta;
 
         [Header("誘導則")]
+        // 2 では 350 kt の旋回率が足りず、方位捕捉が遅れる。4 で
+        // 150–350 kt の 30°/90° 捕捉が、オーバーシュート 3° 以内で整定する。
         [Tooltip("方位誤差→バンクのゲイン [deg/deg]")]
-        public float hdgGain = 2f;
+        public float hdgGain = 4f;
 
         [Tooltip("通常のバンク上限 [deg]")]
         public float bankMax = 25f;
@@ -96,8 +98,10 @@ namespace FDMi.avionics
         [Tooltip("capture 中のバンク上限 [deg]")]
         public float bankMaxCapture = 30f;
 
+        // 3 では 350 kt の LOC 捕捉後に 2° の定常偏差が残る。5 で
+        // 150–350 kt の捕捉後偏差が 1° 未満になる。
         [Tooltip("偏差→方位のゲイン [deg/deg]")]
-        public float locGainP = 3f;
+        public float locGainP = 5f;
 
         [Tooltip("偏差変化率→方位のゲイン [deg/(deg/s)]")]
         public float locGainD = 0.5f;

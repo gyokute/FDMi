@@ -1790,7 +1790,8 @@ MonoBehaviour:
       Data: 95|UnityEngine.TooltipAttribute, UnityEngine.CoreModule
     - Name: tooltip
       Entry: 1
-      Data: "VS \u304B\u3089 ALT CAP \u3078\u79FB\u308B\u6B8B\u9AD8\u5EA6 [m]"
+      Data: "VS \u304B\u3089 ALT CAP \u3078\u79FB\u308B\u6B8B\u9AD8\u5EA6 [m]\u3002500
+        ft"
     - Name: 
       Entry: 8
       Data: 

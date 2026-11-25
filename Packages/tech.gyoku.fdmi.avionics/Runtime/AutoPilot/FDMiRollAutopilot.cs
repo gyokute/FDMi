@@ -7,7 +7,8 @@ namespace FDMi.avionics
     // ロール軸の追従則。FD のロール差分に比例する補正へ、ロールレートの制動と
     // レート積分を足し、操縦軸へ書く。
     // 追従則は correction = clamp(kp·Delta + rateCum - kd·q, ±1)。式と rateCum の
-    // 扱いはピッチと同じ（ADR-0033）。
+    // 扱いはピッチと同じ（ADR-0033）。ただしロールはトリムが無く、CMD と CWS で
+    // 必要な rateCum 権威が違うため、上限を CMD 0.2 / CWS 0.5 に分ける（ADR-0038）。
     // ロールには実機のトリムが無いため、ピッチのようなトリムレートは持たない。
     // CMD は kp·Delta を足し、CWS は Delta を 0 として rateCum とレート制動だけで
     // バンクを保持する。保持基準は rateCum を最後にリセットした時点（解除時）の姿勢で、
@@ -68,10 +69,18 @@ namespace FDMi.avionics
         public float kd = 0.1f;
 
         [Tooltip("補正出力の変化速度 [1/s]")]
-        public float rateLimit = 2f;
+        public float rateLimit = 1f;
 
-        [Tooltip("ロールレート累積項の制限値（無次元）")]
-        public float rateCumLimit = 0.2f;
+        // CMD では rateCum が大きいと旋回中に風袋が残り、FD のバンク指令を
+        // 押し戻して機首方位の整定が遅れる。0.175 で 150–350 kt の最終方位偏差が
+        // 最大 0.35°、尾部の振動 0.0001° 以下。0.2 では 350 kt で 0.43° 残る。
+        [Tooltip("CMD のロールレート累積項の制限値（無次元）")]
+        public float rateCumLimit = 0.175f;
+
+        // CWS は定常モーメントを rateCum だけで保持する。0.2 では 150 kt の
+        // ±5 deg/s 相当のバイアスでバンクが 160° ドリフトする。0.5 で保持できる。
+        [Tooltip("CWS のロールレート累積項の制限値（無次元）")]
+        public float rateCumLimitCws = 0.5f;
 
         [Tooltip("ロールレートの LPF 時定数 [s]")]
         public float rateTau = 0.3f;
@@ -119,7 +128,8 @@ namespace FDMi.avionics
             float rawRate = (rollNow - _prevRoll) / dt;
             _rollRate += (rawRate - _rollRate) * (dt / (rateTau + dt));
             _prevRoll = rollNow;
-            _rollRateCum = Mathf.Clamp(_rollRateCum - _rollRate * kiRate * dt, -rateCumLimit, rateCumLimit);
+            float cumLimit = (sw == 2) ? rateCumLimit : rateCumLimitCws;
+            _rollRateCum = Mathf.Clamp(_rollRateCum - _rollRate * kiRate * dt, -cumLimit, cumLimit);
 
             _holding = Mathf.Abs(yoke) > (_holding ? cwsReleaseThreshold : cwsForceThreshold);
 
